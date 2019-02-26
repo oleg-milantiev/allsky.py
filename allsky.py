@@ -12,14 +12,10 @@ from PIL import Image
 import cv2
 from datetime import datetime
 
+import config
 
-ccdName = "ZWO CCD ASI120MC"
 binning  = 1
 exposure = 0.01 # init exposure
-avgMin   = 55.
-avgMax   = 150.
-expMin   = 0.001
-expMax   = 45.
 logging.basicConfig(filename='/var/log/allsky.log',level=logging.DEBUG)
 
 minute   = datetime.now().strftime("%Y-%m-%d_%H-%M")
@@ -49,7 +45,7 @@ class IndiClient(PyIndi.BaseClient):
 
 		logging.info('Получил кадр выдержкой {} сек. со средним {}'.format(exposure, avg))
 
-		if (avg > avgMin and avg < avgMax) or ( (exposure == expMin) and (avg > avgMin) ) or ( (exposure == expMax) and (avg < avgMax) ):
+		if (avg > config.ccd['avgMin'] and avg < config.ccd['avgMax']) or ( (exposure == config.ccd['expMin']) and (avg > config.ccd['avgMin']) ) or ( (exposure == config.ccd['expMax']) and (avg < config.ccd['avgMax']) ):
 			# запись
 			rgb = cv2.cvtColor(hdu.data, cv2.COLOR_BayerGB2BGR)
 			img = Image.fromarray(rgb, 'RGB')
@@ -78,17 +74,17 @@ class IndiClient(PyIndi.BaseClient):
 		else:
 			# подбор выдержки
 			if avg > 250:
-				exposure = expMin
+				exposure = config.ccd['expMin']
 			else:
-				if avg > avgMax:
+				if avg > config.ccd['avgMax']:
 					exposure /= 1.1
 				else:
 					exposure *= 1.1
 
-				if exposure < expMin:
-					exposure = expMin
-				if exposure > expMax:
-					exposure = expMax
+				if exposure < config.ccd['expMin']:
+					exposure = config.ccd['expMin']
+				if exposure > config.ccd['expMax']:
+					exposure = config.ccd['expMax']
 
 		global ccd_exposure
 
@@ -122,10 +118,10 @@ if (not(indiclient.connectServer())):
 
 logging.debug('INDI нашёл')
 
-ccd = indiclient.getDevice(ccdName)
+ccd = indiclient.getDevice(config.ccd['name'])
 while not(ccd):
 	time.sleep(0.5)
-	ccd = indiclient.getDevice(ccdName)
+	ccd = indiclient.getDevice(config.ccd['name'])
 
 logging.debug('CCD нашёл')
 
@@ -182,16 +178,7 @@ indiclient.sendNewNumber(ccd_exposure)
 
 logging.info('EXPOSURE отправил')
 
-# we should inform the indi server that we want to receive the
-# "CCD1" blob from this device
-indiclient.setBLOBMode(PyIndi.B_ALSO, ccdName, "CCD1")
-
-#ccd_ccd1 = ccd.getBLOB("CCD1")
-#while not(ccd_ccd1):
-#	time.sleep(0.5)
-#	ccd_ccd1 = ccd.getBLOB("CCD1")
-#
-#print("BLOB нашёл")
+indiclient.setBLOBMode(PyIndi.B_ALSO, config.ccd['name'], "CCD1")
 
 while ccd:
 	time.sleep(10)
