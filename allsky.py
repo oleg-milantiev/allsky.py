@@ -6,19 +6,20 @@ import sys
 import numpy as np
 import io
 import os
+import re
 import logging
 from astropy.io import fits
 from PIL import Image
 import cv2
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import config
 
 binning  = 1
 exposure = 0.01 # init exposure
-logging.basicConfig(filename='/var/log/allsky.log',level=logging.DEBUG)
+logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
-minute   = datetime.now().strftime("%Y-%m-%d_%H-%M")
+minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
 class IndiClient(PyIndi.BaseClient):
 	device = None
@@ -56,12 +57,26 @@ class IndiClient(PyIndi.BaseClient):
 
 			global minute
 
-			img.save('/var/www/html/snap/'+ minute +'.jpg')
+			img.save(config.path['snap'] + minute +'.jpg')
 			logging.info('Файл '+ minute +' записан. Жду следующей минуты')
 			
-			if os.path.exists('/var/www/html/current.jpg'):
-				os.remove('/var/www/html/current.jpg')
-			os.symlink('/var/www/html/snap/'+ minute +'.jpg', '/var/www/html/current.jpg')
+			if os.path.exists(config.path['web'] +'current.jpg'):
+				os.remove(config.path['web'] +'current.jpg')
+			os.symlink(config.path['snap'] + minute +'.jpg', config.path['web'] +'current.jpg')
+
+			# удаление старых жпегов
+			old = datetime.now() - timedelta(config.archive['days'])
+
+			for f in os.listdir(config.path['snap']):
+				if os.path.isfile(config.path['snap'] + f):
+					result = re.match(r'(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2}).jpg', f)
+
+					if result:
+						date = datetime(int(result.group(1)), int(result.group(2)), int(result.group(3)), int(result.group(4)), int(result.group(5)))
+
+						if date < old:
+							logging.debug('Файл '+ f +' удалён')
+							os.remove(config.path['snap'] + f)
 
 			while True:
 				now = datetime.now().strftime("%Y-%m-%d_%H-%M")
