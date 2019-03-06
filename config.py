@@ -12,7 +12,8 @@ archive = {
 }
 
 path = {
-	'web':		'/var/www/html/'
+	'web':		'/var/www/html/',
+	'ffmpeg':	'/usr/bin/ffmpeg'
 }
 
 import logging
@@ -29,3 +30,4 @@ if (path['web'][-1] != '/'):
 	path['web'] += '/'
 
 path['snap'] = path['web'] +'snap/'
+path['video'] = path['web'] +'video/'

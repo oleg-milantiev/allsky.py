@@ -1,0 +1,3 @@
+# добавить к /etc/crontab
+
+01 12 * * * nginx /root/allsky.py/mp4.day.py
