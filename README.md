@@ -34,6 +34,7 @@
 
 Использую INDI, хоть не все его любят. Потому как это правильно - использовать абстракцию для общения с любой камерой
 
+*ЧЕРНОВИК*
 @todo подробно опишу при следующем развёртывании
 1. armbian, ssh, passwd, ...
 
@@ -54,3 +55,12 @@ systemctl start supervisor
 4. модули к питону 3
 apt-get install python3-pip python3-dev swig libnova-dev libatlas-base-dev imagemagick dcraw libwebp6 libjasper1 python3-gst-1.0 libqtgui4 libqt4-test
 python3 -m pip install setuptools numpy pyindi-client astropy opencv-python
+
+5. корректная timezone
+apt install git dialog
+git clone https://github.com/armbian/config.git
+debian-config <--- timezone на МСК
+systemctl restart apache2
+
+cp -r /root/allsky/var-www-html/* /var/www/html
+rm -f /var/www/html/index.html
