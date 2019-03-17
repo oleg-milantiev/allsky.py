@@ -47,7 +47,7 @@ apt update
 apt upgrade
 
 apt install mc supervisor
-apt install fontconfig-config fonts-dejavu-core libcairo2 libcfitsio5 libfontconfig1 libfreetype6 libgsl2 libjpeg62-turbo libnova-0.16-0 libogg0 libpixman-1-0 libtheora0 libusb-1.0-0-dev libx11-6 libx11-data libxau6 libxcb-render0 libxcb-shm0 libxcb1 libxdmcp6 libxext6 libxrender1 python3-pip python3-dev python3-setuptools libopencv-dev swig libnova-dev libcfitsio-dev
+apt install fontconfig-config fonts-dejavu-core libcairo2 libcfitsio5 libfontconfig1 libfreetype6 libgsl2 libjpeg62-turbo libnova-0.16-0 libogg0 libpixman-1-0 libtheora0 libusb-1.0-0-dev libx11-6 libx11-data libxau6 libxcb-render0 libxcb-shm0 libxcb1 libxdmcp6 libxext6 libxrender1 python3-pip python3-dev python3-setuptools libopencv-dev swig libnova-dev libcfitsio-dev mariadb-server php-mysql
 
 3. Скачать и установить INDI сервер и драйвер камеры
 cd /root
@@ -74,8 +74,14 @@ cp /root/allsky.py/supervisor.conf/* /etc/supervisor/conf.d/
 systemctl enable supervisor
 systemctl start supervisor
 
+7. Запустить Apache, MySQL и создать структуру базы
+systemctl enable apache2
+systemctl start apache2
 
-
+systemctl enable mariadb
+systemctl start mariadb
+mysqladmin password master
+mysql -pmaster < /root/allsky.py/db.sql
 ----
 
 
