@@ -1,5 +1,52 @@
 <!doctype html>
 <?php
+session_start();
+
+// @todo доступ к базе в конфиг
+$dbh = new PDO('mysql:dbname=allsky;host=localhost', 'root', 'master');
+
+if (isset($_GET['action'])) {
+	switch ($_GET['action']) {
+		case 'logout':
+			unset($_SESSION['user']);
+			break;
+	}
+	
+	header('Location: /?time='. time());
+}
+
+if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
+	switch ($_POST['action']) {
+		case 'login':
+			if (
+				!isset($_POST['email']) or
+				!isset($_POST['password']) or
+				!$_POST['email'] or
+				!$_POST['password']
+			) {
+				break;
+			}
+		
+			$sth = $dbh->prepare('select * from user where email = :email and password = :password');
+			
+			$sth->execute([
+				'email'    => $_POST['email'],
+				'password' => $_POST['password'],
+			]);
+			
+			$user = $sth->fetch(PDO::FETCH_ASSOC);
+			
+			if (!isset($user['id'])) {
+				break;
+			}
+			
+			$_SESSION['user'] = $user;
+			break;
+	}
+
+	header('Location: /?time='. time());
+}
+
 // @todo вынос в отдельный файл, общий с /root/allsky.py
 $config = [
 	'name' => 'Борис Кудрявцев',
@@ -7,6 +54,7 @@ $config = [
 
 $stat = stat('current.jpg');
 $date = date('d/m/Y H:i', $stat['ctime']);
+
 
 ?>
 <html lang="en">
@@ -45,14 +93,53 @@ $date = date('d/m/Y H:i', $stat['ctime']);
 	</head>
 	<body>
 		<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">AllSky - <?php echo $config['name']; ?></a>
+	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">AllSky - <?php echo $config['name']; ?></a>
 	<!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
+	
+	<?php if (isset($_SESSION['user'])):?>
+		<span class="text-info">Добро пожаловать, <?php echo $_SESSION['user']['name']?></span>
+	<?php endif;?>
+
 	<ul class="navbar-nav px-3">
 		<li class="nav-item text-nowrap">
-			<a class="nav-link" href="#" onclick="alert('Скоро!')">Вход</a>
+			<?php if (isset($_SESSION['user'])):?>
+				<a class="nav-link" href="?action=logout" >Выход</a>
+			<?php else:?>
+				<a class="nav-link" href="#" data-toggle="modal" data-target="#modal-login">Вход</a>
+			<?php endif;?>
 		</li>
 	</ul>
 </nav>
+
+<div class="modal" id="modal-login" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<form method="post">
+				<input type="hidden" name="action" value="login">
+				<div class="modal-header">
+					<h5 class="modal-title">Авторизация</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<label for="login-email">E-Mail</label>
+						<input id="login-email" type="text" name="email" class="form-control">
+					</div>
+					<div class="form-group">
+						<label for="login-password">Пароль</label>
+						<input id="login-password" type="password" name="password" class="form-control">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+					<button type="submit" class="btn btn-primary">Войти</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
 
 <div class="container-fluid">
 	<div class="row">
