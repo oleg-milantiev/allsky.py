@@ -39,42 +39,63 @@
 
 *Черновик черновика*
 1. armbian на Tinkerboard / S
-Первый вход root / 1234
-Предлагает создать пользователя. Лучше создать. Просто так не отстанет :)
+- Первый вход root / 1234
+- Предлагает создать пользователя. Лучше создать. Просто так не отстанет :)
 
 2. Обновить и установить нужные пакеты из армианной кучи
-apt update
-apt upgrade
+- apt update
+- apt upgrade
 
-apt install mc supervisor
-apt install fontconfig-config fonts-dejavu-core libcairo2 libcfitsio5 libfontconfig1 libfreetype6 libgsl2 libjpeg62-turbo libnova-0.16-0 libogg0 libpixman-1-0 libtheora0 libusb-1.0-0-dev libx11-6 libx11-data libxau6 libxcb-render0 libxcb-shm0 libxcb1 libxdmcp6 libxext6 libxrender1 python3-pip python3-dev python3-setuptools libopencv-dev swig libnova-dev libcfitsio-dev
+- apt install mc supervisor fontconfig-config fonts-dejavu-core libcairo2 libcfitsio5 libfontconfig1 libfreetype6 libgsl2 libjpeg62-turbo libnova-0.16-0 libogg0 libpixman-1-0 libtheora0 libusb-1.0-0-dev libx11-6 libx11-data libxau6 libxcb-render0 libxcb-shm0 libxcb1 libxdmcp6 libxext6 libxrender1 python3-pip python3-dev python3-setuptools libopencv-dev swig libnova-dev libcfitsio-dev mariadb-server php-mysql i2c-tools
 
 3. Скачать и установить INDI сервер и драйвер камеры
-cd /root
-mkdrir install
-cd install
-wget https://indilib.org/download/raspberry-pi/send/6-raspberry-pi/9-indi-library-for-raspberry-pi.html
-tar xzf 9-indi-library-for-raspberry-pi.html
-rm -f 9-indi-library-for-raspberry-pi.html
-cd libindi_1.7.4_rpi
-dpkg -i indi-bin_1.7.4_armhf.deb libindi-data_1.7.4_all.deb libindi-dev_1.7.4_armhf.deb libindi1_1.7.4_armhf.deb 
-(плюс ещё *deb для своей камеры)
-QHY: dpkg -i indi-qhy_1.8_armhf.deb libqhy_2.0.10_armhf.deb fxload_1.0_armhf.deb
+- cd /root
+- mkdrir install
+- cd install
+- wget https://indilib.org/download/raspberry-pi/send/6-raspberry-pi/9-indi-library-for-raspberry-pi.html
+- tar xzf 9-indi-library-for-raspberry-pi.html
+- rm -f 9-indi-library-for-raspberry-pi.html
+- cd libindi_1.7.4_rpi
+- dpkg -i indi-bin_1.7.4_armhf.deb libindi-data_1.7.4_all.deb libindi-dev_1.7.4_armhf.deb libindi1_1.7.4_armhf.deb 
+  - (плюс ещё *deb для своей камеры)
+  - QHY: dpkg -i indi-qhy_1.8_armhf.deb libqhy_2.0.10_armhf.deb fxload_1.0_armhf.deb
 
 4. Установить нужные для python модули (библиотеки)
-python3 -m pip install numpy pyindi-client astropy opencv-python
+- python3 -m pip install numpy pyindi-client astropy opencv-python
 
 5. Скачать код проекта
-cd /root
-git clone https://github.com/oleg-milantiev/allsky.py.git
-cd allsky.py
+- cd /root
+- git clone https://github.com/oleg-milantiev/allsky.py.git
+- cd allsky.py
 
 6. Запустить allsky.py демона под управлением супердемона! :)
-cp /root/allsky.py/supervisor.conf/* /etc/supervisor/conf.d/
-systemctl enable supervisor
-systemctl start supervisor
+- cp /root/allsky.py/supervisor.conf/* /etc/supervisor/conf.d/
+- systemctl enable supervisor
+- systemctl start supervisor
 
+7. Запустить Apache, MySQL и создать структуру базы
+- systemctl enable apache2
+- systemctl start apache2
 
+- systemctl enable mariadb
+- systemctl start mariadb
+- mysqladmin password master
+- mysql -pmaster < /root/allsky.py/db.sql
+
+8. Запустить INDI-сервер камеры.
+- cp /root/allsky.py/etc/init.d/indi /etc/init.d/
+- ln -s /etc/init.d/indi /etc/rc3.d/S90indi
+
+- отредактировать /etc/init.d/indi - вписать название драйвера своей камеры в 11 строку. Пример строки:
+  - для ZWO: SCRIPT="indiserver -v indi_asi_ccd"
+  - для QHY: SCRIPT="indiserver -v indi_qhy_ccd"
+
+- /etc/init.d/indi start
+
+9. Настройка BME280
+- cat /root/allsky.py/etc/modules >> /etc/modules
+- raspi-config , Interfacing Options, I2C, Enable
+- перезагрузка (reboot)
 
 ----
 
