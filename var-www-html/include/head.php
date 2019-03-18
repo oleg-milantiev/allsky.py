@@ -51,11 +51,6 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 $config = [
 	'name' => 'Борис Кудрявцев',
 ];
-
-$stat = stat('current.jpg');
-$date = date('d/m/Y H:i', $stat['ctime']);
-
-
 ?>
 <html lang="en">
 	<head>
@@ -69,8 +64,10 @@ $date = date('d/m/Y H:i', $stat['ctime']);
 		<link rel="canonical" href="https://getbootstrap.com/docs/4.3/examples/dashboard/">
 
 		<!-- Bootstrap core CSS -->
-	<link href="/css/bootstrap.min.css" rel="stylesheet">
+		<link href="/css/bootstrap.min.css" rel="stylesheet">
 
+		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+		<script>window.jQuery || document.write('<script src="/js/vendor/jquery-slim.min.js"><\/script>')</script>
 
 		<style>
 			.bd-placeholder-img {
