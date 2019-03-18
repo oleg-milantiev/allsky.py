@@ -82,6 +82,18 @@ systemctl enable mariadb
 systemctl start mariadb
 mysqladmin password master
 mysql -pmaster < /root/allsky.py/db.sql
+
+8. Запустить INDI-сервер камеры.
+cp /root/allsky.py/etc/init.d/indi /etc/init.d/
+ln -s /etc/init.d/indi /etc/rc3.d/S90indi
+
+отредактировать /etc/init.d/indi - вписать название драйвера своей камеры в 11 строку
+пример строки:
+для ZWO: SCRIPT="indiserver -v indi_asi_ccd"
+для QHY: SCRIPT="indiserver -v indi_qhy_ccd"
+
+/etc/init.d/indi start
+
 ----
 
 
