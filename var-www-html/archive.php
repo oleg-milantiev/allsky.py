@@ -60,7 +60,20 @@ $snapDir = scandir('/var/www/html/snap/', SCANDIR_SORT_DESCENDING);
 			update();
 		});
 		
-		
+		$(document).keydown(function(e) {
+			switch(e.which) {
+				case 37: // left
+					$('.btn.left').click();
+					break;
+
+				case 39: // right
+					$('.btn.right').click();
+					break;
+
+				default: return; // exit this handler for other keys
+			}
+			e.preventDefault(); // prevent the default action (scroll / move caret)
+		});
 	});
 
 	function update()
