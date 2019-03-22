@@ -4,6 +4,7 @@
 * Raspberry Pi 3 + Datyson t7c
 * Raspberry Pi 3 + ZWO ASI 178c
 * Orange Pi PC + Starlight Oculus
+* Tinkerboard / S + QHY5-II
 
 # Возможности
 ## Сейчас
@@ -37,7 +38,7 @@
 
 Использую INDI, хоть не все его любят. Потому как это правильно - использовать абстракцию для общения с любой камерой
 
-*Черновик черновика*
+*Черновик*
 1. armbian на Tinkerboard / S
 - Первый вход root / 1234
 - Предлагает создать пользователя. Лучше создать. Просто так не отстанет :)
@@ -46,7 +47,7 @@
 - apt update
 - apt upgrade
 
-- apt install mc supervisor fontconfig-config fonts-dejavu-core libcairo2 libcfitsio5 libfontconfig1 libfreetype6 libgsl2 libjpeg62-turbo libnova-0.16-0 libogg0 libpixman-1-0 libtheora0 libusb-1.0-0-dev libx11-6 libx11-data libxau6 libxcb-render0 libxcb-shm0 libxcb1 libxdmcp6 libxext6 libxrender1 python3-pip python3-dev python3-setuptools libopencv-dev swig libnova-dev libcfitsio-dev mariadb-server php-mysql i2c-tools
+- apt install mc supervisor fontconfig-config fonts-dejavu-core libcairo2 libcfitsio5 libfontconfig1 libfreetype6 libgsl2 libjpeg62-turbo libnova-0.16-0 libogg0 libpixman-1-0 libtheora0 libusb-1.0-0-dev libx11-6 libx11-data libxau6 libxcb-render0 libxcb-shm0 libxcb1 libxdmcp6 libxext6 libxrender1 python3-pip python3-dev python3-setuptools libopencv-dev swig libnova-dev libcfitsio-dev mariadb-server php-mysql i2c-tools python3-mysql.connector
 
 3. Скачать и установить INDI сервер и драйвер камеры
 - cd /root
@@ -76,6 +77,14 @@
 7. Запустить Apache, MySQL и создать структуру базы
 - systemctl enable apache2
 - systemctl start apache2
+- cp -r /root/allsky/var-www-html/* /var/www/html
+- rm -f /var/www/html/index.html
+
+- корректная timezone (armbian)
+  - apt install git dialog
+  - git clone https://github.com/armbian/config.git
+  - debian-config <--- timezone на МСК
+  - systemctl restart apache2
 
 - systemctl enable mariadb
 - systemctl start mariadb
@@ -94,23 +103,7 @@
 
 9. Настройка BME280
 - cat /root/allsky.py/etc/modules >> /etc/modules
+- cat /root/allsky.py/etc/crontab >> /etc/crontab
 - raspi-config , Interfacing Options, I2C, Enable
 - перезагрузка (reboot)
-
-----
-
-
-
-4. модули к питону 3
-apt-get install python3-pip python3-dev swig libnova-dev libatlas-base-dev imagemagick dcraw libwebp6 libjasper1 python3-gst-1.0 libqtgui4 libqt4-test
-python3 -m pip install setuptools numpy pyindi-client astropy opencv-python
-
-5. Скачать код проекта и скопировать конфиги из него
-5. корректная timezone
-apt install git dialog
-git clone https://github.com/armbian/config.git
-debian-config <--- timezone на МСК
-systemctl restart apache2
-
-cp -r /root/allsky/var-www-html/* /var/www/html
-rm -f /var/www/html/index.html
+- проверка i2cdetect -y 1 - должна показывать 76 или 77 в числе остальных прочерков
