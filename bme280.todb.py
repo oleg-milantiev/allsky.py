@@ -10,6 +10,8 @@ import mysql.connector
 db = mysql.connector.connect(host="localhost", user="root", passwd="master", database="allsky", charset='utf8')
 cursor = db.cursor()
 
+channel = 0
+
 
 port = 1
 address = 0x76
@@ -27,15 +29,15 @@ ts = int(time.time())
 
 cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-	"""%{"time":ts, "channel":0, "type": 'temperature', "val":data.temperature })
+	"""%{"time":ts, "channel":channel, "type": 'temperature', "val":data.temperature })
 
 cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-	"""%{"time":ts, "channel":0, "type": 'humidity', "val":data.humidity })
+	"""%{"time":ts, "channel":channel, "type": 'humidity', "val":data.humidity })
 
 cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-	"""%{"time":ts, "channel":0, "type": 'pressure', "val":data.pressure * 0.75 })
+	"""%{"time":ts, "channel":channel, "type": 'pressure', "val":data.pressure * 0.75 })
 
 db.commit()
 
