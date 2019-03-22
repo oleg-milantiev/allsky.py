@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 import config
 
-binning  = 1
+binning  = config.ccd['binning']
 exposure = 0.01 # init exposure
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
