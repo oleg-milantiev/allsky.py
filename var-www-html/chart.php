@@ -41,7 +41,7 @@ $labels = [];
 $data = [];
 
 
-$sth = $dbh->prepare('select date, val from sensor where channel = :channel and type = :type and date > :date order by date desc');
+$sth = $dbh->prepare('select date, val from sensor where channel = :channel and type = :type and date > :date order by date asc');
 
 $sth->execute([
 	'date'    => time() - $periodTime[$period],
