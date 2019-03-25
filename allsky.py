@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 import config
 
 binning  = config.ccd['binning']
-exposure = 0.01 # init exposure
+exposure = 1.0 # init exposure
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
@@ -48,7 +48,7 @@ class IndiClient(PyIndi.BaseClient):
 
 		if (avg > config.ccd['avgMin'] and avg < config.ccd['avgMax']) or ( (exposure == config.ccd['expMin']) and (avg > config.ccd['avgMin']) ) or ( (exposure == config.ccd['expMax']) and (avg < config.ccd['avgMax']) ):
 			# запись
-			rgb = cv2.cvtColor(hdu.data, cv2.COLOR_BayerGB2BGR)
+			rgb = cv2.cvtColor(hdu.data, config.ccd['cfa'])
 			img = Image.fromarray(rgb, 'RGB')
 #			if binning == 1:
 #				img = Image.fromarray(rgb, 'RGB')

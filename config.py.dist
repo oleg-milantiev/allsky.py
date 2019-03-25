@@ -3,7 +3,7 @@ import cv2
 ccd = {
 	'name':		'ZWO CCD ASI178MC',
 	'binning':	2,
-	'avgMin':	100,
+	'avgMin':	55,
 	'avgMax':	150,
 	'expMin':	0.0001,
 	'expMax':	45.,
