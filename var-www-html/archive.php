@@ -13,12 +13,12 @@ $snapDir = scandir('/var/www/html/snap/', SCANDIR_SORT_DESCENDING);
 <div class="row">
 	<div class="col-lg-12">
 		<ul class="nav nav-tabs">
-		<li class="nav-item">
-			<a class="nav-link active" href="#">Сегодня</a>
-		</li>
-		<li class="nav-item">
-			<a class="nav-link" href="video.php">Видео</a>
-		</li>
+			<li class="nav-item">
+				<a class="nav-link active" href="#">Сегодня</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="video.php">Видео</a>
+			</li>
 		</ul>
 	</div>
 </div>

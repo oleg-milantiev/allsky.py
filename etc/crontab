@@ -1,3 +1,4 @@
 # добавить к /etc/crontab
 
 01 12 * * * root /root/allsky.py/mp4.day.py
+* * * * * root /root/allsky.py/sensors.sh
