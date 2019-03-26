@@ -48,12 +48,12 @@ class IndiClient(PyIndi.BaseClient):
 
 		if (avg > config.ccd['avgMin'] and avg < config.ccd['avgMax']) or ( (exposure == config.ccd['expMin']) and (avg > config.ccd['avgMin']) ) or ( (exposure == config.ccd['expMax']) and (avg < config.ccd['avgMax']) ):
 			# запись
-			rgb = cv2.cvtColor(hdu.data, config.ccd['cfa'])
-			img = Image.fromarray(rgb, 'RGB')
-#			if binning == 1:
-#				img = Image.fromarray(rgb, 'RGB')
-#			else:
-#				img = Image.fromarray(hdu.data)
+
+			if 'cfa' in config.ccd:
+				rgb = cv2.cvtColor(hdu.data, config.ccd['cfa'])
+				img = Image.fromarray(rgb, 'RGB')
+			else:
+				img = Image.fromarray(hdu.data)
 
 			global minute
 
