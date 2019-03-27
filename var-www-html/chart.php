@@ -8,8 +8,10 @@ $types = [
 	'pressure'        => 'Давление',
 	'voltage'         => 'Напряжение',
 	'wind-speed'      => 'Скорость ветра',
-	'wind-direction'  => 'Направление ветра',
-	'sky-temperature' => 'Температура неба',
+	'wind-direction'  => 'Напр. ветра',
+	'sky-temperature' => 'Темп. неба',
+	'ccd-exposure'    => 'CCD выдержка',
+	'ccd-average'     => 'CCD среднее',
 ];
 
 $type = $_GET['type'];
@@ -74,7 +76,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 <br>
 <div class="">
 	<?php foreach ($types as $key => $name):?>
-		<div style="float: left; width: 170px">
+		<div style="float: left; width: 130px">
 			<a href="?type=<?php echo $key; ?>&period=<?php echo $period?>" class="btn btn-<?php echo ($key == $type) ? 'success' : 'info';?> btn-sm"><?php echo $name;?></a>
 		</div>
 	<?php endforeach;?>
@@ -83,7 +85,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 <br><br>
 <div class="">
 	<?php foreach ($periods as $key => $name):?>
-		<div style="float: left; width: 170px">
+		<div style="float: left; width: 130px">
 			<a href="?type=<?php echo $type; ?>&period=<?php echo $key?>" class="btn btn-<?php echo ($key == $period) ? 'success' : 'info';?> btn-sm"><?php echo $name;?></a>
 		</div>
 	<?php endforeach;?>

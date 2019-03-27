@@ -15,6 +15,12 @@ from datetime import datetime, timedelta
 
 import config
 
+import mysql.connector
+#@todo вынести в конфиг
+db = mysql.connector.connect(host="localhost", user="root", passwd="master", database="allsky", charset='utf8')
+cursor = db.cursor()
+
+
 binning  = config.ccd['binning']
 exposure = 1.0 # init exposure
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
@@ -59,7 +65,20 @@ class IndiClient(PyIndi.BaseClient):
 
 			img.save(config.path['snap'] + minute +'.jpg')
 			logging.info('Файл '+ minute +' записан. Жду следующей минуты')
-			
+
+			ts = int(time.time())
+			channel = 0 # мультикамеры
+
+			cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+				"""%{"time":ts, "channel":channel, "type": 'ccd-exposure', "val":exposure})
+
+			cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+				"""%{"time":ts, "channel":channel, "type": 'ccd-average', "val":avg})
+
+			db.commit()
+
 			if os.path.exists(config.path['web'] +'current.jpg'):
 				os.remove(config.path['web'] +'current.jpg')
 			os.symlink(config.path['snap'] + minute +'.jpg', config.path['web'] +'current.jpg')
@@ -92,7 +111,7 @@ class IndiClient(PyIndi.BaseClient):
 				exposure = config.ccd['expMin']
 			else:
 				if avg > config.ccd['avgMax']:
-					exposure /= 1.1
+					exposure /= 1.04
 				else:
 					exposure *= 1.1
 
