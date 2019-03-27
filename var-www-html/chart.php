@@ -99,11 +99,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
 /* globals Chart:false, feather:false */
 
-$(document).ready(function() {
-  // Graphs
-  var ctx = document.getElementById('myChart')
-  // eslint-disable-next-line no-unused-vars
-  var myChart = new Chart(ctx, {
+var chart = {
     type: 'line',
     data: {
       labels: <?php echo json_encode($labels); ?>,
@@ -127,7 +123,22 @@ $(document).ready(function() {
         display: false
       }
     }
-  })
+  };
+
+$(document).ready(function() {
+	var ctx = document.getElementById('myChart')
+
+	var myChart = new Chart(ctx, chart);
+
+	<?php if (in_array($type, ['ccd-exposure', 'ccd-average'])):?>
+		ctx.onclick = function(evt){
+			var activePoint = myChart.getElementAtEvent(evt);
+			
+			if (activePoint) {
+//				document.location.href = chart.data.labels[activePoint[0]._index];
+			}
+		};
+	<?php endif;?>
 });
 
 </script>
