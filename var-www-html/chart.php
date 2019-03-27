@@ -100,8 +100,6 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 /* globals Chart:false, feather:false */
 
 $(document).ready(function() {
-  feather.replace()
-
   // Graphs
   var ctx = document.getElementById('myChart')
   // eslint-disable-next-line no-unused-vars
