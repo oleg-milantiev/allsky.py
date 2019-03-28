@@ -19,6 +19,7 @@ if (count($videoDir)) {
 	<?php endif?>
 	<h1 class="h2 text-right">
 		Сейчас <span style="color: gray; font-size: 22px">(по состоянию на <?php echo date('d/m/Y H:i', $current['ctime']); ?>)</span>
+		<input type="checkbox" title="Автообновление" class="auto-refresh">
 	</h1>
 	<!--
 	<div class="btn-toolbar mb-2 mb-md-0">
@@ -40,5 +41,34 @@ if (count($videoDir)) {
 	</div>
 </div>
 
+<script>
+	var reloadTimer;
+
+	$(document).ready(function() {
+		$('input.auto-refresh').click(function() {
+			localStorage['auto-refresh'] = $(this).prop('checked');
+			
+			refreshIfNeeded();
+		});
+
+		$('input.auto-refresh').prop('checked', (localStorage['auto-refresh'] == 'true') );
+
+		refreshIfNeeded();
+	});
+	
+	function refreshIfNeeded()
+	{
+		if ($('input.auto-refresh').prop('checked')) {
+			reloadTimer = setTimeout(function() {
+				document.location.href = '?time='+ new Date().getTime();
+			}, 60000);
+		}
+		else {
+			if (reloadTimer) {
+				clearTimeout(reloadTimer);
+			}
+		}
+	}
+</script>
 
 <?php include 'include/tail.php'; ?>
