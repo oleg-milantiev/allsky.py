@@ -27,6 +27,30 @@ logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
+
+'''
+def normalize(arr):
+	"""
+	Linear normalization
+	http://en.wikipedia.org/wiki/Normalization_%28image_processing%29
+	"""
+	arr = arr.astype('float')
+	# Do not touch the alpha channel
+	for i in range(3):
+		minval = arr[...,i].min()
+		maxval = arr[...,i].max()
+		if minval != maxval:
+			arr[...,i] -= minval
+			arr[...,i] *= (255.0/(maxval-minval))
+	return arr
+
+def demo_normalize():
+    img = Image.open(FILENAME).convert('RGBA')
+    arr = np.array(img)
+    new_img = Image.fromarray(normalize(arr).astype('uint8'),'RGBA')
+    new_img.save('/tmp/normalized.png')
+'''
+
 class IndiClient(PyIndi.BaseClient):
 	device = None
 
@@ -54,6 +78,13 @@ class IndiClient(PyIndi.BaseClient):
 
 		if (avg > config.ccd['avgMin'] and avg < config.ccd['avgMax']) or ( (exposure == config.ccd['expMin']) and (avg > config.ccd['avgMin']) ) or ( (exposure == config.ccd['expMax']) and (avg < config.ccd['avgMax']) ):
 			# запись
+
+			#data = hdu.data.astype('float')
+			minval = hdu.data.min()
+			maxval = hdu.data.max()
+			if minval != maxval:
+				hdu.data -= minval
+				hdu.data *= int(255.0 / (maxval - minval))
 
 			if 'cfa' in config.ccd:
 				rgb = cv2.cvtColor(hdu.data, config.ccd['cfa'])
