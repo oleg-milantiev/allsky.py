@@ -47,7 +47,7 @@
 - apt update
 - apt upgrade
 
-- apt install mc supervisor fontconfig-config fonts-dejavu-core libcairo2 libcfitsio5 libfontconfig1 libfreetype6 libgsl2 libjpeg62-turbo libnova-0.16-0 libogg0 libpixman-1-0 libtheora0 libusb-1.0-0-dev libx11-6 libx11-data libxau6 libxcb-render0 libxcb-shm0 libxcb1 libxdmcp6 libxext6 libxrender1 python3-pip python3-dev python3-setuptools libopencv-dev swig libnova-dev libcfitsio-dev mariadb-server php-mysql i2c-tools python3-mysql.connector
+- apt install mc supervisor fontconfig-config fonts-dejavu-core libcairo2 libcfitsio5 libfontconfig1 libfreetype6 libgsl2 libjpeg62-turbo libnova-0.16-0 libogg0 libpixman-1-0 libtheora0 libusb-1.0-0-dev libx11-6 libx11-data libxau6 libxcb-render0 libxcb-shm0 libxcb1 libxdmcp6 libxext6 libxrender1 python3-pip python3-dev python3-setuptools libopencv-dev swig libnova-dev libcfitsio-dev mariadb-server php-mysql i2c-tools python3-mysql.connector python3-pil apache2
 
 3. Скачать и установить INDI сервер и драйвер камеры
 - cd /root
