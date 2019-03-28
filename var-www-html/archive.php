@@ -39,7 +39,7 @@ $date =
 			<button class="btn btn-lg btn-success left">&lt;</button>
 		</div>
 		<div class="col-lg-6 text-center">
-			<img class="snap" src="/snap/<?php echo $date ? $date : $snapDir[0]?>" style="width:90%"><br>
+			<img class="snap" src="/snap/<?php echo $date ? $date : $snapDir[0]?>" style="width:100%"><br>
 			<span class="snap"><?php echo $date ? $date : $snapDir[0]?></span>
 		</div>
 		<div class="col-lg-3 text-center">
@@ -64,9 +64,11 @@ $date =
 		$('.btn.right').click(function(e) {
 			e.preventDefault();
 
-			snap--;
+			if (snap > 0) {
+				snap--;
 
-			update();
+				update();
+			}
 		});
 
 		$(document).keydown(function(e) {
