@@ -14,14 +14,30 @@ $types = [
 	'ccd-average'     => 'CCD среднее',
 ];
 
+$typeExists = [];
+
+$sth = $dbh->prepare('select distinct type from sensor');
+$sth->execute();
+
+while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+	$typeExists[ $row['type'] ] = $row['type'];
+}
+
 $type = $_GET['type'];
 
 if (!isset($types[ $type ])) {
-	$type = array_keys($types)[0];
+	foreach ($types as $key => $val) {
+		if (isset($typeExists[$key])) {
+			$type = $key;
+
+			break;
+		}
+	}
+
+	if (!isset($types[ $type ])) {
+		echo 'Нет данных для построения графиков'; exit;
+	}
 }
-
-
-
 
 $periods = [
 	'hour'  => 'Час',
@@ -40,16 +56,6 @@ $period = $_GET['period'];
 if (!isset($periods[ $period ])) {
 	$period = array_keys($periods)[0];
 }
-
-$typeExists = [];
-
-$sth = $dbh->prepare('select distinct type from sensor');
-$sth->execute();
-
-while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-	$typeExists[ $row['type'] ] = $row['type'];
-}
-
 
 $periods = [
 	'hour'  => 'Час',
