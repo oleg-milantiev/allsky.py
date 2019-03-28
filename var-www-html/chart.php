@@ -21,6 +21,36 @@ if (!isset($types[ $type ])) {
 }
 
 
+
+
+$periods = [
+	'hour'  => 'Час',
+	'day'   => 'Сутки',
+	'week'  => 'Неделя',
+	'month' => 'Месяц',
+];
+$periodTime = [
+	'hour'  => 60 * 60,
+	'day'   => 60 * 60 * 24,
+	'week'  => 60 * 60 * 24 * 7,
+	'month' => 60 * 60 * 24 * 30,
+];
+$period = $_GET['period'];
+
+if (!isset($periods[ $period ])) {
+	$period = array_keys($periods)[0];
+}
+
+$typeExists = [];
+
+$sth = $dbh->prepare('select distinct type from sensor');
+$sth->execute();
+
+while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+	$typeExists[ $row['type'] ] = $row['type'];
+}
+
+
 $periods = [
 	'hour'  => 'Час',
 	'day'   => 'Сутки',
@@ -55,7 +85,6 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 	$labels[] = date('d.m.Y H:i', $row['date']);
 	$data[]   = $row['val'];
 }
-
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -76,9 +105,11 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 <br>
 <div class="">
 	<?php foreach ($types as $key => $name):?>
-		<div style="float: left; width: 130px">
-			<a href="?type=<?php echo $key; ?>&period=<?php echo $period?>" class="btn btn-<?php echo ($key == $type) ? 'success' : 'info';?> btn-sm"><?php echo $name;?></a>
-		</div>
+		<?php if (isset($typeExists[$key])):?>
+			<div style="float: left; width: 130px">
+				<a href="?type=<?php echo $key; ?>&period=<?php echo $period?>" class="btn btn-<?php echo ($key == $type) ? 'success' : 'info';?> btn-sm"><?php echo $name;?></a>
+			</div>
+		<?php endif;?>
 	<?php endforeach;?>
 </div>
 

@@ -25,3 +25,4 @@ create table sensor (
 	val double not null
 );
 alter table sensor add index channel_type_date (channel, type, date);
+alter table sensor add index type (type);
