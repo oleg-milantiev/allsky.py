@@ -95,35 +95,52 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
 <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
 
+<?php if (in_array($type, ['ccd-exposure', 'ccd-average'])):?>
+	<div>
+		Клик на точку ведёт в архив на показ кадра, сделанного в это время.
+	</div>
+	<div>
+		Примечение: ... конечно же, если кадр есть в архиве. Размер архива (в днях) задаётся в <a href="https://github.com/oleg-milantiev/allsky.py/wiki/config-file">config.py</a>
+	</div>
+<?php endif;?>
+
 <script>
 
 /* globals Chart:false, feather:false */
 
 var chart = {
-    type: 'line',
-    data: {
-      labels: <?php echo json_encode($labels); ?>,
-      datasets: [{
-        data: <?php echo json_encode($data); ?>,
-        backgroundColor: 'transparent',
-        borderColor: '#007bff',
-        borderWidth: 4,
-        pointBackgroundColor: '#007bff'
-      }]
-    },
-    options: {
-      scales: {
-        yAxes: [{
-          ticks: {
-            beginAtZero: false
-          }
-        }]
-      },
-      legend: {
-        display: false
-      }
-    }
-  };
+	type: 'line',
+	data: {
+		labels: <?php echo json_encode($labels); ?>,
+		datasets: [{
+			data: <?php echo json_encode($data); ?>,
+			backgroundColor: 'transparent',
+			borderColor: '#007bff',
+			borderWidth: 4,
+			pointBackgroundColor: '#007bff'
+		}]
+	},
+	options: {
+//		tooltips: {
+//			callbacks: {
+//				label: function(tooltipItem, data) {
+//					console.log(tooltipItem);
+//					console.log(data);
+//				}
+//			}
+//		},
+		scales: {
+			yAxes: [{
+				ticks: {
+					beginAtZero: false
+				}
+			}]
+		},
+		legend: {
+			display: false
+		}
+	}
+};
 
 $(document).ready(function() {
 	var ctx = document.getElementById('myChart')
@@ -135,7 +152,7 @@ $(document).ready(function() {
 			var activePoint = myChart.getElementAtEvent(evt);
 			
 			if (activePoint) {
-//				document.location.href = chart.data.labels[activePoint[0]._index];
+				window.open('/archive.php?date='+ chart.data.labels[activePoint[0]._index]);
 			}
 		};
 	<?php endif;?>
