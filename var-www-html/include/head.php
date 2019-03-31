@@ -88,9 +88,14 @@ $config = [
 		<!-- Custom styles for this template -->
 		<link href="/css/allsky.css" rel="stylesheet">
 	</head>
-	<body>
-		<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+
+
+<body>
+	<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
 	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">AllSky - <?php echo $config['name']; ?></a>
+	<div class="d-block d-md-none">
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent15" aria-controls="navbarSupportedContent15" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+	</div>
 	<!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
 	
 	<?php if (isset($_SESSION['user'])):?>
@@ -106,7 +111,32 @@ $config = [
 			<?php endif;?>
 		</li>
 	</ul>
+	
+	<div class="collapse p-0 navbar-collapse navbar navbar-dark bg-dark shadow" id="navbarSupportedContent15">
+		<ul class="navbar-nav mr-auto">
+			<li class="nav-item">
+				<a class="nav-link<?php if ($menu == 'current'): ?> active<?php endif; ?>" href="/">
+					<span data-feather="home"></span>
+					Сейчас <span class="sr-only">(current)</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link<?php if ($menu == 'archive'): ?> active<?php endif; ?>" href="/archive.php">
+					<span data-feather="layers"></span>
+					Архив
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link<?php if ($menu == 'chart'): ?> active<?php endif; ?>" href="/chart.php">
+					<span data-feather="bar-chart-2"></span>
+					Графики
+				</a>
+			</li>
+		</ul>
+	</div>
+
 </nav>
+
 
 <div class="modal" id="modal-login" tabindex="-1" role="dialog">
 	<div class="modal-dialog" role="document">
