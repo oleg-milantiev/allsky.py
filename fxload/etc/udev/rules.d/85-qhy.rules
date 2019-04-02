@@ -1,0 +1,64 @@
+# Udev rules for QHY CCD cameras
+# QHY2,  QHY5, QHY6 and QHY8
+# Clive Rogers.  2 May 2009
+# Andrew Stepanenko (Galaxy Master) 25 Sep 2011
+
+# Camera inserted.
+# Vendorid & Prodid: QHY VOTI
+
+ACTION!="add", GOTO="qhy_vidpid_end"
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", GOTO="qhy_vidpid_test"
+SUBSYSTEM!="usb_device", GOTO="qhy_vidpid_end"
+
+LABEL="qhy_vidpid_test"
+
+ATTRS{idVendor}=="1618", ATTRS{idProduct}=="0412", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/qhy2.HEX -D $env{DEVNAME}"
+ATTRS{idVendor}=="1856", ATTRS{idProduct}=="0011", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/QHY5.HEX -D $env{DEVNAME} -s /lib/firmware/qhy/QHY5LOADER.HEX"
+ATTRS{idVendor}=="1618", ATTRS{idProduct}=="0901", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/QHY5.HEX -D $env{DEVNAME} -s /lib/firmware/qhy/QHY5LOADER.HEX"
+ATTRS{idVendor}=="1618", ATTRS{idProduct}=="1002", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/QHY5.HEX -D $env{DEVNAME} -s /lib/firmware/qhy/QHY5LOADER.HEX"
+ATTRS{idVendor}=="0547", ATTRS{idProduct}=="1002", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/QHY5.HEX -D $env{DEVNAME} -s /lib/firmware/qhy/QHY5LOADER.HEX"
+ATTRS{idVendor}=="04b4", ATTRS{idProduct}=="8613", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/QHY5.HEX -D $env{DEVNAME} -s /lib/firmware/qhy/QHY5LOADER.HEX"
+ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="081a", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/QHY5.HEX -D $env{DEVNAME} -s /lib/firmware/qhy/QHY5LOADER.HEX"
+ATTRS{idVendor}=="1618", ATTRS{idProduct}=="0259", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/qhy6.HEX -D $env{DEVNAME}"
+#ATTRS{idVendor}=="1618", ATTRS{idProduct}=="0259", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/qhy6_old.HEX -D $env{DEVNAME}"
+ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="2980", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/qhy6pro.HEX -D $env{DEVNAME}"
+ATTRS{idVendor}=="1618", ATTRS{idProduct}=="6000", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/qhy8.HEX -D $env{DEVNAME}"
+ATTRS{idVendor}=="1618", ATTRS{idProduct}=="8300", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/qhy/qhy9.HEX -D $env{DEVNAME}"
+#ATTRS{idVendor}=="1618", ATTRS{idProduct}=="1100", RUN+="/sbin/fxload -t fx2 -I /etc/qhyccd/qhy11.HEX -D $env{DEVNAME}"
+
+
+LABEL="qhy_vidpid_end"
+
+# This is the ID presented once the firmware has been loaded.
+# idVendor and idProduct match Cypress FX2 USB chips.
+
+ACTION!="add", GOTO="qhy-rules-end"
+SUBSYSTEMS=="usb", GOTO="qhy-vipi"
+GOTO="qhy-rules-end"
+
+LABEL="qhy-vipi"
+
+#ATTRS{modalias}=="usb:v16c0p081e*",OWNER="root", GROUP="video", MODE="0666", SYMLINK+="QHY2"
+ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="081e*", OWNER="root", GROUP="video", MODE="0664", SYMLINK+="QHY2"
+
+#ATTRS{modalias}=="usb:v16c0p296d*",OWNER="root", GROUP="video", MODE="0666", SYMLINK+="QHY5"
+ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="296d*", OWNER="root", GROUP="video", MODE="0664", SYMLINK+="QHY5"
+
+##ATTRS{modalias}=="usb:v16c0p081d*",OWNER="root", GROUP="video", MODE="0666", SYMLINK+="QHY6"
+ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="081d*", OWNER="root", GROUP="video", MODE="0664", SYMLINK+="QHY6"
+
+#ATTRS{MODALIAS}=="usb:v1618p025a*",OWNER="root", GROUP="video", MODE="0666", SYMLINK+="QHY6"
+ATTRS{idVendor}=="1618", ATTRS{idProduct}=="025a*", OWNER="root", GROUP="video", MODE="0664", SYMLINK+="QHY6"
+
+#ATTRS{modalias}=="usb:v16c0p2981*",OWNER="root", GROUP="video", MODE="0666", SYMLINK+="QHY6pro"
+ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="2981*", OWNER="root", GROUP="video", MODE="0664", SYMLINK+="QHY6pro"
+
+#ATTRS{modalias}=="usb:v16c0p2972*",OWNER="root", GROUP="video", MODE="0666", SYMLINK+="QHY8"
+ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="2972*", OWNER="root", GROUP="video", MODE="0664", SYMLINK+="QHY8"
+
+#ATTRS{modalias}=="usb:v1618p8301*",OWNER="root", GROUP="video", MODE="0660", SYMLINK+="QHY9"
+ATTRS{idVendor}=="1618", ATTRS{idProduct}=="8301*", OWNER="root", GROUP="video", MODE="0664", SYMLINK+="QHY9"
+
+#ATTRS{modalias}=="usb:v1618p1100*",OWNER="root", GROUP="video", MODE="0660", SYMLINK+="QHY11"
+
+LABEL="qhy-rules-end"
