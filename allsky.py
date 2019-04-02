@@ -218,12 +218,12 @@ while not(ccd_exposure):
 
 logging.debug('EXPOSURE нашёл')
 
-ccd_temp = ccd.getNumber("CCD_TEMPERATURE")
-while not(ccd_temp):
-	time.sleep(0.5)
-	ccd_temp = ccd.getNumber("CCD_TEMPERATURE")
-
-logging.debug('TEMPERATURE нашёл')
+#ccd_temp = ccd.getNumber("CCD_TEMPERATURE")
+#while not(ccd_temp):
+#	time.sleep(0.5)
+#	ccd_temp = ccd.getNumber("CCD_TEMPERATURE")
+#
+#logging.debug('TEMPERATURE нашёл')
 
 ccd_binning = ccd.getNumber("CCD_BINNING")
 while not(ccd_binning):
