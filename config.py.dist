@@ -7,23 +7,28 @@ ccd = {
 	'avgMax':	150,
 	'expMin':	0.0001,
 	'expMax':	45.,
-	'cfa':		cv2.COLOR_BayerBG2RGB
+	'cfa':		cv2.COLOR_BayerBG2RGB,
 }
 
 archive = {
 	'days':		7, # Хранить архив жпегов 7 дней
 }
 
+video = {
+	'width':	320,
+	'height':	240,
+}
+
 path = {
 	'web':		'/var/www/html/',
-	'ffmpeg':	'/usr/bin/ffmpeg'
+	'ffmpeg':	'/usr/bin/ffmpeg',
 }
 
 import logging
 
 log = {
 	'path':		'/var/log/allsky.log',
-	'level':	logging.DEBUG
+	'level':	logging.DEBUG,
 }
 
 

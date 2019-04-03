@@ -29,7 +29,15 @@ for f in sorted(glob.glob(config.path['snap'] +'????-??-??_??-??.jpg')):
 			count += 1
 
 if count > 5:
-	os.system(config.path['ffmpeg'] + ' -f image2 -i '+ config.path['snap'] +'day-%06d.jpg -vf scale=320:240 '+ config.path['video'] + begin.strftime("%Y-%m-%d") +'-240p.mp4')
+	scale = '{}:{}'.format(config.video['width'], config.video['height'])
+
+	if 'cfa' in config.ccd:
+		options = '-vf scale='+ scale
+	else:
+		options = '-pix_fmt yuv420p -vf format=gray,scale='+ scale
+
+	os.system(config.path['ffmpeg'] + ' -f image2 -i '+ config.path['snap'] +'day-%06d.jpg '+ options +' '+ config.path['video'] + begin.strftime("%Y-%m-%d") +'-{}'.format(config.video['height']) +'p.mp4')
+
 
 for f in glob.glob(config.path['snap'] +'day-*.jpg'):
 	os.remove(f)
