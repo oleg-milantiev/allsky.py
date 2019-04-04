@@ -132,6 +132,12 @@ $config = [
 					Графики
 				</a>
 			</li>
+			<li class="nav-item">
+				<a class="nav-link<?php if ($menu == 'relay'): ?> active<?php endif; ?>" href="/relay.php">
+					<span data-feather="power"></span>
+					Реле
+				</a>
+			</li>
 		</ul>
 	</div>
 
@@ -189,6 +195,12 @@ $config = [
 						<a class="nav-link<?php if ($menu == 'chart'): ?> active<?php endif; ?>" href="/chart.php">
 							<span data-feather="bar-chart-2"></span>
 							Графики
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link<?php if ($menu == 'relay'): ?> active<?php endif; ?>" href="/relay.php">
+							<span data-feather="power"></span>
+							Реле
 						</a>
 					</li>
 				</ul>
