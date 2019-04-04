@@ -132,12 +132,14 @@ $config = [
 					Графики
 				</a>
 			</li>
-			<li class="nav-item">
-				<a class="nav-link<?php if ($menu == 'relay'): ?> active<?php endif; ?>" href="/relay.php">
-					<span data-feather="power"></span>
-					Реле
-				</a>
-			</li>
+			<?php if (isset($_SESSION['user'])):?>
+				<li class="nav-item">
+					<a class="nav-link<?php if ($menu == 'relay'): ?> active<?php endif; ?>" href="/relay.php">
+						<span data-feather="power"></span>
+						Реле
+					</a>
+				</li>
+			<?php endif; ?>
 		</ul>
 	</div>
 
@@ -197,12 +199,14 @@ $config = [
 							Графики
 						</a>
 					</li>
-					<li class="nav-item">
-						<a class="nav-link<?php if ($menu == 'relay'): ?> active<?php endif; ?>" href="/relay.php">
-							<span data-feather="power"></span>
-							Реле
-						</a>
-					</li>
+					<?php if (isset($_SESSION['user'])):?>
+						<li class="nav-item">
+							<a class="nav-link<?php if ($menu == 'relay'): ?> active<?php endif; ?>" href="/relay.php">
+								<span data-feather="power"></span>
+								Реле
+							</a>
+						</li>
+					<?php endif; ?>
 				</ul>
 
 <!--				<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
