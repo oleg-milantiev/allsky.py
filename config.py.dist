@@ -20,6 +20,25 @@ video = {
 	'height':	240,
 }
 
+relay = [
+	{
+		'name':		'Реле 1',
+		'file':		'/sys/class/gpio/gpio22/value', # Raspberry Pi Raspbian / Orange Pi Armbian
+	},
+	{
+		'name':		'Реле 2',
+		'file':		'/sys/class/gpio_sw/PA7/data', # Orange Pi Fedora
+	},
+	{
+		'name':		'Реле 3',
+		'file':		'/sys/class/gpio/gpio20/value',
+	},
+	{
+		'name':		'Реле 4',
+		'file':		'/sys/class/gpio/gpio22/value',
+	},
+]
+
 path = {
 	'web':		'/var/www/html/',
 	'ffmpeg':	'/usr/bin/ffmpeg',
