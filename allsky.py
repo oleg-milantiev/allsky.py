@@ -10,7 +10,7 @@ import re
 import logging
 from astropy.io import fits
 from PIL import Image
-import cv2
+#import cv2
 from datetime import datetime, timedelta
 
 import config
@@ -84,7 +84,7 @@ class IndiClient(PyIndi.BaseClient):
 			maxval = hdu.data.max()
 			if minval != maxval:
 				hdu.data -= minval
-				hdu.data *= int(255.0 / (maxval - minval))
+				hdu.data *= int((255.0 if config.ccd['bits'] == 8 else 65535.0) / (maxval - minval))
 
 			if 'cfa' in config.ccd:
 				rgb = cv2.cvtColor(hdu.data, config.ccd['cfa'])
@@ -138,11 +138,11 @@ class IndiClient(PyIndi.BaseClient):
 
 		else:
 			# подбор выдержки
-			if avg > 250:
+			if avg > (255.0 if config.ccd['bits'] == 8 else 65500.0):
 				exposure = config.ccd['expMin']
 			else:
 				if avg > config.ccd['avgMax']:
-					exposure /= 1.04
+					exposure /= 1.06
 				else:
 					exposure *= 1.1
 
