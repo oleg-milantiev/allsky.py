@@ -138,7 +138,7 @@ class IndiClient(PyIndi.BaseClient):
 
 		else:
 			# подбор выдержки
-			if avg > (255.0 if config.ccd['bits'] == 8 else 65500.0):
+			if avg > (250.0 if config.ccd['bits'] == 8 else 65000.0):
 				exposure = config.ccd['expMin']
 			else:
 				if avg > config.ccd['avgMax']:
