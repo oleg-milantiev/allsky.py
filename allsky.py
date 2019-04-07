@@ -85,10 +85,13 @@ class IndiClient(PyIndi.BaseClient):
 				hdu.data *= int((255.0 if config.ccd['bits'] == 8 else 65535.0) / (maxval - minval))
 
 			if 'cfa' in config.ccd:
-				rgb = cv2.cvtColor(hdu.data, config.ccd['cfa'])
+				rgb = cv2.cvtColor(
+					hdu.data if config.ccd['bits'] == 8 else (hdu.data/256).astype('uint8'),
+					config.ccd['cfa']
+				)
 				img = Image.fromarray(rgb, 'RGB')
 			else:
-				img = Image.fromarray(hdu.data)
+				img = Image.fromarray(hdu.data if config.ccd['bits'] == 8 else (hdu.data/256).astype('uint8') )
 
 			global minute
 
