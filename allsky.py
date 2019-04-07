@@ -140,9 +140,9 @@ class IndiClient(PyIndi.BaseClient):
 				exposure = config.ccd['expMin']
 			else:
 				if avg > config.ccd['avgMax']:
-					exposure /= 1.06
+					exposure /= 1.03318
 				else:
-					exposure *= 1.1
+					exposure *= 1.04321
 
 				if exposure < config.ccd['expMin']:
 					exposure = config.ccd['expMin']
