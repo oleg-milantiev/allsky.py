@@ -39,6 +39,13 @@ relay = [
 	},
 ]
 
+db = {
+	'host':		'localhost',
+	'user':		'root',
+	'passwd':	'master',
+	'database':	'allsky',
+}
+
 path = {
 	'web':		'/var/www/html/',
 	'ffmpeg':	'/usr/bin/ffmpeg',

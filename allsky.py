@@ -10,23 +10,21 @@ import re
 import logging
 from astropy.io import fits
 from PIL import Image
-#import cv2
+import cv2
 from datetime import datetime, timedelta
 
 import config
 
 import mysql.connector
-#@todo вынести в конфиг
-db = mysql.connector.connect(host="localhost", user="root", passwd="master", database="allsky", charset='utf8')
-cursor = db.cursor()
 
+db = mysql.connector.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'], database=config.db['database'], charset='utf8')
+cursor = db.cursor()
 
 binning  = config.ccd['binning']
 exposure = 1.0 # init exposure
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
-
 
 '''
 def normalize(arr):
