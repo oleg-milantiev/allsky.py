@@ -48,11 +48,40 @@ $date =
 	</div>
 </div>
 
+<div class="modal snap" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document" style="max-width: 1400px">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Фото из архива - <a href="#" target="_blank"></a></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <img src="" width="1350">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script>
 	var snapDir = <?php echo json_encode($snapDir); ?>;
 	var snap = <?php echo $date ? array_search($date, $snapDir) : 0; ?>;
 
 	$(document).ready(function() {
+		$('img.snap').click(function() {
+			$('.modal.snap .modal-body img').prop('src', $(this).prop('src'));
+			$('.modal.snap .modal-title a')
+				.prop('href', $(this).prop('src') )
+				.html( $(this).prop('src') );
+
+			$('.modal.snap').modal('show');
+		});
+
 		$('.btn.left').click(function(e) {
 			e.preventDefault();
 
