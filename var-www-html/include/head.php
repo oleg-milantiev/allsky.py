@@ -283,7 +283,7 @@ foreach (['temperature', 'humidity', 'pressure'] as $type) {
 									<a class="nav-link" href="#" title="Данные от <?php echo date('d.m.Y H:i', $sensor['date']); ?>">
 										<span data-feather="file-text"></span>
 										<?php echo $type ?>/<?php echo $channel ?>:
-										<?php echo $sensor['val']; ?>
+										<?php echo round($sensor['val'], 1); ?>
 									</a>
 								</li>
 							<?php endforeach; ?>
