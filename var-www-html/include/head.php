@@ -1,9 +1,12 @@
-<!doctype html>
 <?php
 session_start();
 
-// @todo доступ к базе в конфиг
-$dbh = new PDO('mysql:dbname=allsky;host=localhost', 'root', 'master');
+$config = json_decode(`/opt/allsky.py/config.json.py`, true);
+
+$dbh = new PDO(
+	'mysql:dbname='. $config['db']['database'] .';host='. $config['db']['host'],
+	$config['db']['user'],
+	$config['db']['passwd']);
 
 if (isset($_GET['action'])) {
 	switch ($_GET['action']) {
@@ -17,6 +20,37 @@ if (isset($_GET['action'])) {
 
 if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 	switch ($_POST['action']) {
+		case 'relay':
+			if (
+				!isset($_SESSION['user']) or
+				!isset($_POST['gpio']) or
+				!isset($_POST['state']) or
+				!strlen($_POST['gpio']) or
+				!strlen($_POST['state'])
+			) {
+				die('Страница недоступна');
+			}
+			
+			foreach ($config['relay'] as $relay) {
+				if ($relay['gpio'] == $_POST['gpio']) {
+					$file = '/sys/class/gpio/gpio'. $relay['gpio'] .'/value';
+					
+					file_put_contents(
+						$file,
+						$_POST['state'] ? '1' : '0'
+					);
+					
+					echo json_encode([
+						'status' => 200,
+						'gpio'   => $_POST['gpio'],
+						'state'  => trim(file_get_contents($file)),
+					]);
+					exit;
+				}
+			}
+			
+			die('Реле не найдено');
+
 		case 'login':
 			if (
 				!isset($_POST['email']) or
@@ -47,11 +81,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 	header('Location: /?time='. time());
 }
 
-// @todo вынос в отдельный файл, общий с /root/allsky.py
-$config = [
-	'name' => 'Борис Кудрявцев',
-];
-?>
+?><!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
@@ -66,8 +96,8 @@ $config = [
 		<!-- Bootstrap core CSS -->
 		<link href="/css/bootstrap.min.css" rel="stylesheet">
 
-		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-		<script>window.jQuery || document.write('<script src="/js/vendor/jquery-slim.min.js"><\/script>')</script>
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+		<script>window.jQuery || document.write('<script src="/js/vendor/jquery-3.3.1.min.js"><\/script>')</script>
 
 		<style>
 			.bd-placeholder-img {

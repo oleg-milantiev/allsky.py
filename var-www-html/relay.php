@@ -5,6 +5,12 @@
 if (!isset($_SESSION['user'])) {
 	die('Страница недоступна');
 }
+
+$relays = [];
+
+foreach ($config['relay'] as $relay) {
+	$relays[ $relay['gpio'] ] = intval(trim(file_get_contents('/sys/class/gpio/gpio'. $relay['gpio'] .'/value')));
+}
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -13,39 +19,22 @@ if (!isset($_SESSION['user'])) {
 </div>
 
 <p>
-	На странице можно управлять несколькими реле, подключенными к мини-компьютеру.
+	На странице можно управлять несколькими реле / мосфетами / ключами / .., подключенными к мини-компьютеру.
 </p>
 
 <div class="row">
-	<div class="col-lg-2 text-center">
-		<a href="#" class="btn btn-danger relay">
-			<span data-feather="power"></span>
-			Реле 1
-		</a>
-	</div>
-	<div class="col-lg-2 text-center">
-		<a href="#" class="btn btn-danger relay">
-			<span data-feather="power"></span>
-			Реле 2
-		</a>
-	</div>
-	<div class="col-lg-2 text-center">
-		<a href="#" class="btn btn-danger relay">
-			<span data-feather="power"></span>
-			Реле 3
-		</a>
-	</div>
-	<div class="col-lg-2 text-center">
-		<a href="#" class="btn btn-danger relay">
-			<span data-feather="power"></span>
-			Реле 4
-		</a>
-	</div>
+	<?php foreach ($config['relay'] as $relay): ?>
+		<div class="col-lg-2 text-center">
+			<a href="#" rel="<?php echo $relay['gpio']; ?>" class="btn btn-<?php echo $relays[ $relay['gpio'] ] ? 'success': 'danger'?> relay">
+				<span data-feather="power"></span>
+				<?php echo $relay['name']; ?>
+			</a>
+		</div>
+	<?php endforeach; ?>
 </div>
 
 <p style="padding-top: 50px">
-	Настройка реле в файле <a href="https://github.com/oleg-milantiev/allsky.py/blob/master/config.py.dist" target="_blank">/root/allsky.py/config.py</a>.<br>
-	Внимание: В данный момент раздел разрабатывается и предоставлен в демонстрационных целях.
+	Настройка реле в файле <a href="https://github.com/oleg-milantiev/allsky.py/blob/master/config.py.dist" target="_blank">/opt/allsky.py/config.py</a>.<br>
 </p>
 
 
@@ -54,7 +43,22 @@ if (!isset($_SESSION['user'])) {
 		$('a.relay').click(function(e){
 			e.preventDefault();
 			
-			alert('... скоро на экранах страны');
+			if (confirm(
+				'Вы уверены, что хотите '+
+				($(this).hasClass('btn-success') ? 'ВЫКЛЮЧИТЬ' : 'ВКЛЮЧИТЬ' ) +
+				' реле "'+ $(this).text().trim() +'"?'
+			)) {
+
+				$.post('', {
+					'action': 'relay',
+					'gpio':   $(this).attr('rel'),
+					'state':  $(this).hasClass('btn-success') ? 0 : 1
+				}, function(data){
+					
+					document.location.reload();
+					
+				}, 'json');
+			}
 		});
 	})
 </script>
