@@ -14,18 +14,19 @@ ccd = {
 }
 
 archive = {
-	'days':		7, # Хранить архив жпегов 7 дней
+	'days':		7,				# Хранить архив жпегов 7 дней
 }
 
 video = {
-	'width':	320,
-	'height':	240,
+	'width':	1024,
+	'height':	768,
+	'days':		30,				# Хранить 30 дней mp4
 }
 
 relay = [
 	{
 		'name':		'Реле 1',
-		'gpio':		'17',			# '/sys/class/gpio/gpio17/value',
+		'gpio':		'17',		# '/sys/class/gpio/gpio17/value',
 	},
 	{
 		'name':		'Реле 2',

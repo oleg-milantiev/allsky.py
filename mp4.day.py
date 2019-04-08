@@ -42,3 +42,17 @@ if count > 5:
 for f in glob.glob(config.path['snap'] +'day-*.jpg'):
 	os.remove(f)
 
+
+# удаление старых mp4
+old = datetime.now() - timedelta(config.video['days'])
+
+for f in os.listdir(config.path['video']):
+	if os.path.isfile(config.path['video'] + f):
+		result = re.match(r'(\d{4})-(\d{2})-(\d{2})-(\d+)p.mp4', f)
+
+		if result:
+			date = datetime(int(result.group(1)), int(result.group(2)), int(result.group(3)), 12, 0)
+
+			if date < old:
+				logging.debug('Файл '+ f +' удалён')
+				os.remove(config.path['video'] + f)
