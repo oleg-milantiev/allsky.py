@@ -1,5 +1,7 @@
 import cv2
 
+name = 'Борис Кудрявцев'
+
 ccd = {
 	'name':		'ZWO CCD ASI178MC',
 	'binning':	2,

@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 
-# basic script to test BME280 functionality
-
 import smbus2
 import bme280
 import time
 
+import config
 import mysql.connector
-db = mysql.connector.connect(host="localhost", user="root", passwd="master", database="allsky", charset='utf8')
+
+db = mysql.connector.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'], database=config.db['database'], charset='utf8')
 cursor = db.cursor()
 
 channel = 0
-
 
 port = 1
 address = 0x76
