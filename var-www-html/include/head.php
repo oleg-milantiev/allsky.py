@@ -100,6 +100,20 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 }
 
 
+$sensors = [];
+
+foreach (['temperature', 'humidity', 'pressure'] as $type) {
+	$sth = $dbh->prepare('select * from sensor where channel = 0 and type = :type order by date desc limit 1');
+	$sth->execute(['type' => $type]);
+
+	if ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+		$sensors[ $row['type'] ][ $row['channel'] ] = [
+			'date' => $row['date'],
+			'val'  => $row['val'],
+		];
+	}
+}
+
 ?><!doctype html>
 <html lang="en">
 	<head>
@@ -258,6 +272,25 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 					<?php endif; ?>
 				</ul>
 
+				<?php if (count($sensors)):?>
+					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+						<span>Сенсоры</span>
+					</h6>
+					<ul class="nav flex-column mb-2">
+						<?php foreach ($sensors as $type => $channels): ?>
+							<?php foreach ($channels as $channel => $sensor): ?>
+								<li class="nav-item">
+									<a class="nav-link" href="#" title="Данные от <?php echo date('d.m.Y H:i', $sensor['date']); ?>">
+										<span data-feather="file-text"></span>
+										<?php echo $type ?>/<?php echo $channel ?>:
+										<?php echo $sensor['val']; ?>
+									</a>
+								</li>
+							<?php endforeach; ?>
+						<?php endforeach; ?>
+					</ul>
+				<?php endif; ?>
+				
 				<?php if (isset($_SESSION['user'])):?>
 					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
 						<span>Недавние события</span>
