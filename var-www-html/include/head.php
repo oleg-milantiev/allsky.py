@@ -40,6 +40,14 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 						$_POST['state'] ? '1' : '0'
 					);
 					
+					$sth = $dbh->prepare('replace into relay (id, state, date) values (:id, :state, :date)');
+					
+					$sth->execute([
+						'id'    => $relay['name'],
+						'state' => $_POST['state'],
+						'date'  => time(),
+					]);
+					
 					echo json_encode([
 						'status' => 200,
 						'gpio'   => $_POST['gpio'],
@@ -80,6 +88,17 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 	header('Location: /?time='. time());
 }
+
+// @todo переделаю на общий лог событий потом
+$sth = $dbh->prepare('select * from relay order by date desc');
+$sth->execute();
+
+$log = [];
+
+while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+	$log[] = $row;
+}
+
 
 ?><!doctype html>
 <html lang="en">
@@ -239,38 +258,28 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					<?php endif; ?>
 				</ul>
 
-<!--				<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-					<span>Saved reports</span>
-					<a class="d-flex align-items-center text-muted" href="#">
-						<span data-feather="plus-circle"></span>
-					</a>
-				</h6>
-				<ul class="nav flex-column mb-2">
-					<li class="nav-item">
-						<a class="nav-link" href="#">
-							<span data-feather="file-text"></span>
-							Current month
-						</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#">
-							<span data-feather="file-text"></span>
-							Last quarter
-						</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#">
-							<span data-feather="file-text"></span>
-							Social engagement
-						</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#">
-							<span data-feather="file-text"></span>
-							Year-end sale
-						</a>
-					</li> -->
-				</ul>
+				<?php if (isset($_SESSION['user'])):?>
+					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+						<span>Недавние события</span>
+					</h6>
+					<ul class="nav flex-column mb-2">
+						<?php foreach ($log as $item): ?>
+							<li class="nav-item">
+								<a class="nav-link" href="#">
+									<span data-feather="file-text"></span>
+									Реле <?php echo $item['id']?> 
+									<?php if ($item['state']): ?>
+										<span class="bg-success">включено</span>
+									<?php else:?>
+										<span class="bg-danger">выключено</span>
+									<?php endif; ?>
+									в <?php echo date('d.m.Y H:i', $item['date']); ?>
+								</a>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				<?php endif; ?>
+				
 			</div>
 		</nav>
 
