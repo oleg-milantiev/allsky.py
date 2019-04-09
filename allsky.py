@@ -25,6 +25,7 @@ exposure = 1.0 # init exposure
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
+savedDate = None
 
 '''
 def normalize(arr):
@@ -97,6 +98,7 @@ class IndiClient(PyIndi.BaseClient):
 
 			img.save(config.path['snap'] + minute +'.jpg')
 			logging.info('Файл '+ minute +' записан. Жду следующей минуты')
+			savedDate = datetime.now()
 
 			ts = int(time.time())
 			channel = 0 # мультикамеры
@@ -128,6 +130,9 @@ class IndiClient(PyIndi.BaseClient):
 						if date < old:
 							logging.debug('Файл '+ f +' удалён')
 							os.remove(config.path['snap'] + f)
+
+			# @todo вынести всё сопутствующее в отдельный поток?
+			
 
 			while True:
 				now = datetime.now().strftime("%Y-%m-%d_%H-%M")
@@ -174,20 +179,20 @@ class IndiClient(PyIndi.BaseClient):
 	def serverDisconnected(self, code):
 		pass
 
-# connect the server
-indiclient = IndiClient()
-indiclient.setServer("localhost", 7624)
 
-if (not(indiclient.connectServer())):
+indi = IndiClient()
+indi.setServer("localhost", 7624)
+
+if (not(indi.connectServer())):
 	logging.warning('Не найден INDI-сервер камеры')
 	sys.exit(1)
 
 logging.debug('INDI нашёл')
 
-ccd = indiclient.getDevice(config.ccd['name'])
+ccd = indi.getDevice(config.ccd['name'])
 while not(ccd):
 	time.sleep(0.5)
-	ccd = indiclient.getDevice(config.ccd['name'])
+	ccd = indi.getDevice(config.ccd['name'])
 
 logging.debug('CCD нашёл')
 
@@ -201,7 +206,7 @@ logging.debug('CCD подключил')
 if not(ccd.isConnected()):
 	ccd_connect[0].s=PyIndi.ISS_ON  # the "CONNECT" switch
 	ccd_connect[1].s=PyIndi.ISS_OFF # the "DISCONNECT" switch
-	indiclient.sendNewSwitch(ccd_connect)
+	indi.sendNewSwitch(ccd_connect)
 
 #ccd_frame = ccd.getNumber("CCD_FRAME")
 #while not(ccd_frame):
@@ -235,16 +240,24 @@ logging.debug('BINNING нашёл')
 
 ccd_binning[0].value = binning
 ccd_binning[1].value = binning
-indiclient.sendNewNumber(ccd_binning)
+indi.sendNewNumber(ccd_binning)
 
 logging.info('BINNING {} отправил'.format(binning))
 
 ccd_exposure[0].value = exposure
-indiclient.sendNewNumber(ccd_exposure)
+indi.sendNewNumber(ccd_exposure)
 
 logging.info('EXPOSURE отправил')
 
-indiclient.setBLOBMode(PyIndi.B_ALSO, config.ccd['name'], "CCD1")
+indi.setBLOBMode(PyIndi.B_ALSO, config.ccd['name'], "CCD1")
+
+
 
 while ccd:
+	# watchdog не контролирует время начального подбора выдержки - оно может быть значительным
+	if (savedDate and (savedDate + timedelta(seconds=600)) < datetime.now()):
+		# а потом проверяет давно ли получен кадр
+		logging.error('Уже 10 минут камера не записывает кадры. Попытка рестарта allsky.py через supervisord')
+		sys.exit(1)
+
 	time.sleep(10)
