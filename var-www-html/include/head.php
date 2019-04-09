@@ -59,6 +59,27 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			
 			die('Реле не найдено');
 
+		case 'settings':
+			$sth = $dbh->prepare('select * from user order by name');
+			$sth->execute();
+
+			while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+				if (
+					isset($_POST['name'][ $row['id'] ]) and
+					isset($_POST['password'][ $row['id'] ])
+				) {
+					$sth2 = $dbh->prepare('update user set name = :name, password = :password where id = :id');
+					$sth2->execute([
+						'id'       => $row['id'],
+						'name'     => $_POST['name'][ $row['id'] ],
+						'password' => $_POST['password'][ $row['id'] ],
+					]);
+				}
+			}
+
+			header('Location: /settings.php?time='. time());
+			exit;
+
 		case 'login':
 			if (
 				!isset($_POST['email']) or
@@ -68,7 +89,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			) {
 				break;
 			}
-		
+
 			$sth = $dbh->prepare('select * from user where email = :email and password = :password');
 			
 			$sth->execute([
@@ -202,6 +223,12 @@ foreach (['temperature', 'humidity', 'pressure'] as $type) {
 						Реле
 					</a>
 				</li>
+				<li class="nav-item">
+					<a class="nav-link<?php if ($menu == 'settings'): ?> active<?php endif; ?>" href="/settings.php">
+						<span data-feather="settings"></span>
+						Настройки
+					</a>
+				</li>
 			<?php endif; ?>
 		</ul>
 	</div>
@@ -267,6 +294,12 @@ foreach (['temperature', 'humidity', 'pressure'] as $type) {
 							<a class="nav-link<?php if ($menu == 'relay'): ?> active<?php endif; ?>" href="/relay.php">
 								<span data-feather="power"></span>
 								Реле
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link<?php if ($menu == 'settings'): ?> active<?php endif; ?>" href="/settings.php">
+								<span data-feather="settings"></span>
+								Настройки
 							</a>
 						</li>
 					<?php endif; ?>
