@@ -189,25 +189,38 @@ if (not(indi.connectServer())):
 
 logging.debug('INDI нашёл')
 
+retries = 10
 ccd = indi.getDevice(config.ccd['name'])
 while not(ccd):
+	retries -= 1
+	if retries == 0:
+		logging.error('INDI завис, пробую перезапустить')
+		os.system('/etc/init.d/indi restart')
+		sys.exit(1)
 	time.sleep(0.5)
 	ccd = indi.getDevice(config.ccd['name'])
 
-logging.debug('CCD нашёл')
+logging.debug('CCD увидел в списке')
 
+retries = 10
 ccd_connect = ccd.getSwitch("CONNECTION")
 while not(ccd_connect):
+	retries -= 1
+	if retries == 0:
+		logging.error('Не получаю CONNECTION')
+		# @todo и что делать?
+		sys.exit(1)
 	time.sleep(0.5)
 	ccd_connect = ccd.getSwitch("CONNECTION")
 
-logging.debug('CCD подключил')
+logging.debug('CCD нашёл')
 
 if not(ccd.isConnected()):
 	ccd_connect[0].s=PyIndi.ISS_ON  # the "CONNECT" switch
 	ccd_connect[1].s=PyIndi.ISS_OFF # the "DISCONNECT" switch
 	indi.sendNewSwitch(ccd_connect)
 
+logging.debug('CCD подключил')
 #ccd_frame = ccd.getNumber("CCD_FRAME")
 #while not(ccd_frame):
 #	time.sleep(0.5)
@@ -217,8 +230,16 @@ if not(ccd.isConnected()):
 #height = int(ccd_frame[3].value)
 #print("Нашёл размер кадра: {}x{}".format(width, height))
 
+retries = 10
 ccd_exposure = ccd.getNumber("CCD_EXPOSURE")
 while not(ccd_exposure):
+	retries -= 1
+	if retries == 0:
+		logging.error('Похоже, камера зависла')
+		#lsusb -> bus 001, dev 005
+		#fxload -t fx2 -D /dev/bus/usb/001/005 -I /lib/firmware/qhy/QHY5LOADER.HEX -v
+		#os.system('reboot')
+		sys.exit(1)
 	time.sleep(0.5)
 	ccd_exposure = ccd.getNumber("CCD_EXPOSURE")
 
@@ -231,8 +252,13 @@ logging.debug('EXPOSURE нашёл')
 #
 #logging.debug('TEMPERATURE нашёл')
 
+retries = 10
 ccd_binning = ccd.getNumber("CCD_BINNING")
 while not(ccd_binning):
+	retries -= 1
+	if retries == 0:
+		logging.error('Не могу получить CCD_BINNING')
+		sys.exit(1)
 	time.sleep(0.5)
 	ccd_binning = ccd.getNumber("CCD_BINNING")
 
