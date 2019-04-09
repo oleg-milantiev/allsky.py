@@ -9,7 +9,7 @@ import os
 import re
 import logging
 from astropy.io import fits
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import cv2
 from datetime import datetime, timedelta
 
@@ -94,11 +94,25 @@ class IndiClient(PyIndi.BaseClient):
 			else:
 				img = Image.fromarray(hdu.data if config.ccd['bits'] == 8 else (hdu.data/256).astype('uint8') )
 
+			savedDate = datetime.now()
+
+			if config.timestamp:
+				txt = Image.new('RGBA', img.size, (255,255,255,0))
+				d = ImageDraw.Draw(txt)
+				
+				for line in config.timestamp:
+					fnt = ImageFont.truetype('sans-serif.ttf', line['size'])
+					d.text(
+						(line['x'], line['y']),
+						savedDate.strftime(line['format']),
+						font=fnt, fill=line['color'])
+
+				img = Image.alpha_composite(img.convert('RGBA'), txt).convert('RGB')
+
 			global minute
 
 			img.save(config.path['snap'] + minute +'.jpg')
 			logging.info('Файл '+ minute +' записан. Жду следующей минуты')
-			savedDate = datetime.now()
 
 			ts = int(time.time())
 			channel = 0 # мультикамеры
@@ -132,7 +146,6 @@ class IndiClient(PyIndi.BaseClient):
 							os.remove(config.path['snap'] + f)
 
 			# @todo вынести всё сопутствующее в отдельный поток?
-			
 
 			while True:
 				now = datetime.now().strftime("%Y-%m-%d_%H-%M")
