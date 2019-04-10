@@ -26,5 +26,5 @@ for relay in config.relay:
 	state = cursor.fetchone()
 
 	f = open('/sys/class/gpio/gpio{}/value'.format(relay['gpio']), 'wt')
-	f.write('{}'.format(state) if state else '0')
+	f.write('{}'.format(state['state']) if state else '0')
 	f.close()
