@@ -6,6 +6,8 @@ grant all privileges on allsky.* to root@localhost identified by 'master';
 create table config (
 	id varchar(100) not null primary key,
 	val text not null
+--	user_id int unsigned not null,
+--	date int unsigned not null
 );
 
 create table user (
