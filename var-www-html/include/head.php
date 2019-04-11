@@ -14,7 +14,7 @@ $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-	$config['web'][ $row['id'] ] = unserialize($row['val']);
+	$config['web'][ $row['id'] ] = json_decode($row['val'], true);
 }
 
 
@@ -82,7 +82,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
 			$sth->execute([
 				'id'  => 'hotPercent',
-				'val' => serialize(intval($_POST['hotPercent'])),
+				'val' => json_encode(intval($_POST['hotPercent'])),
 			]);
 
 			header('Location: /settings.php?time='. time());

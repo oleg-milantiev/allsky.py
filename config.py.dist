@@ -44,6 +44,7 @@ relay = [
 	{
 		'name':		'Реле 1',
 		'gpio':		'17',		# '/sys/class/gpio/gpio17/value',
+		'hotter':	'yes',		# это реле - обогрев подкупольного
 	},
 	{
 		'name':		'Реле 2',
