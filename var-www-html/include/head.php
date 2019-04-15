@@ -88,6 +88,26 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			header('Location: /settings.php?time='. time());
 			exit;
 
+		case 'video-demand':
+			if (
+				!isset($_SESSION['user'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('insert into video (job, work_queue, video_begin, video_end) values (:job, :work_queue, :video_begin, :video_end)');
+			$sth->execute([
+				'job'         => gearman,
+				'work_queue'  => time(),
+				'video_begin' => time() - 3600,
+				'video_end'   => time(),
+			]);
+
+			`/usr/bin/gearman -b -f video-demand 0`;
+
+			header('Location: /video-demand.php?time='. time());
+			exit;
+
 		case 'settings-users':
 			if (!isset($_SESSION['user'])) {
 				die('Страница недоступна');

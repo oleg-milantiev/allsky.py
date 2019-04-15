@@ -26,7 +26,10 @@ $date =
 				<a class="nav-link active" href="#">Сегодня</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" href="video.php">Видео</a>
+				<a class="nav-link" href="video-day.php">Видео за сутки</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="video-demand.php">Видео за час</a>
 			</li>
 		</ul>
 	</div>
