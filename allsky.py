@@ -294,7 +294,7 @@ indi.setBLOBMode(PyIndi.B_ALSO, config.ccd['name'], "CCD1")
 hotter = None
 
 for relay in config.relay:
-	if relay['hotter']:
+	if 'hotter' in relay:
 		import json
 
 		hotter = relay
