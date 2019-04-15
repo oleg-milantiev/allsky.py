@@ -20,8 +20,8 @@ for row in cursor:
 	cursor2.execute('update video set work_begin = {} where id = {}'.format(int(time.time()), row['id']))
 	db.commit()
 
-	begin = datetime.utcfromtimestamp( row['video_begin'] )
-	end   = datetime.utcfromtimestamp( row['video_end'] )
+	begin = datetime.utcfromtimestamp( row['video_begin'] + 3*3600 )
+	end   = datetime.utcfromtimestamp( row['video_end'] +3*3600 )
 	count = 1
 
 	for f in glob.glob(config.path['snap'] +'demand-*.jpg'):
