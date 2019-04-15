@@ -79,3 +79,4 @@ if (path['web'][-1] != '/'):
 
 path['snap'] = path['web'] +'snap/'
 path['video'] = path['web'] +'video/'
+path['video-demand'] = path['web'] +'video-demand/'

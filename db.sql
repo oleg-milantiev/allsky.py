@@ -34,3 +34,16 @@ create table relay (
 	state tinyint(1) not null,
 	date int unsigned not null
 );
+
+-- запросы на создание видео
+create table video (
+	id int unsigned auto_increment not null primary key,
+	job varchar(100) not null,
+	work_queue int unsigned not null,
+	work_begin int unsigned not null,
+	work_end int unsigned not null,
+	video_begin int unsigned not null,
+	video_end int unsigned not null,
+	frames int unsigned not null
+);
+
