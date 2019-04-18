@@ -2,7 +2,7 @@
 <?php include 'include/head.php'; ?>
 <?php
 
-$videoDir = scandir('/var/www/html/video/', SCANDIR_SORT_DESCENDING);
+$keoDir = scandir('/var/www/html/keogram/', SCANDIR_SORT_DESCENDING);
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -17,10 +17,10 @@ $videoDir = scandir('/var/www/html/video/', SCANDIR_SORT_DESCENDING);
 				<a class="nav-link" href="archive.php">Сегодня</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" href="keogram.php">Кеограммы</a>
+				<a class="nav-link active" href="#">Кеограммы</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link active" href="#">Видео</a>
+				<a class="nav-link" href="video-day.php">Видео</a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link" href="video-demand.php">Видео за час</a>
@@ -31,11 +31,11 @@ $videoDir = scandir('/var/www/html/video/', SCANDIR_SORT_DESCENDING);
 
 <div class="card">
 	<div class="card-body">
-		<h5 class="card-title">Список последних видео-файлов за сутки</h5>
+		<h5 class="card-title">Список последних кеограмм</h5>
 		<ul>
-			<?php foreach ($videoDir as $video):?>
-				<?php if (substr($video, -4) == '.mp4'):?>
-				<li><a href="/video/<?php echo $video?>" target="_blank"><?php echo $video?></a></li>
+			<?php foreach ($keoDir as $keo):?>
+				<?php if (substr($keo, -4) == '.jpg'):?>
+				<li><a href="/keogram/<?php echo $keo?>" target="_blank"><?php echo $keo?></a></li>
 				<?php endif;?>
 			<?php endforeach;?>
 		</ul>

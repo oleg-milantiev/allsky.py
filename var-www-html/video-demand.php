@@ -26,6 +26,9 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 				<a class="nav-link" href="archive.php">Сегодня</a>
 			</li>
 			<li class="nav-item">
+				<a class="nav-link" href="keogram.php">Кеограммы</a>
+			</li>
+			<li class="nav-item">
 				<a class="nav-link " href="video-day.php">Видео</a>
 			</li>
 			<li class="nav-item">

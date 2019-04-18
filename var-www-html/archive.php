@@ -26,6 +26,9 @@ $date =
 				<a class="nav-link active" href="#">Сегодня</a>
 			</li>
 			<li class="nav-item">
+				<a class="nav-link" href="keogram.php">Кеограммы</a>
+			</li>
+			<li class="nav-item">
 				<a class="nav-link" href="video-day.php">Видео за сутки</a>
 			</li>
 			<li class="nav-item">
