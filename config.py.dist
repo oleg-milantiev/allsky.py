@@ -83,5 +83,6 @@ if (path['web'][-1] != '/'):
 	path['web'] += '/'
 
 path['snap'] = path['web'] +'snap/'
+path['keogram'] = path['web'] +'keogram/'
 path['video'] = path['web'] +'video/'
 path['video-demand'] = path['web'] +'video-demand/'
