@@ -4,4 +4,7 @@
   compress
   missingok
   notifempty
+  postrotate
+    /usr/bin/supervisorctl restart all
+  endscript
 }
