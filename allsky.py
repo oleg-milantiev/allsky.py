@@ -290,6 +290,8 @@ logging.info('EXPOSURE отправил')
 
 indi.setBLOBMode(PyIndi.B_ALSO, config.ccd['name'], "CCD1")
 
+logging.info('setBLOB отправил')
+
 
 hotter = None
 
@@ -299,6 +301,7 @@ for relay in config.relay:
 
 		hotter = relay
 		hotter['stage'] = 0
+		hotter['state'] = 0
 		break
 
 def hotterRelay(state):
