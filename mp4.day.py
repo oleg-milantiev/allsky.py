@@ -24,9 +24,14 @@ for f in sorted(glob.glob(config.path['snap'] +'????-??-??_??-??.jpg')):
 	if result:
 		date = datetime(int(result.group(1)), int(result.group(2)), int(result.group(3)), int(result.group(4)), int(result.group(5)))
 
-		if date >= begin and date <= end:
-			os.symlink(f, config.path['snap'] +'day-'+ "%06d" % count +'.jpg')
-			count += 1
+		stat = os.stat(f)
+		if stat.st_size == 0:
+			os.remove(f)
+
+		else:
+			if date >= begin and date <= end:
+				os.symlink(f, config.path['snap'] +'day-'+ "%06d" % count +'.jpg')
+				count += 1
 
 if count > 5:
 	scale = '{}:{}'.format(config.video['width'], config.video['height'])
