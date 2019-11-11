@@ -181,8 +181,15 @@ if (
 	is_array($config['sensors']['bme280']) and
 	count($config['sensors']['bme280'])
 	) {
-	foreach (['temperature', 'humidity', 'pressure'] as $type) {
-		foreach ($config['sensors']['bme280'] as $channel) {
+
+	$typeNames = [
+		'temperature' => 'Температура',
+		'humidity'    => 'Влажность',
+		'pressure'    => 'Давление',
+	];
+
+	foreach ($config['sensors']['bme280'] as $channel => $channelName) {
+		foreach (['temperature', 'humidity', 'pressure'] as $type) {
 			$sth = $dbh->prepare('select * from sensor where channel = :channel and type = :type order by date desc limit 1');
 			$sth->execute([
 				'type'    => $type,
@@ -190,7 +197,7 @@ if (
 			]);
 
 			if ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-				$sensors[ $row['type'] ][ $row['channel'] ] = [
+				$sensors[ $typeNames[$row['type']] ][ $channelName ] = [
 					'date' => $row['date'],
 					'val'  => $row['val'],
 				];
