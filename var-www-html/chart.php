@@ -2,39 +2,58 @@
 <?php include 'include/head.php'; ?>
 
 <?php
-$types = [
-	'temperature'     => 'Температура',
-	'humidity'        => 'Влажность',
-	'pressure'        => 'Давление',
-	'voltage'         => 'Напряжение',
-	'wind-speed'      => 'Скорость ветра',
-	'wind-direction'  => 'Напр. ветра',
-	'sky-temperature' => 'Темп. неба',
-	'ccd-exposure'    => 'CCD выдержка',
-	'ccd-average'     => 'CCD среднее',
-];
+$typeChannel = [];
 
-$typeExists = [];
+if (isset($config['sensors']['bme280'])) {
+	$typeChannel['temperature'] = [];
+	$typeChannel['humidity']    = [];
+	$typeChannel['pressure']    = [];
 
-$sth = $dbh->prepare('select distinct type from sensor');
+	foreach ($config['sensors']['bme280'] as $id => $name) {
+		$typeChannel['temperature'][$id] = 'Температура/'. $name;
+		$typeChannel['humidity'][$id]    = 'Влажность/'. $name;
+		$typeChannel['pressure'][$id]    = 'Давление/'. $name;
+	}
+}
+else {
+	$typeChannel['temperature'] = ['Температура'];
+	$typeChannel['humidity']    = ['Влажность'];
+	$typeChannel['pressure']    = ['Давление'];
+}
+
+$typeChannel['voltage']         = ['Напряжение'];
+$typeChannel['wind-speed']      = ['Скорость ветра'];
+$typeChannel['wind-direction']  = ['Напр. ветра'];
+$typeChannel['sky-temperature'] = ['Темп. неба'];
+$typeChannel['ccd-exposure']    = ['CCD выдержка'];
+$typeChannel['ccd-average']     = ['CCD среднее'];
+
+$typeChannelExists = [];
+
+$sth = $dbh->prepare('select type, channel from sensor group by type, channel');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-	$typeExists[ $row['type'] ] = $row['type'];
+	$typeChannelExists[ $row['type'] ][ $row['channel'] ] = true;
 }
-
+#echo '<pre>';print_r($typeChannelExists);exit;
 $type = $_GET['type'];
 
-if (!isset($types[ $type ])) {
-	foreach ($types as $key => $val) {
-		if (isset($typeExists[$key])) {
-			$type = $key;
+$channel = (int) $_GET['channel'];
 
-			break;
+if (!isset($typeChannel[ $type ][ $channel ])) {
+	foreach ($typeChannel as $typeItem => $channels) {
+		foreach ($channels as $channelItem => $name) {
+			if (isset($typeChannelExists[$typeItem][$channelItem])) {
+				$type    = $typeItem;
+				$channel = $channelItem;
+
+				break;
+			}
 		}
 	}
 
-	if (!isset($types[ $type ])) {
+	if (!isset($typeChannel[ $type ][ $channel ])) {
 		echo 'Нет данных для построения графиков'; exit;
 	}
 }
@@ -57,34 +76,16 @@ if (!isset($periods[ $period ])) {
 	$period = array_keys($periods)[0];
 }
 
-$periods = [
-	'hour'  => 'Час',
-	'day'   => 'Сутки',
-	'week'  => 'Неделя',
-	'month' => 'Месяц',
-];
-$periodTime = [
-	'hour'  => 60 * 60,
-	'day'   => 60 * 60 * 24,
-	'week'  => 60 * 60 * 24 * 7,
-	'month' => 60 * 60 * 24 * 30,
-];
-$period = $_GET['period'];
-
-if (!isset($periods[ $period ])) {
-	$period = array_keys($periods)[0];
-}
 
 $labels = [];
-$data = [];
-
+$data   = [];
 
 $sth = $dbh->prepare('select date, val from sensor where channel = :channel and type = :type and date > :date order by date asc');
 
 $sth->execute([
 	'date'    => time() - $periodTime[$period],
 	'type'    => $type,
-	'channel' => 0, // @todo
+	'channel' => $channel,
 ]);
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
@@ -110,12 +111,14 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
 <br>
 <div class="">
-	<?php foreach ($types as $key => $name):?>
-		<?php if (isset($typeExists[$key])):?>
-			<div style="float: left; width: 130px">
-				<a href="?type=<?php echo $key; ?>&period=<?php echo $period?>" class="btn btn-<?php echo ($key == $type) ? 'success' : 'info';?> btn-sm"><?php echo $name;?></a>
-			</div>
-		<?php endif;?>
+	<?php foreach ($typeChannel as $typeItem => $channels):?>
+		<?php foreach ($channels as $channelItem => $name): ?>
+			<?php if (isset($typeChannelExists[$typeItem][$channelItem])):?>
+				<div style="float: left; width: 150px">
+					<a href="?type=<?php echo $typeItem; ?>&channel=<?php echo $channelItem; ?>&period=<?php echo $period?>" class="btn btn-<?php echo (($typeItem == $type) and ($channel == $channelItem)) ? 'success' : 'info';?> btn-sm"><?php echo $name;?></a>
+				</div>
+			<?php endif;?>
+		<?php endforeach; ?>
 	<?php endforeach;?>
 </div>
 
