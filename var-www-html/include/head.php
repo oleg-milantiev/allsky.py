@@ -176,15 +176,26 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
 $sensors = [];
 
-foreach (['temperature', 'humidity', 'pressure'] as $type) {
-	$sth = $dbh->prepare('select * from sensor where channel = 0 and type = :type order by date desc limit 1');
-	$sth->execute(['type' => $type]);
+if (
+	isset($config['sensors']['bme280']) and
+	is_array($config['sensors']['bme280']) and
+	count($config['sensors']['bme280'])
+	) {
+	foreach (['temperature', 'humidity', 'pressure'] as $type) {
+		foreach ($config['sensors']['bme280'] as $channel) {
+			$sth = $dbh->prepare('select * from sensor where channel = :channel and type = :type order by date desc limit 1');
+			$sth->execute([
+				'type'    => $type,
+				'channel' => $channel,
+			]);
 
-	if ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-		$sensors[ $row['type'] ][ $row['channel'] ] = [
-			'date' => $row['date'],
-			'val'  => $row['val'],
-		];
+			if ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+				$sensors[ $row['type'] ][ $row['channel'] ] = [
+					'date' => $row['date'],
+					'val'  => $row['val'],
+				];
+			}
+		}
 	}
 }
 
