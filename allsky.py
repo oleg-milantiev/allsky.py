@@ -127,7 +127,7 @@ class IndiClient(PyIndi.BaseClient):
 
 			db.commit()
 
-			if os.path.exists(config.path['web'] +'current.jpg'):
+			if os.path.islink(config.path['web'] +'current.jpg'):
 				os.remove(config.path['web'] +'current.jpg')
 			os.symlink(config.path['snap'] + minute +'.jpg', config.path['web'] +'current.jpg')
 
