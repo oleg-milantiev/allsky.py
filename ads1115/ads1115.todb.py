@@ -5,7 +5,7 @@ import Adafruit_ADS1x15
 import mysql.connector
 
 import sys
-sys.path.append("..") # Adds higher directory to python modules path.
+sys.path.append("/opt/allsky.py")
 import config
 
 adc = Adafruit_ADS1x15.ADS1115()
