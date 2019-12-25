@@ -1,7 +1,15 @@
 <?php
 session_start();
 
-$config = json_decode(`/opt/allsky.py/config.json.py`, true);
+$statConfig = stat('/opt/allsky.py/config.py');
+$statJSON   = stat('/opt/allsky.py/config.py.json');
+
+if (!isset($statJSON['mtime']) or !$statJSON['size'] or ($statJSON['mtime'] < $statConfig['mtime'])) {
+	`/opt/allsky.py/config.json.py`;
+}
+
+$config = json_decode(file_get_contents('/opt/allsky.py/config.py.json'), true);
+
 
 $dbh = new PDO(
 	'mysql:dbname='. $config['db']['database'] .';host='. $config['db']['host'],
