@@ -5,14 +5,12 @@
 $current = stat('current.jpg');
 
 $videoDir = scandir('/var/www/html/video/', SCANDIR_SORT_DESCENDING);
-if (count($videoDir)) {
-	$video = stat('/var/www/html/video/'. $videoDir[0]);
-}
+$video    = (count($videoDir) > 3) ? stat('/var/www/html/video/'. $videoDir[0]) : null;
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
 
-	<?php if (isset($video)):?>
+	<?php if ($video):?>
 		<span class="">
 			последнее видео: <a target="_blank" href="/video/<?php echo $videoDir[0]; ?>"><?php echo $videoDir[0]; ?> от <?php echo date('d/m/Y H:i', $video['ctime']);?></a>
 		</span>
