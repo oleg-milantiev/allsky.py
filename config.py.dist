@@ -62,6 +62,7 @@ video = {
 	'days':		30,				# Хранить 30 дней mp4
 }
 
+# http://integrator.adior.ru/index.php/orangepi/478-orange-pi-gpio-sysfs
 relay = [
 	{
 		'name':		'Реле 1',
