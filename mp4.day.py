@@ -8,6 +8,11 @@ from datetime import datetime, timedelta
 
 import config
 
+import mysql.connector
+
+db = mysql.connector.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'], database=config.db['database'], charset='utf8')
+cursor = db.cursor(dictionary=True)
+
 yesterday = datetime.now() - timedelta(1)
 today     = datetime.now()
 
@@ -61,3 +66,11 @@ for f in os.listdir(config.path['video']):
 			if date < old:
 				logging.debug('Файл '+ f +' удалён')
 				os.remove(config.path['video'] + f)
+
+
+# Удаление старых данных таблицы sensors
+if 'sensors' in config.archive:
+#	print("""delete from sensor where date < UNIX_TIMESTAMP( date_sub(now(), interval %(day)i day) )"""%{"day":config.archive['sensors']})
+	cursor.execute("""delete from sensor where date < UNIX_TIMESTAMP( date_sub(now(), interval %(day)i day) )"""%{"day":config.archive['sensors']})
+
+	db.commit()
