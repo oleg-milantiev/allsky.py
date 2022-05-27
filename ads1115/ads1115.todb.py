@@ -30,13 +30,22 @@ for repeat in range(10):
 #print(avg[0] / 10)
 #print(avg[1] / 10)
 
-ts = int(time.time())
+ts = int(time.time()) + 3600 * 3
 
 cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 	"""%{"time":ts, "channel":0, "type": 'voltage', "val":avg[0] / 10 })
 
 cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+	"""%{"time":ts, "channel":1, "type": 'voltage', "val":avg[1] / 10 })
+
+
+cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+	"""%{"time":ts, "channel":0, "type": 'voltage', "val":avg[0] / 10 })
+
+cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
 	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 	"""%{"time":ts, "channel":1, "type": 'voltage', "val":avg[1] / 10 })
 

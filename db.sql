@@ -29,6 +29,14 @@ create table sensor (
 alter table sensor add index channel_type_date (channel, type, date);
 alter table sensor add index type (type);
 
+create table sensor_last (
+	type enum('temperature', 'humidity', 'pressure', 'voltage', 'wind-speed', 'wind-direction', 'sky-temperature', 'ccd-exposure', 'ccd-average') not null,
+	channel int unsigned not null,
+	date int unsigned not null,
+	val double not null,
+	primary key (type, channel)
+);
+
 create table relay (
 	id varchar(100) not null primary key,
 	state tinyint(1) not null,

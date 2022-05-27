@@ -39,6 +39,19 @@ cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 	"""%{"time":ts, "channel":channel, "type": 'pressure', "val":data.pressure * 0.75 })
 
+
+cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+	"""%{"time":ts, "channel":channel, "type": 'temperature', "val":data.temperature })
+
+cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+	"""%{"time":ts, "channel":channel, "type": 'humidity', "val":data.humidity })
+
+cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+	VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+	"""%{"time":ts, "channel":channel, "type": 'pressure', "val":data.pressure * 0.75 })
+
 db.commit()
 
 cursor.close()

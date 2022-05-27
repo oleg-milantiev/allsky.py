@@ -7,7 +7,7 @@ if (isset($_GET['type']) and isset($_GET['channel'])) {
 	$type    = $_GET['type'];
 	$channel = (int) $_GET['channel'];
 
-	$sth = $dbh->prepare('select date, val from sensor where channel = :channel and type = :type order by id desc limit 1');
+	$sth = $dbh->prepare('select date, val from sensor_last where channel = :channel and type = :type limit 1');
 
 	$sth->execute([
 		'type'    => $type,
@@ -24,27 +24,18 @@ if (isset($_GET['type']) and isset($_GET['channel'])) {
 	], true);
 }
 else {
-	$sth = $dbh->prepare('select type, channel from sensor group by type, channel');
+	$sth = $dbh->prepare('select date, val, type, channel from sensor_last');
 	$sth->execute();
-
-	$sth2 = $dbh->prepare('select date, val from sensor where channel = :channel and type = :type order by id desc limit 1');
 
 	$ret = [];
 
 	while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-		$sth2->execute([
+		$ret[] = [
 			'type'    => $row['type'],
-			'channel' => $row['channel'],
-		]);
-
-		if (!! ($row2 = $sth2->fetch(PDO::FETCH_ASSOC))) {
-			$ret[] = [
-				'type'    => $row['type'],
-				'channel' => (int) $row['channel'],
-				'date'    => (int) $row2['date'],
-				'val'     => (double) $row2['val'],
-			];
-		}
+			'channel' => (int) $row['channel'],
+			'date'    => (int) $row['date'],
+			'val'     => (double) $row['val'],
+		];
 	}
 
 	RESTshow($ret, true);
