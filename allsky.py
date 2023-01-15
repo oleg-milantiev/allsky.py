@@ -10,8 +10,8 @@ import re
 import logging
 from astropy.io import fits
 from PIL import Image, ImageDraw, ImageFont
-import cv2
 from datetime import datetime, timedelta
+import requests
 
 import config
 
@@ -86,6 +86,7 @@ class IndiClient(PyIndi.BaseClient):
 				hdu.data *= int((255.0 if config.ccd['bits'] == 8 else 65535.0) / (maxval - minval))
 
 			if 'cfa' in config.ccd:
+				import cv2
 				rgb = cv2.cvtColor(
 					hdu.data if config.ccd['bits'] == 8 else (hdu.data/256).astype('uint8'),
 					config.ccd['cfa']
@@ -131,6 +132,14 @@ class IndiClient(PyIndi.BaseClient):
 				os.remove(config.path['web'] +'current.jpg')
 			os.symlink(config.path['snap'] + minute +'.jpg', config.path['web'] +'current.jpg')
 
+			# @todo вынести всё сопутствующее в отдельный поток
+
+			# публикация последнего jpg
+			if 'jpg' in config.publish:
+				r = requests.post(config.publish['jpg'], files={'file': open(config.path['snap'] + minute +'.jpg', 'rb')}, data={'name': config.name, 'pass': 'kjH3vxzm4G'})
+				logging.info('Файл '+ minute +' опубликован: '+ r.text)
+				# @todo анализ ответа
+
 			# удаление старых жпегов
 			old = datetime.now() - timedelta(config.archive['days'])
 
@@ -145,7 +154,6 @@ class IndiClient(PyIndi.BaseClient):
 							logging.debug('Файл '+ f +' удалён')
 							os.remove(config.path['snap'] + f)
 
-			# @todo вынести всё сопутствующее в отдельный поток?
 
 			while True:
 				now = datetime.now().strftime("%Y-%m-%d_%H-%M")

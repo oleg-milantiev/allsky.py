@@ -13,6 +13,10 @@ ccd = {
 	'cfa':		cv2.COLOR_BayerBG2RGB,
 }
 
+publish = {
+#	'jpg':		'https://oleg.milantiev.com/allsky/publish/jpg/',	# публикация каждого jpg на другой сайт
+}
+
 sensors = {
 	'bme280': {					# Два датчика BME280. 0 и 1
 		0: 'Улица',
