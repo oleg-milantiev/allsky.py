@@ -136,9 +136,11 @@ class IndiClient(PyIndi.BaseClient):
 
 			# публикация последнего jpg
 			if 'jpg' in config.publish:
-				r = requests.post(config.publish['jpg'], files={'file': open(config.path['snap'] + minute +'.jpg', 'rb')}, data={'name': config.name, 'pass': 'kjH3vxzm4G'})
-				logging.info('Файл '+ minute +' опубликован: '+ r.text)
-				# @todo анализ ответа
+				try:
+					r = requests.post(config.publish['jpg'], files={'file': open(config.path['snap'] + minute +'.jpg', 'rb')}, data={'name': config.name, 'pass': 'kjH3vxzm4G'})
+					logging.info('Файл '+ minute +' опубликован: '+ r.text)
+				except:
+					logging.info('ОШИБКА публикации файла '+ minute)
 
 			# удаление старых жпегов
 			old = datetime.now() - timedelta(config.archive['days'])
