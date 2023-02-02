@@ -2,4 +2,3 @@
 
 01 12 * * * root /opt/allsky.py/day.sh
 * * * * * root /opt/allsky.py/sensors.sh
-15 * * * * root /usr/sbin/ntpdate pool.ntp.org
