@@ -1,6 +1,6 @@
-import cv2
+import cv2 # только если цветная камера
 
-name = 'Борис Кудрявцев'
+name = 'Имя Фамилия'
 
 ccd = {
 	'name':		'ZWO CCD ASI178MC',
@@ -10,8 +10,15 @@ ccd = {
 	'expMin':	0.0001,
 	'expMax':	45.,
 	'bits':		16,
-	'cfa':		cv2.COLOR_BayerBG2RGB,
+	'cfa':		cv2.COLOR_BayerBG2RGB, # только если цветная камера
 }
+
+# варианты дебаеризации
+#  cv2.COLOR_BayerBG2RGB
+#  cv2.COLOR_BayerGB2RGB
+#  cv2.COLOR_BayerRG2RGB
+#  cv2.COLOR_BayerGR2RGB
+
 
 publish = {
 #	'jpg':		'https://oleg.milantiev.com/allsky/publish/jpg/',	# публикация каждого jpg на другой сайт
