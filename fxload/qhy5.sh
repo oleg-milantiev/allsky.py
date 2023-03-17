@@ -9,3 +9,7 @@
 fxload -t fx2 -D /dev/bus/usb/005/004 -I /lib/firmware/qhy/QHY5.HEX -s /lib/firmware/qhy/QHY5LOADER.HEX
 
 #Bus 005 Device 005: ID 16c0:296d Van Ooijen Technische Informatica
+
+Для USB3 нужна другая fxload, которая понимает -t fx3. Есть в архиве
+Ну и вызов, соответственно:
+/root/fxload/fx3load/fxload -t fx3 -I /lib/firmware/qhy/QHY5III290.img -D /dev/bus/usb/004/018
