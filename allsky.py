@@ -252,7 +252,7 @@ class IndiClient(PyIndi.BaseClient):
 
 		else:
 			# подбор выдержки
-			logging.info('Подбор выдержки...')
+			logging.debg('Подбор выдержки...')
 			if avg > (250.0 if config.ccd['bits'] == 8 else 65000.0):
 				exposure = config.ccd['expMin']
 			elif avg == 0:
