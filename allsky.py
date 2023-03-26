@@ -88,7 +88,7 @@ class IndiClient(PyIndi.BaseClient):
 			# запись
 			global minute
 
-			if config.fits['save']:
+			if config.fits['days']:
 				logging.info('Сохраняю кадр в файл fits...')
 				hdu.writeto(config.path['fits']+minute + '.fits', overwrite=True)
 
