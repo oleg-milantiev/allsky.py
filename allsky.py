@@ -12,6 +12,7 @@ from astropy.io import fits
 from PIL import Image, ImageDraw, ImageFont
 import cv2
 from datetime import datetime, timedelta
+import requests
 
 import config
 
