@@ -2,9 +2,9 @@ import cv2 # только если цветная камера
 
 name = 'Имя Фамилия'
 
-#logo = {
+logo = {
 #	'logoFileName':	 '/sdcard/html/allsky_logo.jpg',
-#}
+}
 
 ccd = {
 	'name':		'ZWO CCD ASI178MC',
