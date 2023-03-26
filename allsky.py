@@ -73,7 +73,7 @@ class IndiClient(PyIndi.BaseClient):
 		fit = fits.open( io.BytesIO( bp.getblobdata() ) )
 		hdu = fit[0]
 
-		if config.processing['is_ROI']:
+		if config.processing['ROI']:
 			roi = config.processing['ROI']
 			logging.debug('вырезаю ROI: {}-{}, {}-{}'.format(roi['x0'], roi['x1'], roi['y0'], roi['y1']))
 			hdu.data = hdu.data[roi['y0']:roi['y1'],roi['x0']:roi['x1']]
