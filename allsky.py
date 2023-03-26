@@ -440,9 +440,9 @@ while ccd:
 		#if row:
 			#t_datetime = row['date']
 			#last_temp = row['val']
-			#if(time.time()-t_datetime<300) and (last_temp>hotter['limit_temp']):
+			#if(time.time()-t_datetime<300) and (last_temp>hotter['limitTemp']):
 				#overheating = True
-				#logging.debug('Купол перегрет! Текущая температура: {}, предельно допустимая температура: {}'.format(last_temp, hotter['limit_temp']) )
+				#logging.debug('Купол перегрет! Текущая температура: {}, предельно допустимая температура: {}'.format(last_temp, hotter['limitTemp']) )
 
 		if hotter['stage'] == 0 and overheating == False:
 			cursor.execute('select val from config where id = "hotPercent"')
