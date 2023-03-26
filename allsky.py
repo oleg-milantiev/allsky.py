@@ -104,7 +104,7 @@ class IndiClient(PyIndi.BaseClient):
 			if 'cfa' in config.ccd:
 				logging.debug('Дебаейризация...')
 				rgb = cv2.cvtColor(
-					hdu.data if config.ccd['bits'] == 8 else (hdu.data/256).astype('uint8'),
+					hdu.data.astype('uint8') if config.ccd['bits'] == 8 else (hdu.data/256).astype('uint8'),
 					config.ccd['cfa']
 				)
 				#cv2.imwrite('/sdcard/html/lastrgb.jpg', rgb)
@@ -139,7 +139,7 @@ class IndiClient(PyIndi.BaseClient):
 				#cv2.imwrite('/sdcard/html/res.jpg', dst)
 
 				
-				if config.logo:
+				if 'logoFileName' in config.logo:
 					logging.debug('Дообавляю лого...')
 					logo = cv2.imread(config.logo['logoFileName'])
 					img2gray = cv2.cvtColor(logo, cv2.COLOR_BGR2GRAY)
@@ -164,18 +164,18 @@ class IndiClient(PyIndi.BaseClient):
 				logging.debug('Добавляю таймстемп')
 				txt = Image.new('RGBA', img.size, (255,255,255,0))
 				d = ImageDraw.Draw(txt)
-				fnt = ImageFont.truetype('sans-serif.ttf', 20)
-				clr = (255,255,255,255)
 				for line in config.timestamp:
 					fnt = ImageFont.truetype('sans-serif.ttf', line['size'])
-					clr = line['color']
 					d.text(
 						(line['x'], line['y']),
 						savedDate.strftime(line['format']),
-						font=fnt, fill=clr)
+						font=fnt, fill=line['color'])
+				img = Image.alpha_composite(img.convert('RGBA'), txt).convert('RGB')
 
 			if config.picture_acquisition:
 				logging.debug('Добавляю данные о снимке')
+				txt = Image.new('RGBA', img.size, (255,255,255,0))
+				d = ImageDraw.Draw(txt)
 				line = config.picture_acquisition[0]
 				d.text( (line['x'], line['y']), 'EXP:{:.4f}'.format(exposure), font=ImageFont.truetype('sans-serif.ttf', line['size']), fill=line['color'])
 				line = config.picture_acquisition[1]
