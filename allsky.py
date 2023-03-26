@@ -257,8 +257,8 @@ class IndiClient(PyIndi.BaseClient):
 			logging.debug('Подбор выдержки...')
 			if avg > (250.0 if config.ccd['bits'] == 8 else 65000.0):
 				exposure = config.ccd['expMin']
-			elif avg == 0:
-				exposure = config.ccd['expMax']
+			elif avg < 0.001:
+				exposure = config.ccd['expMin'] + (config.ccd['expMax']-config.ccd['expMin'])/2
 			else:
 				target = (config.ccd['avgMax'] - config.ccd['avgMin']) / 2 + config.ccd['avgMin']
 				exposure = target * exposure / avg
