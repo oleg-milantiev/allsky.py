@@ -435,18 +435,7 @@ while ccd:
 
 
 	if hotter:
-		#SELECT * FROM sensor WHERE type="temperature" AND channel=0 ORDER BY date DESC LIMIT 1;
-		#cursor.execute("""select * from sensor where type='temperature' and channel='0' order by date desc limit 1""")
-		#row = cursor.fetchone()
-		overheating = False
-		#if row:
-			#t_datetime = row['date']
-			#last_temp = row['val']
-			#if(time.time()-t_datetime<300) and (last_temp>hotter['limitTemp']):
-				#overheating = True
-				#logging.debug('Купол перегрет! Текущая температура: {}, предельно допустимая температура: {}'.format(last_temp, hotter['limitTemp']) )
-
-		if hotter['stage'] == 0 and overheating == False:
+		if hotter['stage'] == 0:
 			cursor.execute('select val from config where id = "hotPercent"')
 			row = cursor.fetchone()
 
@@ -458,10 +447,7 @@ while ccd:
 
 		if (hotter['stage'] * 10) > hotter['percent'] and hotter['state'] == 1:
 			hotterRelay(0)
-		else:
-			logging.debug('{}: Реле обогрева {} ({}%)'.format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"), 'включено' if hotter['state'] == 1 else 'выключено',hotter['stage'] * 10 ));
 
 		if hotter['stage'] == 10:
 			hotter['stage'] = 0
-
 	time.sleep(6)
