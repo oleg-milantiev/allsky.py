@@ -28,7 +28,6 @@ publish = {
 }
 
 processing = {
-#	'is_ROI': True,
 #	'ROI': {
 #		'x0':800,
 #		'x1':3100,
@@ -41,8 +40,8 @@ processing = {
 #		'g': 0.65,
 #		'b':0.990,
 #	},
-#	'ccd_avg_min':0.13,
-#	'ccd_avg_max':0.87,
+	'ccdAvgMin':0.13,
+	'ccdAvgMax':0.87,
 }
 
 sensors = {
