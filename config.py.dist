@@ -1,6 +1,10 @@
-import cv2 # только если цветная камера
+import cv2
 
 name = 'Имя Фамилия'
+
+#logo = {
+#	'logo_filename':	 '/sdcard/html/allsky_logo.jpg',
+#}
 
 ccd = {
 	'name':		'ZWO CCD ASI178MC',
@@ -11,7 +15,6 @@ ccd = {
 	'expMax':	45.,
 	'bits':		16,
 	'cfa':		cv2.COLOR_BayerBG2RGB, # только если цветная камера
-}
 
 # варианты дебаеризации
 #  cv2.COLOR_BayerBG2RGB
@@ -22,6 +25,24 @@ ccd = {
 
 publish = {
 #	'jpg':		'https://oleg.milantiev.com/allsky/publish/jpg/',	# публикация каждого jpg на другой сайт
+}
+
+processing = {
+#	'is_ROI': True,
+#	'ROI': {
+#		'x0':800,
+#		'x1':3100,
+#		'y0':0,
+#		'y1':2179,
+#	},
+#	'wb' : 'gain',					# gain - вручную, simple - SimpleWB из OpenCV, gray - GreyworldWB
+#	'wb_gains' : {
+#		'r':0.85,
+#		'g': 0.65,
+#		'b':0.990,
+#	},
+#	'ccd_avg_min':0.13,
+#	'ccd_avg_max':0.87,
 }
 
 sensors = {
@@ -63,9 +84,31 @@ timestamp = [
 	},
 ]
 
+picture_acquisition = [
+#	{
+#		'format':	'%d',			# Формат строки
+#		'x':		0,					# координаты ЛВУ. В пикселях
+#		'y':		100,
+#		'size':		20,					# размер шрифта
+#		'color':	(255,255,255,128),	# цвет букв
+#	},
+#	{
+#		'format':	'%.4f',
+#		'x':		0,
+#		'y':		120,
+#		'size':		20,
+#		'color':	(255,255,255,128),
+#	},
+]
+
 archive = {
 	'days':		7,				# Хранить архив жпегов 7 дней
 	'sensors':	30,				# Хранить архив данных сенсоров 30 дней
+}
+
+fits = {
+#	'save': 	True,
+#	'days':		14,				# хранить архив fit-снимков 3 дня
 }
 
 video = {
@@ -80,6 +123,7 @@ relay = [
 		'name':		'Реле 1',
 		'gpio':		'17',		# '/sys/class/gpio/gpio17/value',
 		'hotter':	'yes',		# это реле - обогрев подкупольного
+		'limit_temp':	29.5,		# предельная температура подкупольного пространства, выше которой обогрев не включается
 	},
 	{
 		'name':		'Реле 2',
@@ -116,3 +160,4 @@ path['snap'] = path['web'] +'snap/'
 path['keogram'] = path['web'] +'keogram/'
 path['video'] = path['web'] +'video/'
 path['video-demand'] = path['web'] +'video-demand/'
+path['fits'] = path['web'] + 'fits/'
