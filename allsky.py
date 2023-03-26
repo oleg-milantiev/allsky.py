@@ -73,7 +73,7 @@ class IndiClient(PyIndi.BaseClient):
 		fit = fits.open( io.BytesIO( bp.getblobdata() ) )
 		hdu = fit[0]
 
-		if config.processing['ROI']:
+		if 'ROI' in config.processing:
 			roi = config.processing['ROI']
 			logging.debug('вырезаю ROI: {}-{}, {}-{}'.format(roi['x0'], roi['x1'], roi['y0'], roi['y1']))
 			hdu.data = hdu.data[roi['y0']:roi['y1'],roi['x0']:roi['x1']]
@@ -88,7 +88,7 @@ class IndiClient(PyIndi.BaseClient):
 			# запись
 			global minute
 
-			if config.fits['days']:
+			if 'days' in config.fits:
 				logging.info('Сохраняю кадр в файл fits...')
 				hdu.writeto(config.path['fits']+minute + '.fits', overwrite=True)
 
@@ -118,19 +118,20 @@ class IndiClient(PyIndi.BaseClient):
 				#cv2.imwrite('/sdcard/html/overexposed.jpg', img_overexposed)
 				# dst = cv2.add(img1_bg, img2_fg)
 				
-				if config.processing['wb'] == 'gain':
-					logging.debug('выравниваю баланс белого гейнами...')
-					gains = config.processing['wb_gains']
-					rgb = cv2.xphoto.applyChannelGains(rgb, gains['r'], gains['g'], gains['b'])
-				elif config.processing['wb']=='simple':
-					logging.debug('выравниваю баланс белого через SimpleWB')
-					wb = cv2.xphoto.createSimpleWB()
-					rgb = wb.balanceWhite(rgb)
-				elif cinfig.processing['wb']=='gray':
-					logging.debug('выравниваю баланс белого через GrayWorldWB')
-					wb = cv2.xphoto.createGrayworldWB()
-					wb.setSaturationThreshold(0.95)
-					rgb = wb.balanceWhite(rgb)
+				if 'wb' in config.processing:
+					if config.processing['wb'] == 'gain':
+						logging.debug('выравниваю баланс белого гейнами...')
+						gains = config.processing['wb_gains']
+						rgb = cv2.xphoto.applyChannelGains(rgb, gains['r'], gains['g'], gains['b'])
+					elif config.processing['wb']=='simple':
+						logging.debug('выравниваю баланс белого через SimpleWB')
+						wb = cv2.xphoto.createSimpleWB()
+						rgb = wb.balanceWhite(rgb)
+					elif config.processing['wb']=='gray':
+						logging.debug('выравниваю баланс белого через GrayWorldWB')
+						wb = cv2.xphoto.createGrayworldWB()
+						wb.setSaturationThreshold(0.95)
+						rgb = wb.balanceWhite(rgb)
 
 				img_wb = cv2.bitwise_and(rgb, rgb, mask=mask_inv)
 				#cv2.imwrite('/sdcard/html/wb.jpg', img_wb)
@@ -140,7 +141,7 @@ class IndiClient(PyIndi.BaseClient):
 				
 				if config.logo:
 					logging.debug('Дообавляю лого...')
-					logo = cv2.imread(config.logo['logo_filename'])
+					logo = cv2.imread(config.logo['logoFileName'])
 					img2gray = cv2.cvtColor(logo, cv2.COLOR_BGR2GRAY)
 					ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
 					#cv2.imwrite('/sdcard/html/mask.jpg', mask)
@@ -172,6 +173,7 @@ class IndiClient(PyIndi.BaseClient):
 						(line['x'], line['y']),
 						savedDate.strftime(line['format']),
 						font=fnt, fill=clr)
+
 			if config.picture_acquisition:
 				logging.debug('Добавляю данные о снимке')
 				line = config.picture_acquisition[0]
@@ -252,7 +254,7 @@ class IndiClient(PyIndi.BaseClient):
 
 		else:
 			# подбор выдержки
-			logging.debg('Подбор выдержки...')
+			logging.debug('Подбор выдержки...')
 			if avg > (250.0 if config.ccd['bits'] == 8 else 65000.0):
 				exposure = config.ccd['expMin']
 			elif avg == 0:

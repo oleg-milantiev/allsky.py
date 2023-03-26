@@ -1,9 +1,9 @@
-import cv2m # только если цветная камера
+import cv2 # только если цветная камера
 
 name = 'Имя Фамилия'
 
 #logo = {
-#	'logo_filename':	 '/sdcard/html/allsky_logo.jpg',
+#	'logoFileName':	 '/sdcard/html/allsky_logo.jpg',
 #}
 
 ccd = {
@@ -15,6 +15,7 @@ ccd = {
 	'expMax':	45.,
 	'bits':		16,
 	'cfa':		cv2.COLOR_BayerBG2RGB, # только если цветная камера
+}
 
 # варианты дебаеризации
 #  cv2.COLOR_BayerBG2RGB
