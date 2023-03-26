@@ -78,9 +78,9 @@ class IndiClient(PyIndi.BaseClient):
 			logging.debug('вырезаю ROI: {}-{}, {}-{}'.format(roi['x0'], roi['x1'], roi['y0'], roi['y1']))
 			hdu.data = hdu.data[roi['y0']:roi['y1'],roi['x0']:roi['x1']]
 
-		# avg only center (30 - 70% for x and y)
-		avg = np.mean(hdu.data[int(hdu.header['NAXIS1'] * config.processing['ccd_avg_min']):int(hdu.header['NAXIS1'] * config.processing['ccd_avg_max']),
-			int(hdu.header['NAXIS2'] * config.processing['ccd_avg_min']):int(hdu.header['NAXIS2'] * config.processing['ccd_avg_max'])])
+		# avg only center (ccdAvgMin - ccdAvgMax% for x and y)
+		avg = np.mean(hdu.data[int(hdu.header['NAXIS1'] * config.processing['ccdAvgMin']):int(hdu.header['NAXIS1'] * config.processing['ccdAvgMax']),
+			int(hdu.header['NAXIS2'] * config.processing['ccdAvgMin']):int(hdu.header['NAXIS2'] * config.processing['ccdAvgMax'])])
 		# если среднее = 0  -  что-то пошло не так и нужно переснять кадр
 
 		logging.info('Получил кадр выдержкой {} сек. со средним {}'.format(exposure, avg))
@@ -89,9 +89,8 @@ class IndiClient(PyIndi.BaseClient):
 			global minute
 
 			if config.fits['save']:
-				filename_fits = config.path['fits']+minute
 				logging.info('Сохраняю кадр в файл fits...')
-				hdu.writeto(filename_fits + '.fits', overwrite=True)
+				hdu.writeto(config.path['fits']+minute + '.fits', overwrite=True)
 
 			data = hdu.data.astype('float')
 			minval = hdu.data.min()
