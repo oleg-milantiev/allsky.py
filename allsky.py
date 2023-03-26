@@ -68,7 +68,7 @@ class IndiClient(PyIndi.BaseClient):
 		global exposure
 		
 
-		logging.info('Получаю новый кадр...')
+		logging.debug('Получаю новый кадр...')
 
 		fit = fits.open( io.BytesIO( bp.getblobdata() ) )
 		hdu = fit[0]
