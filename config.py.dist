@@ -1,10 +1,6 @@
-import cv2 # только если цветная камера
+import cv2  # только если цветная камера
 
 name = 'Имя Фамилия'
-
-logo = {
-#	'logoFileName':	 '/sdcard/html/allsky_logo.jpg',
-}
 
 ccd = {
 	'name':		'ZWO CCD ASI178MC',
@@ -14,7 +10,7 @@ ccd = {
 	'expMin':	0.0001,
 	'expMax':	45.,
 	'bits':		16,
-	'cfa':		cv2.COLOR_BayerBG2RGB, # только если цветная камера
+#	'cfa':		cv2.COLOR_BayerBG2RGB,  # только если цветная камера
 }
 
 # варианты дебаеризации
@@ -23,30 +19,33 @@ ccd = {
 #  cv2.COLOR_BayerRG2RGB
 #  cv2.COLOR_BayerGR2RGB
 
+logo = {
+#	'logoFileName':	'/sdcard/html/allsky_logo.jpg',
+}
 
 publish = {
-#	'jpg':		'https://oleg.milantiev.com/allsky/publish/jpg/',	# публикация каждого jpg на другой сайт
+#	'jpg': 'https://oleg.milantiev.com/allsky/publish/jpg/',	# публикация каждого jpg на другой сайт
 }
 
 processing = {
-#	'ROI': {
-#		'x0':800,
-#		'x1':3100,
-#		'y0':0,
-#		'y1':2179,
+#	'ROI': {						# Crop (ROI) кадра с указанием координат углов
+#		'xLeft':   800,
+#		'xRight':  3100,
+#		'yTop':    0,
+#		'yBottom': 2179,
 #	},
-#	'wb' : 'gain',					# gain - вручную, simple - SimpleWB из OpenCV, gray - GreyworldWB
-#	'wb_gains' : {
-#		'r':0.85,
+#	'wb': 'gain',					# gain - вручную, simple - SimpleWB из OpenCV, gray - GreyworldWB
+#	'wbGains' : {
+#		'r': 0.85,
 #		'g': 0.65,
-#		'b':0.990,
+#		'b': 0.990,
 #	},
-	'ccdAvgMin':0.13,
-	'ccdAvgMax':0.87,
+	'ccdAvgMin': 0.13,				# Считать среднее по центру кадра. От 13% слева / сверху
+	'ccdAvgMax': 0.87,				# до 87% справа / снизу
 }
 
 sensors = {
-	'bme280': {					# Два датчика BME280. 0 и 1
+	'bme280': {						# Два датчика BME280. 0 и 1
 		0: 'Улица',
 		1: 'Купол'
 	},
@@ -67,47 +66,54 @@ keogram = {
 	'height':	960,					# высота итогового изображения keogram. Обычно совпадает с высотой исходного кадра
 }
 
-timestamp = [
+# Аннотации изображения, если нужны (дата / время, среднее, выдержка)
+annotations = [
 	{
-		'format':	'%d.%m.%Y',			# Формат строки
-		'x':		0,					# координаты ЛВУ. В пикселях
+		'type':		'text',				# Тип аннотации ('text', 'datetime', 'avg', 'exposure')
+		'text':		'AllSky',			# Текст
+		'x':		300,				# координаты ЛВУ. В пикселях
 		'y':		0,
 		'size':		30,					# размер шрифта
 		'color':	(255,255,255,128),	# цвет букв
 	},
 	{
+		'type':		'datetime',
+		'format':	'%d.%m.%Y',			# Формат строки strftime()
+		'x':		0,
+		'y':		0,
+		'size':		30,
+		'color':	(255,255,255,128),
+	},
+	{
+		'type':		'datetime',
 		'format':	'%H:%M',
 		'x':		0,
 		'y':		35,
 		'size':		30,
 		'color':	(255,255,255,255),
 	},
-]
-
-picture_acquisition = [
-#	{
-#		'format':	'%d',			# Формат строки
-#		'x':		0,					# координаты ЛВУ. В пикселях
-#		'y':		100,
-#		'size':		20,					# размер шрифта
-#		'color':	(255,255,255,128),	# цвет букв
-#	},
-#	{
-#		'format':	'%.4f',
-#		'x':		0,
-#		'y':		120,
-#		'size':		20,
-#		'color':	(255,255,255,128),
-#	},
+	{
+		'type':		'avg',
+		'format':	'%d',				# Формат строки "%d".format(xxx)
+		'x':		0,
+		'y':		100,
+		'size':		20,
+		'color':	(255,255,255,128),
+	},
+	{
+		'type':		'exposure',
+		'format':	'%.4f',
+		'x':		0,
+		'y':		120,
+		'size':		20,
+		'color':	(255,255,255,128),
+	},
 ]
 
 archive = {
-	'days':		7,				# Хранить архив жпегов 7 дней
+	'jpg':		7,				# Хранить архив жпегов 7 дней
+	'fit':		3,				# Хранить архив fit 3 дня
 	'sensors':	30,				# Хранить архив данных сенсоров 30 дней
-}
-
-fits = {
-	'days':		3,				# хранить архив fit-снимков 3 дня
 }
 
 video = {
@@ -119,14 +125,14 @@ video = {
 # http://integrator.adior.ru/index.php/orangepi/478-orange-pi-gpio-sysfs
 relay = [
 	{
-		'name':		'Реле 1',
-		'gpio':		'17',		# '/sys/class/gpio/gpio17/value',
-		'hotter':	'yes',		# это реле - обогрев подкупольного
-		'limiTemp':	29.5,		# предельная температура подкупольного пространства, выше которой обогрев не включается
+		'name':			'Реле 1',
+		'gpio':			'17',		# '/sys/class/gpio/gpio17/value',
+		'hotter':		'yes',		# это реле - обогрев подкупольного
+		'limitTemp':	29.5,		# предельная температура подкупольного пространства, выше которой обогрев не включается
 	},
 	{
-		'name':		'Реле 2',
-		'gpio':		'18',
+		'name':			'Реле 2',
+		'gpio':			'18',
 	},
 ]
 
@@ -155,8 +161,8 @@ log = {
 if (path['web'][-1] != '/'):
 	path['web'] += '/'
 
-path['snap'] = path['web'] +'snap/'
+path['jpg'] = path['web'] +'snap/'
 path['keogram'] = path['web'] +'keogram/'
 path['video'] = path['web'] +'video/'
 path['video-demand'] = path['web'] +'video-demand/'
-path['fits'] = path['web'] + 'fits/'
+path['fit'] = path['web'] + 'fits/'
