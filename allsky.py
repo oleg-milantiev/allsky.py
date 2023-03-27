@@ -149,14 +149,16 @@ class IndiClient(PyIndi.BaseClient):
 				for annotation in config.annotations:
 					font = ImageFont.truetype('sans-serif.ttf', annotation['size'])
 
+					match annotation['type']:
+						case 'text': text = annotation['text']
+						case 'datetime': text = savedDate.strftime(annotation['format'])
+						case 'avg' | 'average':  text = annotation['format'].format(avg)
+						case 'exposure':  text = annotation['format'].format(exposure)
+						case _: text = ''
+
 					d.text(
 							(annotation['x'], annotation['y']),
-							{
-								annotation['type'] == 'text':		annotation['text'],
-								annotation['type'] == 'datetime':	savedDate.strftime(annotation['format']),
-								annotation['type'] == 'avg':		annotation['format'].format(avg),
-								annotation['type'] == 'exposure':	annotation['format'].format(exposure),
-							}[True],
+							text,
 							font=font,
 							fill=annotation['color']
 					)
