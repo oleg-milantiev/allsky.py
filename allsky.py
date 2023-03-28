@@ -83,8 +83,10 @@ class IndiClient(PyIndi.BaseClient):
 				hdu.data -= minval
 				hdu.data = (hdu.data * ((255.0 if config.ccd['bits'] == 8 else 65535.0) / (maxval - minval))).astype('int')
 
+			import cv2
+
 			if 'cfa' in config.ccd:
-				import cv2
+				
 
 				logging.debug('Дебаейризую...')
 				rgb = cv2.cvtColor(
@@ -119,24 +121,29 @@ class IndiClient(PyIndi.BaseClient):
 				# cv2.imwrite('/sdcard/html/wb.jpg', imgWb)
 				dst = cv2.add(imgWb, imgOverexposed)
 				# cv2.imwrite('/sdcard/html/res.jpg', dst)
-
-				if 'logo' in config.processing:
-					logging.debug('Дообавляю лого...')
-					logo = cv2.imread(config.processing['logo']['fileName'])
-					img2gray = cv2.cvtColor(logo, cv2.COLOR_BGR2GRAY)
-					ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
-					# cv2.imwrite('/sdcard/html/mask.jpg', mask)
-					maskInv = cv2.bitwise_not(mask)
-
-					imgMask = cv2.bitwise_and(dst, dst, mask=maskInv)
-					# cv2.imwrite('/sdcard/html/res_minus.jpg', dst)
-					logoMask = cv2.bitwise_and(logo, logo, mask=mask)
-
-					dst = cv2.add(imgMask, logoMask)
-
-				img = Image.fromarray(dst, 'RGB')
 			else:
-				img = Image.fromarray(hdu.data if config.ccd['bits'] == 8 else (hdu.data / 256).astype('uint8'))
+				dst = cv2.cvtColor(
+					hdu.data.astype('uint8') if config.ccd['bits'] == 8 else (hdu.data / 256).astype('uint8'),
+					cv2.COLOR_GRAY2BGR
+				)
+
+			if 'logo' in config.processing:
+				logging.debug('Дообавляю лого...')
+				logo = cv2.imread(config.processing['logo']['fileName'])
+				img2gray = cv2.cvtColor(logo, cv2.COLOR_BGR2GRAY)
+				ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
+				# cv2.imwrite('/sdcard/html/mask.jpg', mask)
+				maskInv = cv2.bitwise_not(mask)
+
+				imgMask = cv2.bitwise_and(dst, dst, mask=maskInv)
+				# cv2.imwrite('/sdcard/html/res_minus.jpg', dst)
+				logoMask = cv2.bitwise_and(logo, logo, mask=mask)
+
+				dst = cv2.add(imgMask, logoMask)
+
+			img = Image.fromarray(dst, 'RGB')
+			#else:
+			#	img = Image.fromarray(hdu.data if config.ccd['bits'] == 8 else (hdu.data / 256).astype('uint8'))
 
 			savedDate = datetime.now()
 
