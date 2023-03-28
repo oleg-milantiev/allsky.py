@@ -93,7 +93,7 @@ annotations = [
 	},
 	{
 		'type':		'avg',
-		'format':	'%d',				# Формат строки "%d".format(xxx)
+		'format':	'CCD_avg: {:.0f}',				# Формат строки "%d".format(xxx)
 		'x':		0,
 		'y':		100,
 		'size':		20,
@@ -101,7 +101,7 @@ annotations = [
 	},
 	{
 		'type':		'exposure',
-		'format':	'%.4f',
+		'format':	'EXP: {:.4f}',
 		'x':		0,
 		'y':		120,
 		'size':		20,
