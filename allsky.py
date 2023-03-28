@@ -120,9 +120,9 @@ class IndiClient(PyIndi.BaseClient):
 				dst = cv2.add(imgWb, imgOverexposed)
 				# cv2.imwrite('/sdcard/html/res.jpg', dst)
 
-				if 'logoFileName' in config.logo:
+				if 'logo' in config.processing:
 					logging.debug('Дообавляю лого...')
-					logo = cv2.imread(config.logo['logoFileName'])
+					logo = cv2.imread(config.processing['logo']['fileName'])
 					img2gray = cv2.cvtColor(logo, cv2.COLOR_BGR2GRAY)
 					ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
 					# cv2.imwrite('/sdcard/html/mask.jpg', mask)

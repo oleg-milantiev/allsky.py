@@ -19,10 +19,6 @@ ccd = {
 #  cv2.COLOR_BayerRG2RGB
 #  cv2.COLOR_BayerGR2RGB
 
-logo = {
-#	'logoFileName':	'/sdcard/html/allsky_logo.jpg',
-}
-
 publish = {
 #	'jpg': 'https://oleg.milantiev.com/allsky/publish/jpg/',	# публикация каждого jpg на другой сайт
 }
@@ -34,6 +30,9 @@ processing = {
 #		'yTop':    0,
 #		'yBottom': 2179,
 #	},
+#	'logo': {						# Если нужно лого
+#        'fileName': '/sdcard/html/allsky_logo.jpg', # Картинка размером с итоговый кадр после ROI (если использовался)
+#   },
 #	'wb': 'gain',					# gain - вручную, simple - SimpleWB из OpenCV, gray - GreyworldWB
 #	'wbGains' : {
 #		'r': 0.85,
