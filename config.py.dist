@@ -31,7 +31,9 @@ processing = {
 #		'yBottom': 2179,
 #	},
 #	'logo': {						# Если нужно лого
-#        'fileName': '/sdcard/html/allsky_logo.jpg', # Картинка размером с итоговый кадр после ROI (если использовался)
+#		'fileName': '/sdcard/html/allsky_logo.jpg', # Картинка размером с итоговый кадр после ROI (если использовался)
+#		'x': 0,
+#		'y': 0,
 #   },
 #	'wb': 'gain',					# gain - вручную, simple - SimpleWB из OpenCV, gray - GreyworldWB
 #	'wbGains' : {
