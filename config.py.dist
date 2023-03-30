@@ -1,4 +1,4 @@
-import cv2 # только если цветная камера
+import cv2  # только если цветная камера
 
 name = 'Имя Фамилия'
 
@@ -10,7 +10,7 @@ ccd = {
 	'expMin':	0.0001,
 	'expMax':	45.,
 	'bits':		16,
-	'cfa':		cv2.COLOR_BayerBG2RGB, # только если цветная камера
+#	'cfa':		cv2.COLOR_BayerBG2RGB,  # только если цветная камера
 }
 
 # варианты дебаеризации
@@ -19,13 +19,34 @@ ccd = {
 #  cv2.COLOR_BayerRG2RGB
 #  cv2.COLOR_BayerGR2RGB
 
-
 publish = {
-#	'jpg':		'https://oleg.milantiev.com/allsky/publish/jpg/',	# публикация каждого jpg на другой сайт
+#	'jpg': 'https://oleg.milantiev.com/allsky/publish/jpg/',	# публикация каждого jpg на другой сайт
+}
+
+processing = {
+#	'ROI': {						# Crop (ROI) кадра с указанием координат углов
+#		'xLeft':   800,
+#		'xRight':  3100,
+#		'yTop':    0,
+#		'yBottom': 2179,
+#	},
+#	'logo': {						# Если нужно лого
+#		'fileName': '/sdcard/html/allsky_logo.jpg', # Картинка размером с итоговый кадр после ROI (если использовался)
+#		'x': 0,
+#		'y': 0,
+#   },
+#	'wb': 'gain',					# gain - вручную, simple - SimpleWB из OpenCV, gray - GreyworldWB
+#	'wbGains' : {
+#		'r': 0.85,
+#		'g': 0.65,
+#		'b': 0.990,
+#	},
+	'ccdAvgMin': 0.13,				# Считать среднее по центру кадра. От 13% слева / сверху
+	'ccdAvgMax': 0.87,				# до 87% справа / снизу
 }
 
 sensors = {
-	'bme280': {					# Два датчика BME280. 0 и 1
+	'bme280': {						# Два датчика BME280. 0 и 1
 		0: 'Улица',
 		1: 'Купол'
 	},
@@ -46,25 +67,53 @@ keogram = {
 	'height':	960,					# высота итогового изображения keogram. Обычно совпадает с высотой исходного кадра
 }
 
-timestamp = [
+# Аннотации изображения, если нужны (дата / время, среднее, выдержка)
+annotations = [
 	{
-		'format':	'%d.%m.%Y',			# Формат строки
-		'x':		0,					# координаты ЛВУ. В пикселях
+		'type':		'text',				# Тип аннотации ('text', 'datetime', 'avg', 'exposure')
+		'text':		'AllSky',			# Текст
+		'x':		300,				# координаты ЛВУ. В пикселях
 		'y':		0,
 		'size':		30,					# размер шрифта
 		'color':	(255,255,255,128),	# цвет букв
 	},
 	{
+		'type':		'datetime',
+		'format':	'%d.%m.%Y',			# Формат строки strftime()
+		'x':		0,
+		'y':		0,
+		'size':		30,
+		'color':	(255,255,255,128),
+	},
+	{
+		'type':		'datetime',
 		'format':	'%H:%M',
 		'x':		0,
 		'y':		35,
 		'size':		30,
 		'color':	(255,255,255,255),
 	},
+	{
+		'type':		'avg',
+		'format':	'CCD_avg: {:.0f}',				# Формат строки "%d".format(xxx)
+		'x':		0,
+		'y':		100,
+		'size':		20,
+		'color':	(255,255,255,128),
+	},
+	{
+		'type':		'exposure',
+		'format':	'EXP: {:.4f}',
+		'x':		0,
+		'y':		120,
+		'size':		20,
+		'color':	(255,255,255,128),
+	},
 ]
 
 archive = {
-	'days':		7,				# Хранить архив жпегов 7 дней
+	'jpg':		7,				# Хранить архив жпегов 7 дней
+	'fit':		3,				# Хранить архив fit 3 дня
 	'sensors':	30,				# Хранить архив данных сенсоров 30 дней
 }
 
@@ -77,13 +126,14 @@ video = {
 # http://integrator.adior.ru/index.php/orangepi/478-orange-pi-gpio-sysfs
 relay = [
 	{
-		'name':		'Реле 1',
-		'gpio':		'17',		# '/sys/class/gpio/gpio17/value',
-		'hotter':	'yes',		# это реле - обогрев подкупольного
+		'name':			'Реле 1',
+		'gpio':			'17',		# '/sys/class/gpio/gpio17/value',
+		'hotter':		'yes',		# это реле - обогрев подкупольного
+		'limitTemp':	29.5,		# предельная температура подкупольного пространства, выше которой обогрев не включается
 	},
 	{
-		'name':		'Реле 2',
-		'gpio':		'18',
+		'name':			'Реле 2',
+		'gpio':			'18',
 	},
 ]
 
@@ -102,8 +152,8 @@ path = {
 import logging
 
 log = {
-	'path':		'/var/log/allsky.log',
-	'level':	logging.DEBUG,
+	'path':		'/var/log/allsky.log',	# путь до лога. И уровень болтливости (debug = максимальный)
+	'level':	logging.DEBUG,			# менее подробные: logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
 }
 
 
@@ -112,7 +162,8 @@ log = {
 if (path['web'][-1] != '/'):
 	path['web'] += '/'
 
-path['snap'] = path['web'] +'snap/'
+path['jpg'] = path['web'] +'snap/'
 path['keogram'] = path['web'] +'keogram/'
 path['video'] = path['web'] +'video/'
 path['video-demand'] = path['web'] +'video-demand/'
+path['fit'] = path['web'] + 'fits/'
