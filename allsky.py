@@ -14,11 +14,11 @@ from datetime import datetime, timedelta
 
 import config
 
-import mysql.connector
-
-db = mysql.connector.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+import MySQLdb
+db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
 							 database=config.db['database'], charset='utf8')
-cursor = db.cursor(dictionary=True)
+db.autocommit(True)
+cursor = db.cursor()
 
 binning = config.ccd['binning']
 exposure = 1.0  # init exposure
@@ -169,8 +169,6 @@ class IndiClient(PyIndi.BaseClient):
 			cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 				""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": avg})
-
-			db.commit()
 
 			if os.path.islink(config.path['web'] + 'current.jpg'):
 				os.remove(config.path['web'] + 'current.jpg')

@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  daemon:
+    build: daemon
+    restart: unless-stopped
+    volumes:
+      - .:/opt/allsky.py
+    command: python3 /opt/allsky.py/allsky.py
+    networks:
+      appnet:
+        aliases:
+          - daemon
+
+  # https://hub.docker.com/r/seanhoughton/indiserver/
+  indi:
+    build: indi
+    restart: unless-stopped
+    command: indiserver indi_simulator_ccd
+    privileged: true
+    ports:
+      - 7624:7624
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+    networks:
+      appnet:
+        aliases:
+          - indi
+
+  db:
+    image: tobi312/rpi-mariadb:10.6-alpine
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: 'allsky'
+      MYSQL_ROOT_PASSWORD: 'master'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: ''
+    ports:
+      - 3306:3306
+    volumes:
+      - my-db:/var/lib/mysql
+      - ./db/:/docker-entrypoint-initdb.d/
+    networks:
+      appnet:
+        aliases:
+          - db
+
+volumes:
+  my-db:
+
+networks:
+  appnet:
+    driver: bridge
