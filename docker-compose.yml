@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   daemon:
-    build: daemon
+    build: indi
     restart: unless-stopped
     volumes:
       - .:/opt/allsky.py
@@ -12,8 +12,7 @@ services:
         aliases:
           - daemon
 
-  # https://hub.docker.com/r/seanhoughton/indiserver/
-  indi:
+  indiserver:
     build: indi
     restart: unless-stopped
     command: indiserver indi_simulator_ccd

@@ -269,7 +269,7 @@ class IndiClient(PyIndi.BaseClient):
 # logging.debug('{}: Реле обогрева {} ({}%)'.format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
 
 indi = IndiClient()
-indi.setServer("localhost", 7624)
+indi.setServer(config.indi['host'], config.indi['port'])
 
 if not indi.connectServer():
 	logging.warning('Не найден INDI-сервер камеры')

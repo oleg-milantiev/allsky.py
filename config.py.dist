@@ -138,10 +138,15 @@ relay = [
 ]
 
 db = {
-	'host':		'localhost',
+	'host':		'db',
 	'user':		'root',
 	'passwd':	'master',
 	'database':	'allsky',
+}
+
+indi = {
+	'host':		'localhost',
+	'port':		7624,
 }
 
 path = {
@@ -152,7 +157,8 @@ path = {
 import logging
 
 log = {
-	'path':		'/var/log/allsky.log',	# путь до лога. И уровень болтливости (debug = максимальный)
+	'path':		'/dev/stdout',
+#	'path':		'/var/log/allsky.log',	# путь до лога. И уровень болтливости (debug = максимальный)
 	'level':	logging.DEBUG,			# менее подробные: logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
 }
 
