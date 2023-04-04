@@ -2,7 +2,11 @@ version: "3.8"
 
 services:
   daemon:
-    build: indi
+#    build: indi
+    image: olegmilantiev/indi:latest
+    depends_on:
+      - db
+      - indiserver
     restart: unless-stopped
     volumes:
       - .:/opt/allsky.py
@@ -13,7 +17,8 @@ services:
           - daemon
 
   indiserver:
-    build: indi
+#    build: indi
+    image: olegmilantiev/indi:latest
     restart: unless-stopped
     command: indiserver indi_simulator_ccd
     privileged: true
@@ -43,6 +48,33 @@ services:
       appnet:
         aliases:
           - db
+
+  nginx:
+    image: nginx:latest
+    depends_on:
+      - php
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/etc:/etc/nginx
+      - ./web:/var/www/html
+    networks:
+      appnet:
+        aliases:
+          - nginx
+
+  php:
+    image: php:8.1-fpm
+    depends_on:
+      - db
+    expose:
+      - 9000
+    networks:
+      appnet:
+        aliases:
+          - php
+    volumes:
+      - ./web:/var/www/html
 
 volumes:
   my-db:
