@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import config
+
 import os
 import sys
 import time
@@ -48,7 +50,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
 indiclient=IndiClient()
 
-indiclient.setServer("localhost",7624)
+indiclient.setServer(config.indi['host'], config.indi['port'])
 
 print("Connecting and waiting 2secs")
 

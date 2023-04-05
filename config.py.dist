@@ -1,3 +1,7 @@
+### Поправил конфиг - запусти команду!
+### docker run -v /opt/allsky.py:/opt/allsky.py olegmilantiev/indi /opt/allsky.py/config.json.py
+### это будет исправлено после запуска watchdog контейнера
+
 import cv2  # только если цветная камера
 
 name = 'Имя Фамилия'
