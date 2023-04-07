@@ -16,11 +16,27 @@ services:
         aliases:
           - daemon
 
+#  watchdog:
+#    image: olegmilantiev/indi:latest
+#    depends_on:
+#      - db
+#      - gearman
+#      - indiserver
+#    restart: unless-stopped
+#    volumes:
+#      - .:/opt/allsky.py
+#    command: python3 /opt/allsky.py/watchdog.py
+#    networks:
+#      appnet:
+#        aliases:
+#          - watchdog
+
   indiserver:
+#    /opt/allsky.py/fxload/fxload -t fx3 -I /lib/firmware/qhy/QHY5III462.img -D /dev/bus/usb/003/002
 #    build: indi
     image: olegmilantiev/indi:latest
     restart: unless-stopped
-    command: indiserver indi_qhy_ccd
+    command: indiserver -vvv indi_qhy_ccd
     privileged: true
     expose:
       - 7624
@@ -49,6 +65,14 @@ services:
         aliases:
           - db
 
+  gearman:
+    build: gearman
+    restart: unless-stopped
+    networks:
+      appnet:
+        aliases:
+          - gearman
+
   nginx:
     image: nginx:latest
     restart: unless-stopped
@@ -69,6 +93,7 @@ services:
     restart: unless-stopped
     depends_on:
       - db
+      - gearman
     expose:
       - 9000
     networks:
