@@ -2,7 +2,7 @@
 <?php include 'include/head.php'; ?>
 <?php
 
-$snapDir = scandir('/var/www/html/snap/', SCANDIR_SORT_DESCENDING);
+$snapDir = scandir($config['path']['jpg'], SCANDIR_SORT_DESCENDING);
 
 $date = 
 	(
