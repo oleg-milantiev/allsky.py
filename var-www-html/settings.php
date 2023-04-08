@@ -84,6 +84,11 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 				</select>
 			</div>
 
+			<div class="form-group">
+				<label>Счётчик (HTML-код на всех страницах, сразу после открывающегося тега body):</label>
+				<textarea class="form-control" name="counter"><?php echo $config['web']['counter']; ?></textarea>
+			</div>
+
 			<button class="btn btn-success btn-lg" type="submit">Сохранить</button>
 		</form>
 	</div>

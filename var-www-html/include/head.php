@@ -92,6 +92,12 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				'val' => json_encode(intval($_POST['hotPercent'])),
 			]);
 
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'counter',
+				'val' => json_encode($_POST['counter']),
+			]);
+
 			header('Location: /settings.php?time='. time());
 			exit;
 
@@ -254,6 +260,7 @@ if (
 
 
 <body>
+	<?php echo $config['web']['counter'] ?? ''; ?>
 	<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
 	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">AllSky - <?php echo $config['name']; ?></a>
 	<div class="d-block d-md-none">
