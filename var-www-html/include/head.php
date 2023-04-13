@@ -76,12 +76,9 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			
 			die('Реле не найдено');
 
-		case 'settings':
+		case 'settings-users':
 			if (
-				!isset($_SESSION['user']) or
-				!isset($_POST['hotPercent']) or
-				(intval($_POST['hotPercent']) < 0) or
-				(intval($_POST['hotPercent']) > 100)
+				!isset($_SESSION['user'])
 			) {
 				die('Страница недоступна');
 			}
@@ -92,10 +89,38 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				'val' => json_encode(intval($_POST['hotPercent'])),
 			]);
 
+			header('Location: /settings.php?time='. time());
+			exit;
+
+		case 'settings-web':
+			if (
+				!isset($_POST['counter'])
+			) {
+				die('Страница недоступна');
+			}
+
 			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
 			$sth->execute([
 				'id'  => 'counter',
 				'val' => json_encode($_POST['counter']),
+			]);
+
+			header('Location: /settings.php?time='. time());
+			exit;
+
+		case 'settings-relay':
+			if (
+				!isset($_POST['hotPercent']) or
+				((int) $_POST['hotPercent'] < 0) or
+				((int) $_POST['hotPercent'] > 100)
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'hotPercent',
+				'val' => json_encode(intval($_POST['hotPercent'])),
 			]);
 
 			header('Location: /settings.php?time='. time());
