@@ -47,6 +47,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
 <div class="tab-content">
     <div class="tab-pane fade show active" id="users">
+        <br>
         <h5 class="card-title">Пользователи</h5>
 
         <form method="POST">
@@ -97,13 +98,21 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
     </div>
 
     <div class="tab-pane fade" id="web">
+        <br>
+        <h5 class="card-title">Настройки веб</h5>
+
         <form method="POST">
 
             <input type="hidden" name="action" value="settings-web">
 
             <div class="form-group">
+                <label>Название обсерватории:</label>
+                <input class="form-control" type="text" name="name" value="<?php echo $config['web']['name'] ?? ''; ?>">
+            </div>
+
+            <div class="form-group">
                 <label>Счётчик (HTML-код на всех страницах, сразу после открывающегося тега body):</label>
-                <textarea class="form-control" name="counter"><?php echo $config['web']['counter']; ?></textarea>
+                <textarea class="form-control" name="counter"><?php echo $config['web']['counter'] ?? ''; ?></textarea>
             </div>
 
             <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
@@ -111,7 +120,83 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
     </div>
 
     <div class="tab-pane fade" id="ccd">
-        Камера
+        <br>
+        <h5 class="card-title">Настройки камеры</h5>
+
+        <form method="POST">
+
+            <input type="hidden" name="action" value="settings-ccd">
+
+            <div class="form-group">
+                <label>INDI название камеры:</label>
+                <input class="form-control" type="text" name="name" value="<?php echo $config['ccd']['name'] ?? ''; ?>">
+            </div>
+
+            <div class="form-group">
+                <label>Биннинг:</label>
+                <div>
+                    <label>
+                        <input type="radio" name="binning" value="1"<?php echo (!isset($config['ccd']['binning']) or (isset($config['ccd']['binning']) and ($config['ccd']['binning'] === 1))) ? ' checked' : ''; ?>> 1
+                    </label>
+                    <label>
+                        <input type="radio" name="binning" value="2"<?php echo (isset($config['ccd']['binning']) and ($config['ccd']['binning'] === 2)) ? ' checked' : ''; ?>> 2
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Разрядность (битность):</label>
+                <div>
+                    <label>
+                        <input type="radio" name="bits" value="8"<?php echo (!isset($config['ccd']['bits']) or (isset($config['ccd']['bits']) and ($config['ccd']['bits'] === 8))) ? ' checked' : ''; ?>> 8
+                    </label>
+                    <label>
+                        <input type="radio" name="bits" value="16"<?php echo (isset($config['ccd']['bits']) and ($config['ccd']['bits'] === 16)) ? ' checked' : ''; ?>> 16
+                    </label>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Желаемое среднее значение кадра</h6>
+                    <div class="form-group">
+                        <label>Минимум среднего ADU:</label>
+                        <input class="form-control" type="number" min="1" name="avgMin" value="<?php echo $config['ccd']['avgMin'] ?? '55'; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Максимум среднего ADU:</label>
+                        <input class="form-control" type="number" min="1" max="65535" name="avgMax" value="<?php echo $config['ccd']['avgMax'] ?? '150'; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Размер прямоугольника замера, в % от всего кадра:</label>
+                        <input class="form-control" type="number" min="1" max="100" name="center" value="<?php echo $config['ccd']['center'] ?? '50'; ?>">
+                    </div>
+                </div>
+            </div>
+
+            <br>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Подбор выдержки</h6>
+                    <div class="form-group">
+                        <label>Минимальная выдержка, секунд:</label>
+                        <input class="form-control" type="text" name="expMin" value="<?php echo $config['ccd']['expMin'] ?? '0.001'; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Максимальная выдержка, секунд:</label>
+                        <input class="form-control" type="text" name="expMax" value="<?php echo $config['ccd']['expMax'] ?? '45'; ?>">
+                    </div>
+                </div>
+            </div>
+
+            <br>
+            <div>TBD: CFA</div>
+            <br>
+
+
+            <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
+        </form>
     </div>
 
     <div class="tab-pane fade" id="processing">
