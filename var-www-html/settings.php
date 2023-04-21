@@ -35,7 +35,10 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         <a class="nav-link" data-toggle="tab" href="#processing">Обработка</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#sensors">Сенсоры</a>
+        <a class="nav-link" data-toggle="tab" href="#publish">Публикация</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#sensors">Датчики</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" data-toggle="tab" href="#relays">Реле</a>
@@ -158,7 +161,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Желаемое среднее значение кадра</h6>
+                    <h6 class="card-title">Среднее значение яркости кадра</h6>
                     <div class="form-group">
                         <label>Минимум среднего ADU:</label>
                         <input class="form-control" type="number" min="1" name="avgMin" value="<?php echo $config['ccd']['avgMin'] ?? '55'; ?>">
@@ -194,20 +197,289 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
             <div>TBD: CFA</div>
             <br>
 
+            <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
+        </form>
+    </div>
+
+    <div class="tab-pane fade" id="processing">
+        <br>
+        <h5 class="card-title">Настройки обработки</h5>
+
+        <form method="POST">
+
+            <input type="hidden" name="action" value="settings-processing">
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Обрезка (кроп)</h6>
+
+                    <div class="form-group">
+                        <label>Слева, пикселей:</label>
+                        <input class="form-control" type="number" name="left" value="<?php echo $config['processing']['crop']['left'] ?? '0'; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Справа, пикселей:</label>
+                        <input class="form-control" type="number" name="right" value="<?php echo $config['processing']['crop']['right'] ?? '0'; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Сверху, пикселей:</label>
+                        <input class="form-control" type="number" name="top" value="<?php echo $config['processing']['crop']['top'] ?? '0'; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Снизу, пикселей:</label>
+                        <input class="form-control" type="number" name="bottom" value="<?php echo $config['processing']['crop']['bottom'] ?? '0'; ?>">
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Лого (наложение изображения)</h6>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label>Файл:</label>
+                                <input class="form-control" type="file" name="file">
+                            </div>
+                            <div class="form-group">
+                                <label>Координата Х наложения изображения:</label>
+                                <input class="form-control" type="number" min="0" name="x" value="<?php echo $config['processing']['logo']['x'] ?? 0; ?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Координата Y наложения изображения:</label>
+                                <input class="form-control" type="number" min="0" name="y" value="<?php echo $config['processing']['logo']['y'] ?? 0; ?>">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <?php echo $config['processing']['logo']['file'] ?? ''; #todo ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Аннотации (наложение текста)</h6>
+
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Тип</th>
+                            <th>X</th>
+                            <th>Y</th>
+                            <th>Размер</th>
+                            <th>Цвет</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" class="text-center">пусто</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <button class="btn btn-sm btn-info annotation-add">+</button>
+                </div>
+
+                <div class="modal annotation" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"></h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label>Тип аннотации</label>
+                                    <select class="form-control" name="type">
+                                        <option value="text">Текст</option>
+                                        <option value="datetime">Дата / время</option>
+                                        <option value="avg">Среднее ADU</option>
+                                        <option value="exposure">Выдержка, сек</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>X координата</label>
+                                    <input required class="form-control" type="number" min="0" name="x">
+                                </div>
+                                <div class="form-group">
+                                    <label>Y координата</label>
+                                    <input required class="form-control" type="number" min="0" name="y">
+                                </div>
+                                <div class="form-group">
+                                    <label>Размер шрифта</label>
+                                    <input class="form-control" type="number" min="3" max="100" name="size">
+                                </div>
+                                <div class="form-group">
+                                    <label>Цвет</label>
+                                    <input class="form-control" type="text" name="color">
+                                </div>
+                                <div class="form-group">
+                                    <label>Формат / текст</label>
+                                    <input class="form-control" type="text" name="format">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary"></button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    $(function (){
+                        $('.annotation .modal-footer button.btn-primary').click(function (){
+                            var message = '';
+
+                            if ($('.modal.annotation input[name=x]').val() == '') {
+                                message += 'Введите X координату<br>';
+                            }
+                            if ($('.modal.annotation input[name=y]').val() == '') {
+                                message += 'Введите Y координату<br>';
+                            }
+                            if ($('.modal.annotation input[name=size]').val() == '') {
+                                message += 'Введите размер шрифта<br>';
+                            }
+                            if ($('.modal.annotation input[name=color]').val() == '') {
+                                message += 'Выберите цвет<br>';
+                            }
+                            if ($('.modal.annotation input[name=format]').val() == '') {
+                                message += 'Заполните формат / цвет<br>';
+                            }
+
+                            if (message == '') {
+                                // tbd
+                            }
+                            else {
+                                $.notify(
+                                    {message: message},
+                                    {
+                                       type: 'danger',
+                                        z_index: 2000,
+                                    }
+                                );
+                            }
+                        });
+
+                        $('.annotation-add').click(function (e){
+                            $('.annotation .modal-title').text('Добавление аннотации');
+                            $('.annotation .modal-footer button.btn-primary').text('Добавить');
+
+                            $('.modal.annotation').modal();
+
+                            e.preventDefault();
+                        });
+                    });
+                </script>
+            </div>
+            <br>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Баланс белого (для цветных камер)</h6>
+
+                    <div class="form-group">
+                        <div>
+                            <label>Метод нахождения баланса белого:</label>
+                        </div>
+
+                        <div class="wb">
+                            <label>
+                                <input type="radio" name="wb" value="gain"<?php echo (!isset($config['processing']['wb']) or (isset($config['processing']['wb']) and ($config['processing']['wb'] === 'gain'))) ? ' checked' : ''; ?>> Вручную
+                            </label>
+                            <label>
+                                <input type="radio" name="wb" value="simple"<?php echo (isset($config['processing']['wb']) and ($config['processing']['wb'] === 'simple')) ? ' checked' : ''; ?>> Simple WB
+                            </label>
+                            <label>
+                                <input type="radio" name="wb" value="gray"<?php echo (isset($config['processing']['wb']) and ($config['processing']['wb'] === 'gray')) ? ' checked' : ''; ?>> Greyworld WB
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="wb-gain" style="display: none">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Gain-коэффициенты</h6>
+                                <div class="form-group">
+                                    <label>Красный (R):</label>
+                                    <input class="form-control" type="text" name="r" value="<?php echo $config['processing']['gain']['r'] ?? '1'; ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label>Зелёный (G):</label>
+                                    <input class="form-control" type="text" name="g" value="<?php echo $config['processing']['gain']['g'] ?? '1'; ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label>Синий (B):</label>
+                                    <input class="form-control" type="text" name="b" value="<?php echo $config['processing']['gain']['b'] ?? '1'; ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        function wb()
+                        {
+                            if ($('input[name=wb]:checked').val() == 'gain')
+                                $('#wb-gain').show();
+                            else
+                                $('#wb-gain').hide();
+                        }
+
+                        $(function (){
+                            wb();
+
+                            $('.wb input').click(wb);
+                        })
+                    </script>
+                </div>
+            </div>
+
+            <br>
 
             <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
         </form>
     </div>
 
     <div class="tab-pane fade" id="processing">
-        Обработка
+        <br>
+        <h5 class="card-title">Настройки публикации</h5>
+
+        <form method="POST">
+
+            <input type="hidden" name="action" value="settings-publish">
+
+            <div class="form-group">
+                <label>URL для публикации JPG:</label>
+                <input class="form-control" type="text" name="jpg" value="<?php echo $config['publish']['jpg'] ?? ''; ?>">
+            </div>
+
+            <br>
+
+            <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
+        </form>
     </div>
 
     <div class="tab-pane fade" id="sensors">
-        Сенсоры
+        <br>
+        <h5 class="card-title">Настройки дачтиков</h5>
+
+        <br>
+        <div>TBD</div>
+        <br>
+
     </div>
 
     <div class="tab-pane fade" id="relays">
+        <br>
+        <h5 class="card-title">Настройки реле</h5>
+
         <form method="POST">
 
             <input type="hidden" name="action" value="settings-relay">
@@ -227,7 +499,13 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
     </div>
 
     <div class="tab-pane fade" id="archive">
-        Архив
+        <br>
+        <h5 class="card-title">Настройки архива</h5>
+
+        <br>
+        <div>TBD</div>
+        <br>
+
     </div>
 </div>
 
