@@ -476,7 +476,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         </form>
     </div>
 
-    <div class="tab-pane fade" id="processing">
+    <div class="tab-pane fade" id="publish">
         <br>
         <h5 class="card-title">Настройки публикации</h5>
 
@@ -499,9 +499,52 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         <br>
         <h5 class="card-title">Настройки дачтиков</h5>
 
-        <br>
-        <div>TBD</div>
-        <br>
+        <form method="POST">
+
+            <input type="hidden" name="action" value="settings-sensors">
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">BME280 (температура, влажность, давление)</h6>
+                    <div class="form-group">
+                        <label>Название первого датчика:</label>
+                        <input class="form-control" type="text" name="bme280[0][name]" value="<?php echo $config['sensors']['bme280'][0]['name'] ?? ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Название второго датчика:</label>
+                        <input class="form-control" type="text" name="bme280[1][name]" value="<?php echo $config['sensors']['bme280'][1]['name'] ?? ''; ?>">
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">ADS1115 (АЦП, датчик напряжения)</h6>
+                    <div class="form-group">
+                        <label>Название первого датчика:</label>
+                        <input class="form-control" type="text" name="ads1115[0][name]" value="<?php echo $config['sensors']['ads1115'][0]['name'] ?? ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Делитель первого датчика:</label>
+                        <input class="form-control" type="text" name="ads1115[0][divider]" value="<?php echo $config['sensors']['ads1115'][0]['divider'] ?? ''; ?>">
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <label>Название второго датчика:</label>
+                        <input class="form-control" type="text" name="ads1115[1][name]" value="<?php echo $config['sensors']['ads1115'][1]['name'] ?? ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Делитель второго датчика:</label>
+                        <input class="form-control" type="text" name="ads1115[1][divider]" value="<?php echo $config['sensors']['ads1115'][1]['divider'] ?? ''; ?>">
+                    </div>
+                </div>
+            </div>
+
+            <br>
+
+            <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
+        </form>
 
     </div>
 
