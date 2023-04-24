@@ -264,7 +264,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                 <div class="card-body">
                     <h6 class="card-title">Аннотации (наложение текста)</h6>
 
-                    <table class="table table-striped">
+                    <table class="table table-striped annotation">
                         <thead>
                         <tr>
                             <th>Тип</th>
@@ -272,12 +272,13 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                             <th>Y</th>
                             <th>Размер</th>
                             <th>Цвет</th>
+                            <th>Формат</th>
                             <th></th>
                         </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td colspan="6" class="text-center">пусто</td>
+                            <tr class="empty">
+                                <td colspan="7" class="text-center">пусто</td>
                             </tr>
                         </tbody>
                     </table>
@@ -334,6 +335,20 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                 </div>
 
                 <script>
+                    function annotation_remove_event()
+                    {
+                        $('table.annotation tbody button.btn-danger').unbind('click');
+                        $('table.annotation tbody button.btn-danger').click(function (){
+                            if (confirm('Удалить аннотацию?')) {
+                                $(this).parents('tr').remove();
+
+                                if ($('table.annotation tbody tr').length == 1) {
+                                    $('table.annotation tbody tr.empty').show();
+                                }
+                            }
+                        });
+                    }
+
                     $(function (){
                         $('.annotation .modal-footer button.btn-primary').click(function (){
                             var message = '';
@@ -355,7 +370,21 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                             }
 
                             if (message == '') {
-                                // tbd
+                                $('table.annotation tbody tr.empty').hide();
+
+                                $('table.annotation tbody').append('<tr>' +
+                                    '<td>'+ $('.modal.annotation select[name=type]').val() +'</td>'+
+                                    '<td>'+ $('.modal.annotation input[name=x]').val() +'</td>'+
+                                    '<td>'+ $('.modal.annotation input[name=y]').val() +'</td>'+
+                                    '<td>'+ $('.modal.annotation input[name=size]').val() +'</td>'+
+                                    '<td>'+ $('.modal.annotation input[name=color]').val() +'</td>'+
+                                    '<td>'+ $('.modal.annotation input[name=format]').val() +'</td>'+
+                                    '<td><button type="button" class="btn btn-danger btn-sm">&nbsp;-&nbsp;</button></td>'+
+                                    '</tr>');
+
+                                annotation_remove_event();
+
+                                $('.modal.annotation').modal('hide');
                             }
                             else {
                                 $.notify(
