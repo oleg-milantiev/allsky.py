@@ -401,6 +401,13 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                             $('.annotation .modal-title').text('Добавление аннотации');
                             $('.annotation .modal-footer button.btn-primary').text('Добавить');
 
+                            $('.modal.annotation select[name=type]').val('text');
+                            $('.modal.annotation input[name=x]').val('');
+                            $('.modal.annotation input[name=y]').val('');
+                            $('.modal.annotation input[name=size]').val('');
+                            $('.modal.annotation input[name=color]').val('');
+                            $('.modal.annotation input[name=format]').val('');
+
                             $('.modal.annotation').modal();
 
                             e.preventDefault();
@@ -553,18 +560,134 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         <h5 class="card-title">Настройки реле</h5>
 
         <form method="POST">
-
             <input type="hidden" name="action" value="settings-relay">
 
-            <div class="form-group">
-                <label>Мощность обогрева подкупольного:</label>
-                <select class="form-control" name="hotPercent">
-                    <option value="">- отключено -</option>
-					<?php for ($i = 10; $i <= 100; $i += 10):?>
-                        <option value="<?php echo $i; ?>"<?php echo (isset($config['web']['hotPercent']) and ($config['web']['hotPercent'] == $i)) ? ' selected' : '' ?>><?php echo $i; ?>%</option>
-					<?php endfor; ?>
-                </select>
+            <table class="table table-striped relay">
+                <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>GPIO порт</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="empty">
+                    <td colspan="4" class="text-center">пусто</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <button class="btn btn-sm btn-info relay-add">+</button>
+
+            <div class="modal relay" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>Название реле</label>
+                                <input required class="form-control" type="text" name="name">
+                            </div>
+                            <div class="form-group">
+                                <label>GPIO порт</label>
+                                <input required class="form-control" type="number" min="1" name="gpio">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="hotter">
+                                    Обогрев подкупольного
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>Желаемая температура обогрева</label>
+                                <input class="form-control" type="text" name="temp">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary"></button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <script>
+                function relay_remove_event()
+                {
+                    $('table.relay tbody button.btn-danger').unbind('click');
+                    $('table.relay tbody button.btn-danger').click(function (){
+                        if (confirm('Удалить реле?')) {
+                            $(this).parents('tr').remove();
+
+                            if ($('table.relay tbody tr').length == 1) {
+                                $('table.relay tbody tr.empty').show();
+                            }
+                        }
+                    });
+                }
+
+                $(function (){
+                    $('.relay .modal-footer button.btn-primary').click(function (){
+                        var message = '';
+
+                        if ($('.modal.relay input[name=name]').val() == '') {
+                            message += 'Введите название реле<br>';
+                        }
+                        if ($('.modal.relay input[name=gpio]').val() == '') {
+                            message += 'Выберите GPIO порт<br>';
+                        }
+
+                        if (message == '') {
+                            $('table.relay tbody tr.empty').hide();
+
+                            $('table.relay tbody').append('<tr>' +
+                                '<td>'+ $('.modal.relay input[name=name]').val() +'</td>'+
+                                '<td>'+ $('.modal.relay input[name=gpio]').val() +'</td>'+
+                                '<td>'+
+                                    (($('.modal.relay input[name=hotter]:checked').length == 1) ? 'обогрев<br>' : '') +
+                                    $('.modal.relay input[name=temp]').val() +
+                                '</td>'+
+                                '<td><button type="button" class="btn btn-danger btn-sm">&nbsp;-&nbsp;</button></td>'+
+                                '</tr>');
+
+                            relay_remove_event();
+
+                            $('.modal.relay').modal('hide');
+                        }
+                        else {
+                            $.notify(
+                                {message: message},
+                                {
+                                    type: 'danger',
+                                    z_index: 2000,
+                                }
+                            );
+                        }
+                    });
+
+                    $('.relay-add').click(function (e){
+                        $('.relay .modal-title').text('Добавление реле');
+                        $('.relay .modal-footer button.btn-primary').text('Добавить');
+
+                        $('.modal.relay input[name=name]').val('');
+                        $('.modal.relay input[name=gpio]').val('');
+                        $('.modal.relay input[name=hotter]').prop('checked', false)
+                        $('.modal.relay input[name=temp]').val('');
+
+                        $('.modal.relay').modal();
+
+                        e.preventDefault();
+                    });
+                });
+            </script>
+            <br>
+            <br>
 
             <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
         </form>
