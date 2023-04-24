@@ -697,9 +697,33 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         <br>
         <h5 class="card-title">Настройки архива</h5>
 
-        <br>
-        <div>TBD</div>
-        <br>
+        <form method="POST">
+            <input type="hidden" name="action" value="settings-archive">
+
+            <div class="form-group">
+                <label>Архив JPG, дней:</label>
+                <input class="form-control" type="number" name="jpg" min="0" value="<?php echo $config['archive']['jpg'] ?? '7'; ?>">
+            </div>
+
+            <div class="form-group">
+                <label>Архив FIT, дней:</label>
+                <input class="form-control" type="number" name="fit" min="0" value="<?php echo $config['archive']['fit'] ?? '3'; ?>">
+            </div>
+
+            <div class="form-group">
+                <label>Архив данных сенсоров, дней:</label>
+                <input class="form-control" type="number" name="sensors" min="0" value="<?php echo $config['archive']['sensors'] ?? '30'; ?>">
+            </div>
+
+            <div class="form-group">
+                <label>Архив видео (MP4), дней:</label>
+                <input class="form-control" type="number" name="video" min="0" value="<?php echo $config['archive']['video'] ?? '30'; ?>">
+            </div>
+
+            <br>
+
+            <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
+        </form>
 
     </div>
 </div>

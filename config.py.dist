@@ -114,12 +114,12 @@ archive = {
 	'jpg':		7,				# Хранить архив жпегов 7 дней
 	'fit':		3,				# Хранить архив fit 3 дня
 	'sensors':	30,				# Хранить архив данных сенсоров 30 дней
+	'video':    30,             # Хранить архив видео 30 дней
 }
 
 video = {
 	'width':	1024,
 	'height':	768,
-	'days':		30,				# Хранить 30 дней mp4
 }
 
 # http://integrator.adior.ru/index.php/orangepi/478-orange-pi-gpio-sysfs
