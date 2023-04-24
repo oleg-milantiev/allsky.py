@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM ubuntu:23.04
 
 RUN apt-get -qq update && apt-get -qqy dist-upgrade && apt-get -qqy --no-install-recommends install \
   # indi dependencies

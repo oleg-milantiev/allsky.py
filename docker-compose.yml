@@ -10,7 +10,8 @@ services:
     restart: unless-stopped
     volumes:
       - .:/opt/allsky.py
-    command: python3 /opt/allsky.py/allsky.py
+#    command: python3 /opt/allsky.py/allsky.py
+    command: python3 /opt/allsky.py/list.py
     networks:
       appnet:
         aliases:
@@ -41,6 +42,7 @@ services:
     expose:
       - 7624
     volumes:
+      - .:/opt/allsky.py # для теста
       - /dev/bus/usb:/dev/bus/usb
     networks:
       appnet:
@@ -79,7 +81,7 @@ services:
     depends_on:
       - php
     ports:
-      - 80:80
+      - 81:80
     volumes:
       - ./nginx/allsky.conf:/etc/nginx/conf.d/allsky.conf
       - ./web:/var/www/html
@@ -106,7 +108,10 @@ services:
 
 volumes:
   my-db:
+  config:
 
 networks:
   appnet:
     driver: bridge
+
+# docker build --squash .
