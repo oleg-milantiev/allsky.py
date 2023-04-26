@@ -561,7 +561,7 @@ $tab = $_GET['tab'] ?? 'users';
         <br>
         <h5 class="card-title">Настройки реле</h5>
 
-        <form method="POST">
+        <form method="POST" class="relays">
             <input type="hidden" name="action" value="settings-relay">
 
             <table class="table table-striped relay">
@@ -569,13 +569,26 @@ $tab = $_GET['tab'] ?? 'users';
                 <tr>
                     <th>Название</th>
                     <th>GPIO порт</th>
-                    <th></th>
+                    <th>Обогрев</th>
+                    <th>Температура</th>
                     <th></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr class="empty">
-                    <td colspan="4" class="text-center">пусто</td>
+                    <?php if (count($config['relays'] ?? []) > 0): ?>
+                        <?php foreach ($config['relays'] as $relay): ?>
+                            <tr>
+                                <td><?php echo $relay['name']; ?></td>
+                                <td><?php echo $relay['gpio']; ?></td>
+                                <td><?php echo $relay['hotter'] ? 'обогрев' : ''; ?></td>
+                                <td><?php echo $relay['temp']; ?></td>
+                                <td><button type="button" class="btn btn-danger btn-sm">&nbsp;-&nbsp;</button></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <td colspan="5" class="text-center">пусто</td>
+                    <?php endif; ?>
                 </tr>
                 </tbody>
             </table>
@@ -594,11 +607,11 @@ $tab = $_GET['tab'] ?? 'users';
                         <div class="modal-body">
                             <div class="form-group">
                                 <label>Название реле</label>
-                                <input required class="form-control" type="text" name="name">
+                                <input class="form-control" type="text" name="name">
                             </div>
                             <div class="form-group">
                                 <label>GPIO порт</label>
-                                <input required class="form-control" type="number" min="1" name="gpio">
+                                <input class="form-control" type="number" min="1" name="gpio">
                             </div>
                             <div class="form-group">
                                 <label>
@@ -635,6 +648,8 @@ $tab = $_GET['tab'] ?? 'users';
                 }
 
                 $(function (){
+                    relay_remove_event();
+
                     $('.relay .modal-footer button.btn-primary').click(function (){
                         var message = '';
 
@@ -651,10 +666,8 @@ $tab = $_GET['tab'] ?? 'users';
                             $('table.relay tbody').append('<tr>' +
                                 '<td>'+ $('.modal.relay input[name=name]').val() +'</td>'+
                                 '<td>'+ $('.modal.relay input[name=gpio]').val() +'</td>'+
-                                '<td>'+
-                                    (($('.modal.relay input[name=hotter]:checked').length == 1) ? 'обогрев<br>' : '') +
-                                    $('.modal.relay input[name=temp]').val() +
-                                '</td>'+
+                                '<td>'+ (($('.modal.relay input[name=hotter]:checked').length == 1) ? 'обогрев' : '') +'</td>'+
+                                '<td>'+ $('.modal.relay input[name=temp]').val() +'</td>'+
                                 '<td><button type="button" class="btn btn-danger btn-sm">&nbsp;-&nbsp;</button></td>'+
                                 '</tr>');
 
@@ -692,6 +705,26 @@ $tab = $_GET['tab'] ?? 'users';
             <br>
 
             <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
+
+            <script>
+                $(function (){
+                    $('form.relays').submit(function (){
+                        var html = '';
+                        var i = 0;
+
+                        $('table.relay tbody tr:not(.empty)').each(function (){
+                            html += '<input type="hidden" name="relays['+ i +'][name]" value="'+ $(this).find('td:eq(0)').html() +'">';
+                            html += '<input type="hidden" name="relays['+ i +'][gpio]" value="'+ $(this).find('td:eq(1)').html() +'">';
+                            html += '<input type="hidden" name="relays['+ i +'][hotter]" value="'+ $(this).find('td:eq(2)').html() +'">';
+                            html += '<input type="hidden" name="relays['+ i +'][temp]" value="'+ $(this).find('td:eq(3)').html() +'">';
+
+                            i++;
+                        });
+
+                        $('form.relays').append(html);
+                    });
+                });
+            </script>
         </form>
     </div>
 

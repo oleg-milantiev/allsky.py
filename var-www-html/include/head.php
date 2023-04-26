@@ -21,7 +21,7 @@ $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-    if (in_array($row['id'], ['archive', 'sensors'])) {
+    if (in_array($row['id'], ['archive', 'sensors', 'relays'])) {
 		$config[ $row['id'] ] = json_decode($row['val'], true);
     }
 }
@@ -143,20 +143,32 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 		case 'settings-relay':
 			if (
-				!isset($_POST['hotPercent']) or
-				((int) $_POST['hotPercent'] < 0) or
-				((int) $_POST['hotPercent'] > 100)
+				isset($_POST['relays']) and
+				is_array($_POST['relays'])
 			) {
-				die('Страница недоступна');
+				$relays = [];
+
+				foreach ($_POST['relays'] as $relay) {
+					if (!$relay['name'] or ((int) $relay['gpio'] < 0)) {
+						continue;
+					}
+
+					$relays[] = [
+						'name' => $relay['name'],
+						'gpio' => (int) $relay['gpio'],
+						'hotter' => $relay['hotter'] === 'обогрев',
+						'temp' => (float) $relay['temp'],
+					];
+				}
+
+				$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+				$sth->execute([
+					'id'  => 'relays',
+					'val' => json_encode($relays),
+				]);
 			}
 
-			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
-			$sth->execute([
-				'id'  => 'hotPercent',
-				'val' => json_encode(intval($_POST['hotPercent'])),
-			]);
-
-			header('Location: /settings.php?time='. time());
+			header('Location: /settings.php?tab=relays&time='. time());
 			exit;
 
 		case 'settings-archive':
