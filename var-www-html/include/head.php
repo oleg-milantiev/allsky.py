@@ -15,15 +15,16 @@ $dbh = new PDO(
 	$config['db']['user'],
 	$config['db']['passwd']);
 
-$config['web'] = [];
+//$config['web'] = [];
 
 $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-	$config['web'][ $row['id'] ] = json_decode($row['val'], true);
+    if (in_array($row['id'], ['archive', 'sensors'])) {
+		$config[ $row['id'] ] = json_decode($row['val'], true);
+    }
 }
-
 
 if (isset($_GET['action'])) {
 	switch ($_GET['action']) {
@@ -180,6 +181,40 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			]);
 
 			header('Location: /settings.php?tab=archive&time='. time());
+			exit;
+
+		case 'settings-sensors':
+			if (
+				!isset($_POST['bme280']) or
+				!is_array($_POST['bme280']) or
+				!isset($_POST['ads1115']) or
+				!is_array($_POST['ads1115'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'sensors',
+				'val' => json_encode([
+                            'bme280' => [
+                                0 => ['name' => $_POST['bme280'][0]['name'] ?? ''],
+                                1 => ['name' => $_POST['bme280'][1]['name'] ?? ''],
+                            ],
+                            'ads1115' => [
+                                0 => [
+                                    'name' => $_POST['ads1115'][0]['name'] ?? '',
+                                    'divider' => $_POST['ads1115'][0]['divider'] ?? '',
+                                ],
+                                1 => [
+                                    'name' => $_POST['ads1115'][1]['name'] ?? '',
+                                    'divider' => $_POST['ads1115'][1]['divider'] ?? '',
+                                ],
+                            ]
+                ]),
+			]);
+
+			header('Location: /settings.php?tab=sensors&time='. time());
 			exit;
 
 		case 'video-demand':
