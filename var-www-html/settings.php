@@ -14,6 +14,8 @@ $users = [];
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 	$users[] = $row;
 }
+
+$tab = $_GET['tab'] ?? 'users';
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -23,33 +25,33 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
 <ul class="nav nav-tabs">
     <li class="nav-item">
-        <a class="nav-link active" data-toggle="tab" href="#users">Пользователи</a>
+        <a class="nav-link<?php echo $tab === 'users' ? ' active' : ''; ?>" data-toggle="tab" href="#users">Пользователи</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#web">Веб</a>
+        <a class="nav-link<?php echo $tab === 'web' ? ' active' : ''; ?>" data-toggle="tab" href="#web">Веб</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#ccd">Камера</a>
+        <a class="nav-link<?php echo $tab === 'ccd' ? ' active' : ''; ?>" data-toggle="tab" href="#ccd">Камера</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#processing">Обработка</a>
+        <a class="nav-link<?php echo $tab === 'processing' ? ' active' : ''; ?>" data-toggle="tab" href="#processing">Обработка</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#publish">Публикация</a>
+        <a class="nav-link<?php echo $tab === 'publish' ? ' active' : ''; ?>" data-toggle="tab" href="#publish">Публикация</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#sensors">Датчики</a>
+        <a class="nav-link<?php echo $tab === 'sensors' ? ' active' : ''; ?>" data-toggle="tab" href="#sensors">Датчики</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#relays">Реле</a>
+        <a class="nav-link<?php echo $tab === 'relays' ? ' active' : ''; ?>" data-toggle="tab" href="#relays">Реле</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#archive">Архив</a>
+        <a class="nav-link<?php echo $tab === 'archive' ? ' active' : ''; ?>" data-toggle="tab" href="#archive">Архив</a>
     </li>
 </ul>
 
 <div class="tab-content">
-    <div class="tab-pane fade show active" id="users">
+    <div class="tab-pane fade<?php echo $tab === 'users' ? ' show active' : ''; ?>" id="users">
         <br>
         <h5 class="card-title">Пользователи</h5>
 
@@ -57,7 +59,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
             <input type="hidden" name="action" value="settings-users">
 
-            <table class="table table-stripped">
+            <table class="table table-stripped users">
                 <thead>
                 <tr>
                     <th>E-Mail</th>
@@ -100,7 +102,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         </form>
     </div>
 
-    <div class="tab-pane fade" id="web">
+    <div class="tab-pane fade<?php echo $tab === 'web' ? ' show active' : ''; ?>" id="web">
         <br>
         <h5 class="card-title">Настройки веб</h5>
 
@@ -122,7 +124,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         </form>
     </div>
 
-    <div class="tab-pane fade" id="ccd">
+    <div class="tab-pane fade<?php echo $tab === 'ccd' ? ' show active' : ''; ?>" id="ccd">
         <br>
         <h5 class="card-title">Настройки камеры</h5>
 
@@ -201,7 +203,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         </form>
     </div>
 
-    <div class="tab-pane fade" id="processing">
+    <div class="tab-pane fade<?php echo $tab === 'processing' ? ' show active' : ''; ?>" id="processing">
         <br>
         <h5 class="card-title">Настройки обработки</h5>
 
@@ -483,7 +485,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         </form>
     </div>
 
-    <div class="tab-pane fade" id="publish">
+    <div class="tab-pane fade<?php echo $tab === 'publish' ? ' show active' : ''; ?>" id="publish">
         <br>
         <h5 class="card-title">Настройки публикации</h5>
 
@@ -502,7 +504,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         </form>
     </div>
 
-    <div class="tab-pane fade" id="sensors">
+    <div class="tab-pane fade<?php echo $tab === 'sensors' ? ' show active' : ''; ?>" id="sensors">
         <br>
         <h5 class="card-title">Настройки дачтиков</h5>
 
@@ -555,7 +557,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
     </div>
 
-    <div class="tab-pane fade" id="relays">
+    <div class="tab-pane fade<?php echo $tab === 'relays' ? ' show active' : ''; ?>" id="relays">
         <br>
         <h5 class="card-title">Настройки реле</h5>
 
@@ -693,7 +695,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
         </form>
     </div>
 
-    <div class="tab-pane fade" id="archive">
+    <div class="tab-pane fade<?php echo $tab === 'archive' ? ' show active' : ''; ?>" id="archive">
         <br>
         <h5 class="card-title">Настройки архива</h5>
 

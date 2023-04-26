@@ -77,27 +77,59 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			die('Реле не найдено');
 
 		case 'settings-users':
+			if (!isset($_SESSION['user'])) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('select * from user order by name');
+			$sth->execute();
+
+			while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+				if (
+					isset($_POST['name'][ $row['id'] ]) and
+					isset($_POST['password'][ $row['id'] ])
+				) {
+					$sth2 = $dbh->prepare('update user set name = :name, password = :password where id = :id');
+					$sth2->execute([
+						'id'       => $row['id'],
+						'name'     => $_POST['name'][ $row['id'] ],
+						'password' => $_POST['password'][ $row['id'] ],
+					]);
+				}
+			}
+
+			header('Location: /settings.php?time='. time());
+			exit;
+
+//		case 'settings-users':
+//			if (
+//				!isset($_SESSION['user'])
+//			) {
+//				die('Страница недоступна');
+//			}
+//
+//			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+//			$sth->execute([
+//				'id'  => 'hotPercent',
+//				'val' => json_encode(intval($_POST['hotPercent'])),
+//			]);
+//
+//			header('Location: /settings.php?time='. time());
+//			exit;
+
+		case 'settings-web':
 			if (
-				!isset($_SESSION['user'])
+				!isset($_POST['name']) or
+				!isset($_POST['counter'])
 			) {
 				die('Страница недоступна');
 			}
 
 			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
 			$sth->execute([
-				'id'  => 'hotPercent',
-				'val' => json_encode(intval($_POST['hotPercent'])),
+				'id'  => 'name',
+				'val' => json_encode($_POST['name']),
 			]);
-
-			header('Location: /settings.php?time='. time());
-			exit;
-
-		case 'settings-web':
-			if (
-				!isset($_POST['counter'])
-			) {
-				die('Страница недоступна');
-			}
 
 			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
 			$sth->execute([
@@ -126,6 +158,30 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			header('Location: /settings.php?time='. time());
 			exit;
 
+		case 'settings-archive':
+			if (
+				!isset($_POST['jpg']) or
+				!isset($_POST['fit']) or
+				!isset($_POST['sensors']) or
+				!isset($_POST['video'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'archive',
+				'val' => json_encode([
+                        'jpg' => (int) $_POST['jpg'],
+                        'fit' => (int) $_POST['fit'],
+                        'sensors' => (int) $_POST['sensors'],
+                        'video' => (int) $_POST['video'],
+                ]),
+			]);
+
+			header('Location: /settings.php?tab=archive&time='. time());
+			exit;
+
 		case 'video-demand':
 			if (
 				!isset($_SESSION['user'])
@@ -144,31 +200,6 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			`/usr/bin/gearman -b -f video-demand 0`;
 
 			header('Location: /video-demand.php?time='. time());
-			exit;
-
-		case 'settings-users':
-			if (!isset($_SESSION['user'])) {
-				die('Страница недоступна');
-			}
-
-			$sth = $dbh->prepare('select * from user order by name');
-			$sth->execute();
-
-			while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-				if (
-					isset($_POST['name'][ $row['id'] ]) and
-					isset($_POST['password'][ $row['id'] ])
-				) {
-					$sth2 = $dbh->prepare('update user set name = :name, password = :password where id = :id');
-					$sth2->execute([
-						'id'       => $row['id'],
-						'name'     => $_POST['name'][ $row['id'] ],
-						'password' => $_POST['password'][ $row['id'] ],
-					]);
-				}
-			}
-
-			header('Location: /settings.php?time='. time());
 			exit;
 
 		case 'login':
