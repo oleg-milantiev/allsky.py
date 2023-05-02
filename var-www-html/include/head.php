@@ -21,7 +21,7 @@ $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-    if (in_array($row['id'], ['web', 'archive', 'sensors', 'relays'])) {
+    if (in_array($row['id'], ['web', 'ccd', 'archive', 'sensors', 'relays'])) {
 		$config[ $row['id'] ] = json_decode($row['val'], true);
     }
 }
@@ -120,6 +120,38 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			]);
 
 			header('Location: /settings.php?tab=web&time='. time());
+			exit;
+
+	    case 'settings-ccd':
+			if (
+				!isset($_POST['name']) or
+				!isset($_POST['binning']) or
+				!isset($_POST['bits']) or
+				!isset($_POST['avgMin']) or
+				!isset($_POST['avgMax']) or
+				!isset($_POST['center']) or
+				!isset($_POST['expMin']) or
+				!isset($_POST['expMax'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'ccd',
+				'val' => json_encode([
+					'name' => $_POST['name'],
+					'binning' => (int) $_POST['binning'],
+					'bits' => (int) $_POST['bits'],
+					'avgMin' => (int) $_POST['avgMin'],
+					'avgMax' => (int) $_POST['avgMax'],
+					'center' => (int) $_POST['center'],
+					'expMin' => (float) $_POST['expMin'],
+					'expMax' => (int) $_POST['expMax'],
+				]),
+			]);
+
+			header('Location: /settings.php?tab=ccd&time='. time());
 			exit;
 
 		case 'settings-relay':
