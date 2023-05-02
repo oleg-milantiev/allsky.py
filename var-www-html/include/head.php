@@ -21,7 +21,7 @@ $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-    if (in_array($row['id'], ['archive', 'sensors', 'relays'])) {
+    if (in_array($row['id'], ['web', 'archive', 'sensors', 'relays'])) {
 		$config[ $row['id'] ] = json_decode($row['val'], true);
     }
 }
@@ -102,22 +102,6 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			header('Location: /settings.php?time='. time());
 			exit;
 
-//		case 'settings-users':
-//			if (
-//				!isset($_SESSION['user'])
-//			) {
-//				die('Страница недоступна');
-//			}
-//
-//			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
-//			$sth->execute([
-//				'id'  => 'hotPercent',
-//				'val' => json_encode(intval($_POST['hotPercent'])),
-//			]);
-//
-//			header('Location: /settings.php?time='. time());
-//			exit;
-
 		case 'settings-web':
 			if (
 				!isset($_POST['name']) or
@@ -128,17 +112,14 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
 			$sth->execute([
-				'id'  => 'name',
-				'val' => json_encode($_POST['name']),
+				'id'  => 'web',
+				'val' => json_encode([
+					'name' => $_POST['name'],
+					'counter' => $_POST['counter'],
+				]),
 			]);
 
-			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
-			$sth->execute([
-				'id'  => 'counter',
-				'val' => json_encode($_POST['counter']),
-			]);
-
-			header('Location: /settings.php?time='. time());
+			header('Location: /settings.php?tab=web&time='. time());
 			exit;
 
 		case 'settings-relay':
