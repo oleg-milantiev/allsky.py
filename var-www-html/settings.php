@@ -207,7 +207,7 @@ $tab = $_GET['tab'] ?? 'users';
         <br>
         <h5 class="card-title">Настройки обработки</h5>
 
-        <form method="POST">
+        <form method="POST" class="processing" enctype="multipart/form-data">
 
             <input type="hidden" name="action" value="settings-processing">
 
@@ -242,20 +242,22 @@ $tab = $_GET['tab'] ?? 'users';
                     <div class="row">
                         <div class="col-6">
                             <div class="form-group">
-                                <label>Файл:</label>
+                                <label>Файл (jpg или png):</label>
                                 <input class="form-control" type="file" name="file">
                             </div>
                             <div class="form-group">
                                 <label>Координата Х наложения изображения:</label>
-                                <input class="form-control" type="number" min="0" name="x" value="<?php echo $config['processing']['logo']['x'] ?? 0; ?>">
+                                <input class="form-control" type="number" min="0" name="logoX" value="<?php echo $config['processing']['logo']['x'] ?? 0; ?>">
                             </div>
                             <div class="form-group">
                                 <label>Координата Y наложения изображения:</label>
-                                <input class="form-control" type="number" min="0" name="y" value="<?php echo $config['processing']['logo']['y'] ?? 0; ?>">
+                                <input class="form-control" type="number" min="0" name="logoY" value="<?php echo $config['processing']['logo']['y'] ?? 0; ?>">
                             </div>
                         </div>
                         <div class="col-6">
-                            <?php echo $config['processing']['logo']['file'] ?? ''; #todo ?>
+                            <?php if ($config['processing']['logo']['file'] ?? ''): ?>
+                                <img src="/<?php echo $config['processing']['logo']['file']; ?>" style="width: 300px" alt="Logo">
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -279,9 +281,23 @@ $tab = $_GET['tab'] ?? 'users';
                         </tr>
                         </thead>
                         <tbody>
+						<?php if (count($config['processing']['annotation'] ?? []) > 0): ?>
+							<?php foreach ($config['processing']['annotation'] as $annotation): ?>
+                                <tr>
+                                    <td><?php echo $annotation['type']; ?></td>
+                                    <td><?php echo $annotation['x']; ?></td>
+                                    <td><?php echo $annotation['y']; ?></td>
+                                    <td><?php echo $annotation['size']; ?></td>
+                                    <td><?php echo $annotation['color']; ?></td>
+                                    <td><?php echo $annotation['format']; ?></td>
+                                    <td><button type="button" class="btn btn-danger btn-sm">&nbsp;-&nbsp;</button></td>
+                                </tr>
+							<?php endforeach; ?>
+						<?php else: ?>
                             <tr class="empty">
                                 <td colspan="7" class="text-center">пусто</td>
                             </tr>
+						<?php endif; ?>
                         </tbody>
                     </table>
 
@@ -309,11 +325,11 @@ $tab = $_GET['tab'] ?? 'users';
                                 </div>
                                 <div class="form-group">
                                     <label>X координата</label>
-                                    <input required class="form-control" type="number" min="0" name="x">
+                                    <input class="form-control" type="number" min="0" name="x">
                                 </div>
                                 <div class="form-group">
                                     <label>Y координата</label>
-                                    <input required class="form-control" type="number" min="0" name="y">
+                                    <input class="form-control" type="number" min="0" name="y">
                                 </div>
                                 <div class="form-group">
                                     <label>Размер шрифта</label>
@@ -430,13 +446,13 @@ $tab = $_GET['tab'] ?? 'users';
 
                         <div class="wb">
                             <label>
-                                <input type="radio" name="wb" value="gain"<?php echo (!isset($config['processing']['wb']) or (isset($config['processing']['wb']) and ($config['processing']['wb'] === 'gain'))) ? ' checked' : ''; ?>> Вручную
+                                <input type="radio" name="wb" value="gain"<?php echo (!isset($config['processing']['wb']['type']) or (isset($config['processing']['wb']['type']) and ($config['processing']['wb']['type'] === 'gain'))) ? ' checked' : ''; ?>> Вручную
                             </label>
                             <label>
-                                <input type="radio" name="wb" value="simple"<?php echo (isset($config['processing']['wb']) and ($config['processing']['wb'] === 'simple')) ? ' checked' : ''; ?>> Simple WB
+                                <input type="radio" name="wb" value="simple"<?php echo (isset($config['processing']['wb']['type']) and ($config['processing']['wb']['type'] === 'simple')) ? ' checked' : ''; ?>> Simple WB
                             </label>
                             <label>
-                                <input type="radio" name="wb" value="gray"<?php echo (isset($config['processing']['wb']) and ($config['processing']['wb'] === 'gray')) ? ' checked' : ''; ?>> Greyworld WB
+                                <input type="radio" name="wb" value="gray"<?php echo (isset($config['processing']['wb']['type']) and ($config['processing']['wb']['type'] === 'gray')) ? ' checked' : ''; ?>> Greyworld WB
                             </label>
                         </div>
                     </div>
@@ -447,15 +463,15 @@ $tab = $_GET['tab'] ?? 'users';
                                 <h6 class="card-title">Gain-коэффициенты</h6>
                                 <div class="form-group">
                                     <label>Красный (R):</label>
-                                    <input class="form-control" type="text" name="r" value="<?php echo $config['processing']['gain']['r'] ?? '1'; ?>">
+                                    <input class="form-control" type="text" name="r" value="<?php echo $config['processing']['wb']['r'] ?? '1'; ?>">
                                 </div>
                                 <div class="form-group">
                                     <label>Зелёный (G):</label>
-                                    <input class="form-control" type="text" name="g" value="<?php echo $config['processing']['gain']['g'] ?? '1'; ?>">
+                                    <input class="form-control" type="text" name="g" value="<?php echo $config['processing']['wb']['g'] ?? '1'; ?>">
                                 </div>
                                 <div class="form-group">
                                     <label>Синий (B):</label>
-                                    <input class="form-control" type="text" name="b" value="<?php echo $config['processing']['gain']['b'] ?? '1'; ?>">
+                                    <input class="form-control" type="text" name="b" value="<?php echo $config['processing']['wb']['b'] ?? '1'; ?>">
                                 </div>
                             </div>
                         </div>
@@ -482,6 +498,29 @@ $tab = $_GET['tab'] ?? 'users';
             <br>
 
             <button class="btn btn-success btn-lg" type="submit">Сохранить</button>
+
+            <script>
+                $(function (){
+                    $('form.processing').submit(function (){
+                        var html = '';
+                        var i = 0;
+
+                        $('table.annotation tbody tr:not(.empty)').each(function (){
+                            html += '<input type="hidden" name="annotation['+ i +'][type]" value="'+ $(this).find('td:eq(0)').html() +'">';
+                            html += '<input type="hidden" name="annotation['+ i +'][x]" value="'+ $(this).find('td:eq(1)').html() +'">';
+                            html += '<input type="hidden" name="annotation['+ i +'][y]" value="'+ $(this).find('td:eq(2)').html() +'">';
+                            html += '<input type="hidden" name="annotation['+ i +'][size]" value="'+ $(this).find('td:eq(3)').html() +'">';
+                            html += '<input type="hidden" name="annotation['+ i +'][color]" value="'+ $(this).find('td:eq(4)').html() +'">';
+                            html += '<input type="hidden" name="annotation['+ i +'][format]" value="'+ $(this).find('td:eq(5)').html() +'">';
+
+                            i++;
+                        });
+
+                        $('form.processing').append(html);
+                    });
+                });
+            </script>
+
         </form>
     </div>
 
@@ -575,7 +614,6 @@ $tab = $_GET['tab'] ?? 'users';
                 </tr>
                 </thead>
                 <tbody>
-                <tr class="empty">
                     <?php if (count($config['relays'] ?? []) > 0): ?>
                         <?php foreach ($config['relays'] as $relay): ?>
                             <tr>
@@ -587,9 +625,10 @@ $tab = $_GET['tab'] ?? 'users';
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <td colspan="5" class="text-center">пусто</td>
+                        <tr class="empty">
+                            <td colspan="5" class="text-center">пусто</td>
+                        </tr>
                     <?php endif; ?>
-                </tr>
                 </tbody>
             </table>
 

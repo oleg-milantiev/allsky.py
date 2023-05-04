@@ -21,7 +21,7 @@ $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-    if (in_array($row['id'], ['web', 'ccd', 'archive', 'sensors', 'relays'])) {
+    if (in_array($row['id'], ['web', 'ccd', 'processing', 'archive', 'sensors', 'relays'])) {
 		$config[ $row['id'] ] = json_decode($row['val'], true);
     }
 }
@@ -150,8 +150,67 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					'expMax' => (int) $_POST['expMax'],
 				]),
 			]);
-
 			header('Location: /settings.php?tab=ccd&time='. time());
+			exit;
+
+		case 'settings-processing':
+//			echo '<pre>';print_r($_FILES);exit;
+            if (
+				!isset($_POST['left']) or
+				!isset($_POST['right']) or
+				!isset($_POST['top']) or
+				!isset($_POST['bottom']) or
+				!isset($_POST['logoX']) or
+				!isset($_POST['logoY']) or
+				!isset($_POST['wb'])
+			) {
+				die('Страница недоступна');
+			}
+
+            $val = [
+				'crop' => [
+					'left' => (int) $_POST['left'],
+					'right' => (int) $_POST['right'],
+					'top' => (int) $_POST['top'],
+					'bottom' => (int) $_POST['bottom'],
+				],
+				'logo' => [
+                    'x' => (int) $_POST['logoX'],
+                    'y' => (int) $_POST['logoY'],
+                ],
+                'annotation' => $_POST['annotation'],
+                'wb' => [
+        			'type' => $_POST['wb'],
+        			'r' => $_POST['r'],
+        			'g' => $_POST['g'],
+        			'b' => $_POST['b'],
+                ],
+            ];
+
+            if (isset($_FILES['file']['error']) and
+				($_FILES['file']['error'] === 0) and
+                is_file($_FILES['file']['tmp_name']) and
+                in_array($_FILES['file']['type'], ['image/jpeg', 'image/png'])
+            ) {
+                foreach (['jpeg', 'png'] as $ext) {
+                    $filename = $config['path']['web'] .'/logo.'. $ext;
+                    if (file_exists($filename)) {
+                        unlink($filename);
+                    }
+                }
+
+                $filename = 'logo.'. explode('/', $_FILES['file']['type'])[1];
+                copy($_FILES['file']['tmp_name'], $config['path']['web'] .'/'. $filename);
+                $val['logo']['file'] = $filename;
+            }
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'processing',
+				'val' => json_encode($val),
+			]);
+
+			header('Location: /settings.php?tab=processing&time='. time());
 			exit;
 
 		case 'settings-relay':
