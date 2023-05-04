@@ -21,7 +21,7 @@ $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-    if (in_array($row['id'], ['web', 'ccd', 'processing', 'archive', 'sensors', 'relays'])) {
+    if (in_array($row['id'], ['web', 'ccd', 'processing', 'publish', 'archive', 'sensors', 'relays'])) {
 		$config[ $row['id'] ] = json_decode($row['val'], true);
     }
 }
@@ -154,7 +154,6 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			exit;
 
 		case 'settings-processing':
-//			echo '<pre>';print_r($_FILES);exit;
             if (
 				!isset($_POST['left']) or
 				!isset($_POST['right']) or
@@ -211,6 +210,24 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			]);
 
 			header('Location: /settings.php?tab=processing&time='. time());
+			exit;
+
+		case 'settings-publish':
+			if (
+				!isset($_POST['jpg'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'publish',
+				'val' => json_encode([
+					'jpg' => $_POST['jpg'],
+				]),
+			]);
+
+			header('Location: /settings.php?tab=publish&time='. time());
 			exit;
 
 		case 'settings-relay':
