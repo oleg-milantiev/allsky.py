@@ -104,7 +104,8 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 		case 'settings-web':
 			if (
-				!isset($_POST['name']) or
+				!isset($_SESSION['user']) or
+                !isset($_POST['name']) or
 				!isset($_POST['counter'])
 			) {
 				die('Страница недоступна');
@@ -124,6 +125,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 	    case 'settings-ccd':
 			if (
+				!isset($_SESSION['user']) or
 				!isset($_POST['name']) or
 				!isset($_POST['binning']) or
 				!isset($_POST['bits']) or
@@ -155,6 +157,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 		case 'settings-processing':
             if (
+				!isset($_SESSION['user']) or
 				!isset($_POST['left']) or
 				!isset($_POST['right']) or
 				!isset($_POST['top']) or
@@ -214,6 +217,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 		case 'settings-publish':
 			if (
+				!isset($_SESSION['user']) or
 				!isset($_POST['jpg'])
 			) {
 				die('Страница недоступна');
@@ -232,6 +236,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 		case 'settings-relay':
 			if (
+				isset($_SESSION['user']) and
 				isset($_POST['relays']) and
 				is_array($_POST['relays'])
 			) {
@@ -262,6 +267,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 		case 'settings-archive':
 			if (
+				!isset($_SESSION['user']) or
 				!isset($_POST['jpg']) or
 				!isset($_POST['fit']) or
 				!isset($_POST['sensors']) or
@@ -286,6 +292,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 		case 'settings-sensors':
 			if (
+				!isset($_SESSION['user']) or
 				!isset($_POST['bme280']) or
 				!is_array($_POST['bme280']) or
 				!isset($_POST['ads1115']) or
@@ -454,7 +461,7 @@ if (
 <body>
 	<?php echo $config['web']['counter'] ?? ''; ?>
 	<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">AllSky - <?php echo $config['name']; ?></a>
+	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">AllSky - <?php echo $config['web']['name']; ?></a>
 	<div class="d-block d-md-none">
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent15" aria-controls="navbarSupportedContent15" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
 	</div>
