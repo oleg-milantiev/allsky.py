@@ -8,6 +8,7 @@ import io
 import os
 import re
 import logging
+import json
 from astropy.io import fits
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timedelta
@@ -20,7 +21,11 @@ db = mysql.connector.connect(host=config.db['host'], user=config.db['user'], pas
 							 database=config.db['database'], charset='utf8')
 cursor = db.cursor(dictionary=True)
 
-binning = config.ccd['binning']
+web = {}
+cursor.execute('select id, val from config')
+for row in cursor.fetchall():
+	web[row['id']] = json.loads(row['val'])
+
 exposure = 1.0  # init exposure
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
@@ -53,22 +58,27 @@ class IndiClient(PyIndi.BaseClient):
 		fit = fits.open(io.BytesIO(bp.getblobdata()))
 		hdu = fit[0]
 
-		if 'ROI' in config.processing:
-			roi = config.processing['ROI']
-			logging.debug('Вырезаю ROI: {}-{}, {}-{}'.format(roi['xLeft'], roi['xRight'], roi['yTop'], roi['yBottom']))
-			hdu.data = hdu.data[roi['yTop']:roi['yBottom'], roi['xLeft']:roi['xRight']]
+		if 'processing' in web and 'crop' in web['processing']:
+			crop = web['processing']['crop']
+			logging.debug('Вырезаю CROP: {}-{}, {}-{}'.format(crop['left'], crop['right'], crop['top'], crop['bottom']))
+			hdu.data = hdu.data[crop['left']:(hdu.header['NAXIS1'] - crop['right']), crop['top']:(hdu.header['NAXIS2'] - crop['bottom'])]
 
-		# Подсчёт среднего по центру кадра (ccdAvgMin - ccdAvgMax% for x and y)
-		avg = np.mean(hdu.data[int(hdu.header['NAXIS1'] * config.processing['ccdAvgMin']):int(
-				hdu.header['NAXIS1'] * config.processing['ccdAvgMax']),
-					int(hdu.header['NAXIS2'] * config.processing['ccdAvgMin']):int(
-						hdu.header['NAXIS2'] * config.processing['ccdAvgMax'])])
+		# Подсчёт среднего по центру кадра
+		center = 50
+		if 'ccd' in web and 'center' in web['ccd']:
+			center = web['ccd']['center']
+
+		if 0 < center <= 100:
+			logging.debug('Среднее по центральным {}%'.format(center))
+			avg = np.mean(hdu.data[
+				int(hdu.data.shape[0] * (50 - center / 2) / 100):int(hdu.data.shape[0] * (50 + center / 2) / 100),
+				int(hdu.data.shape[1] * (50 - center / 2) / 100):int(hdu.data.shape[1] * (50 + center / 2) / 100)])
 		# если среднее = 0  -  что-то пошло не так и нужно переснять кадр
 
 		logging.info('Получил кадр выдержкой {} сек. со средним {}'.format(exposure, avg))
-		if (config.ccd['avgMin'] < avg < config.ccd['avgMax']) or (
-				(exposure == config.ccd['expMin']) and (avg > config.ccd['avgMax'])) or (
-				(exposure == config.ccd['expMax']) and (avg < config.ccd['avgMin'])):
+		if (web['ccd']['avgMin'] < avg < web['ccd']['avgMax']) or (
+				(exposure == web['ccd']['expMin']) and (avg > web['ccd']['avgMax'])) or (
+				(exposure == web['ccd']['expMax']) and (avg < web['ccd']['avgMin'])):
 
 			# запись
 			global minute
@@ -81,15 +91,15 @@ class IndiClient(PyIndi.BaseClient):
 			if minval != maxval:
 				logging.debug('Нормализую...')
 				hdu.data -= minval
-				hdu.data = (hdu.data * ((255.0 if config.ccd['bits'] == 8 else 65535.0) / (maxval - minval))).astype('int')
+				hdu.data = (hdu.data * ((255.0 if web['ccd']['bits'] == 8 else 65535.0) / (maxval - minval))).astype('int')
 
-			if 'cfa' in config.ccd:
+			if 'cfa' in web['ccd']:
 				import cv2
 
 				logging.debug('Дебаейризую...')
 				rgb = cv2.cvtColor(
-						hdu.data.astype('uint8') if config.ccd['bits'] == 8 else (hdu.data / 256).astype('uint8'),
-						config.ccd['cfa']
+						hdu.data.astype('uint8') if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'),
+						web['ccd']['cfa']
 				)
 				# cv2.imwrite('/sdcard/html/lastrgb.jpg', rgb)
 
@@ -102,15 +112,14 @@ class IndiClient(PyIndi.BaseClient):
 				# cv2.imwrite('/sdcard/html/overexposed.jpg', imgOverexposed)
 				# dst = cv2.add(img1_bg, img2_fg)
 
-				if 'wb' in config.processing:
-					logging.debug('Выравниваю баланс белого методом: ' + config.processing['wb'])
-					if config.processing['wb'] == 'gain':
-						gains = config.processing['wbGains']
-						rgb = cv2.xphoto.applyChannelGains(rgb, gains['r'], gains['g'], gains['b'])
-					elif config.processing['wb'] == 'simple':
+				if 'wb' in web['processing'] and 'type' in web['processing']['wb']:
+					logging.debug('Выравниваю баланс белого методом: ' + web['processing']['wb']['type'])
+					if web['processing']['wb']['type'] == 'gain':
+						rgb = cv2.xphoto.applyChannelGains(rgb, web['processing']['wb']['r'], web['processing']['wb']['g'], web['processing']['wb']['b'])
+					elif web['processing']['wb']['type'] == 'simple':
 						wb = cv2.xphoto.createSimpleWB()
 						rgb = wb.balanceWhite(rgb)
-					elif config.processing['wb'] == 'gray':
+					elif web['processing']['wb']['type'] == 'gray':
 						wb = cv2.xphoto.createGrayworldWB()
 						wb.setSaturationThreshold(0.95)
 						rgb = wb.balanceWhite(rgb)
@@ -118,38 +127,38 @@ class IndiClient(PyIndi.BaseClient):
 				imgWb = cv2.bitwise_and(rgb, rgb, mask=maskInv)
 				img = Image.fromarray(cv2.add(imgWb, imgOverexposed), 'RGB')
 			else:
-				img = Image.fromarray(hdu.data if config.ccd['bits'] == 8 else (hdu.data / 256).astype('uint8'))
+				img = Image.fromarray(hdu.data if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'))
 
-			if 'logo' in config.processing:
+			if 'logo' in web['processing'] and 'file' in web['processing']['logo']:
 				logging.debug('Дообавляю лого...')
 
-				watermark = Image.open(config.processing['logo']['fileName'])
+				watermark = Image.open('/opt/allsky.py/var-www-html/' + web['processing']['logo']['file'])
 
-				img.paste(watermark, (config.processing['logo']['x'], config.processing['logo']['y']), watermark)
+				img.paste(watermark, (web['processing']['logo']['x'], web['processing']['logo']['y']))
 
 			savedDate = datetime.now()
 
-			if config.annotations:
+			if 'annotation' in web['processing']:
 				logging.debug('Добавляю аннотации')
 
 				txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
 				d = ImageDraw.Draw(txt)
 
-				for annotation in config.annotations:
-					font = ImageFont.truetype('sans-serif.ttf', annotation['size'])
+				for annotation in web['processing']['annotation']:
+					font = ImageFont.truetype('sans-serif.ttf', int(annotation['size']))
 
 					match annotation['type']:
-						case 'text': text = annotation['text']
+						case 'text': text = annotation['format']
 						case 'datetime': text = savedDate.strftime(annotation['format'])
 						case 'avg' | 'average':  text = annotation['format'].format(avg)
 						case 'exposure':  text = annotation['format'].format(exposure)
 						case _: text = ''
 
 					d.text(
-							(annotation['x'], annotation['y']),
-							text,
-							font=font,
-							fill=annotation['color']
+						(int(annotation['x']), int(annotation['y'])),
+						text,
+						font=font,
+						fill=annotation['color']
 					)
 
 				img = Image.alpha_composite(img.convert('RGBA'), txt).convert('RGB')
@@ -179,14 +188,14 @@ class IndiClient(PyIndi.BaseClient):
 			# @todo вынести всё сопутствующее в отдельный поток
 
 			# публикация последнего jpg
-			if 'jpg' in config.publish:
+			if 'jpg' in web['publish']:
 				try:
 					import requests
 
 					r = requests.post(
-						config.publish['jpg'],
+						web['publish']['jpg'],
 						files={'file': open(config.path['jpg'] + minute + '.jpg', 'rb')},
-						data={'name': config.name, 'pass': 'kjH3vxzm4G'}
+						data={'name': web['web']['name'], 'pass': 'kjH3vxzm4G'}
 					)
 					logging.info('Файл ' + minute + ' опубликован: ' + r.text)
 				except:
@@ -194,7 +203,7 @@ class IndiClient(PyIndi.BaseClient):
 
 			# удаление старых жпегов и фитов
 			for folder in ['jpg', 'fit']:
-				old = datetime.now() - timedelta(config.archive[folder])
+				old = datetime.now() - timedelta(web['archive'][folder])
 
 				for f in os.listdir(config.path[folder]):
 					if os.path.isfile(config.path[folder] + f):
@@ -219,19 +228,19 @@ class IndiClient(PyIndi.BaseClient):
 		else:
 			# подбор выдержки
 			logging.debug('Подбор выдержки...')
-			if avg > (250.0 if config.ccd['bits'] == 8 else 65000.0):
-				exposure = config.ccd['expMin']
+			if avg > (250.0 if web['ccd']['bits'] == 8 else 65000.0):
+				exposure = web['ccd']['expMin']
 			elif avg < 0.001:
-				exposure = config.ccd['expMin'] + (config.ccd['expMax'] - config.ccd['expMin']) / 2
+				exposure = web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) / 2
 			else:
-				target = (config.ccd['avgMax'] - config.ccd['avgMin']) / 2 + config.ccd['avgMin']
+				target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
 				exposure = target * exposure / avg
 				# @todo защита от зацикливания
 
-				if exposure < config.ccd['expMin']:
-					exposure = config.ccd['expMin']
-				if exposure > config.ccd['expMax']:
-					exposure = config.ccd['expMax']
+				if exposure < web['ccd']['expMin']:
+					exposure = web['ccd']['expMin']
+				if exposure > web['ccd']['expMax']:
+					exposure = web['ccd']['expMax']
 			logging.info('Новая выдержка {}'.format(exposure))
 
 		global ccd_exposure
@@ -280,7 +289,7 @@ if not indi.connectServer():
 logging.debug('INDI нашёл')
 
 retries = 10
-ccd = indi.getDevice(config.ccd['name'])
+ccd = indi.getDevice(web['ccd']['name'])
 while not ccd:
 	retries -= 1
 	if retries == 0:
@@ -288,7 +297,7 @@ while not ccd:
 		os.system('/etc/init.d/indi restart')
 		sys.exit(1)
 	time.sleep(0.5)
-	ccd = indi.getDevice(config.ccd['name'])
+	ccd = indi.getDevice(web['ccd']['name'])
 
 logging.debug('CCD увидел в списке')
 
@@ -334,59 +343,61 @@ logging.debug('EXPOSURE нашёл')
 #
 # logging.debug('TEMPERATURE нашёл')
 
+hasBinning = True
 retries = 10
 ccd_binning = ccd.getNumber("CCD_BINNING")
 while not ccd_binning:
 	retries -= 1
 	if retries == 0:
+		hasBinning = False
 		logging.error('Не могу получить CCD_BINNING')
-		sys.exit(1)
+		break
 	time.sleep(0.5)
 	ccd_binning = ccd.getNumber("CCD_BINNING")
 
-logging.debug('BINNING нашёл')
-
-ccd_binning[0].value = binning
-ccd_binning[1].value = binning
-indi.sendNewNumber(ccd_binning)
-
-logging.info('BINNING {} отправил'.format(binning))
+if hasBinning:
+	logging.debug('BINNING нашёл')
+	ccd_binning[0].value = web['ccd']['binning']
+	ccd_binning[1].value = web['ccd']['binning']
+	indi.sendNewNumber(ccd_binning)
+	logging.info('BINNING {} отправил'.format(web['ccd']['binning']))
 
 ccd_exposure[0].value = exposure
 indi.sendNewNumber(ccd_exposure)
 
 logging.info('EXPOSURE отправил')
 
-indi.setBLOBMode(PyIndi.B_ALSO, config.ccd['name'], "CCD1")
+indi.setBLOBMode(PyIndi.B_ALSO, web['ccd']['name'], "CCD1")
 
 logging.info('setBLOB отправил')
 
 hotter = None
 
-for relay in config.relay:
-	if 'hotter' in relay:
-		hotter = relay
-		hotter['stage'] = 0
-		hotter['state'] = 0
-		hotter['percent'] = 0
-		break
-
-
-def hotterRelay(state):
-	global hotter, db, cursor
-
-	hotter['state'] = state
-
-	f = open('/sys/class/gpio/gpio{}/value'.format(hotter['gpio']), 'wt')
-	f.write('{}'.format(state))
-	f.close()
-
-	ts = int(time.time())
-	cursor.execute('replace into relay (id, state, date) values ("{}", {}, {})'.format(hotter['name'], state, ts))
-	db.commit()
-
-	logging.debug('Реле обогрева {}'.format('включено' if state == 1 else 'выключено'));
-
+###### TBD перенести в отдельный модуль ######
+# for relay in web['relays']:
+# 	if relay['hotter']:
+# 		hotter = relay
+# 		hotter['stage'] = 0
+# 		hotter['state'] = 0
+# 		hotter['percent'] = 0
+# 		break
+#
+#
+# def hotterRelay(state):
+# 	global hotter, db, cursor
+#
+# 	hotter['state'] = state
+#
+# 	f = open('/sys/class/gpio/gpio{}/value'.format(hotter['gpio']), 'wt')
+# 	f.write('{}'.format(state))
+# 	f.close()
+#
+# 	ts = int(time.time())
+# 	cursor.execute('replace into relay (id, state, date) values ("{}", {}, {})'.format(hotter['name'], state, ts))
+# 	db.commit()
+#
+# 	logging.debug('Реле обогрева {}'.format('включено' if state == 1 else 'выключено'));
+###### / TBD перенести в отдельный модуль ######
 
 while ccd:
 	# watchdog не контролирует время начального подбора выдержки - оно может быть значительным
@@ -395,23 +406,24 @@ while ccd:
 		logging.error('Уже 10 минут камера не записывает кадры. Попытка рестарта allsky.py через supervisord')
 		sys.exit(1)
 
-	if hotter:
-		if hotter['stage'] == 0:
-			import json
-
-			cursor.execute('select val from config where id = "hotPercent"')
-			row = cursor.fetchone()
-
-			hotter['percent'] = int(json.loads(row['val'])) if row else 0
-			if hotter['percent'] > 0:
-				hotterRelay(1)
-
-		hotter['stage'] += 1
-
-		if (hotter['stage'] * 10) > hotter['percent'] and hotter['state'] == 1:
-			hotterRelay(0)
-
-		if hotter['stage'] == 10:
-			hotter['stage'] = 0
+###### TBD перенести в отдельный модуль ######
+###### TBD переделать в температуру, не в процент (по какому датчику?) ######
+	# if hotter:
+		# if hotter['stage'] == 0:
+		# 	cursor.execute('select val from config where id = "hotPercent"')
+		# 	row = cursor.fetchone()
+		#
+		# 	hotter['percent'] = int(json.loads(row['val'])) if row else 0
+		# 	if hotter['percent'] > 0:
+		# 		hotterRelay(1)
+		#
+		# hotter['stage'] += 1
+		#
+		# if (hotter['stage'] * 10) > hotter['percent'] and hotter['state'] == 1:
+		# 	hotterRelay(0)
+		#
+		# if hotter['stage'] == 10:
+		# 	hotter['stage'] = 0
+###### / TBD перенести в отдельный модуль ######
 
 	time.sleep(6)
