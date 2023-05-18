@@ -341,7 +341,12 @@ $tab = $_GET['tab'] ?? 'users';
                                 </div>
                                 <div class="form-group">
                                     <label>Цвет</label>
-                                    <input class="form-control" type="text" name="color">
+                                    <div id="color" class="input-group">
+                                        <input type="text" class="form-control input-lg" name="color">
+                                        <span class="input-group-append">
+                                            <span class="input-group-text colorpicker-input-addon"><i></i></span>
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label>Формат / текст</label>
@@ -372,6 +377,13 @@ $tab = $_GET['tab'] ?? 'users';
                     }
 
                     $(function (){
+                        $('#color').colorpicker({
+                            format: 'rgb',
+                            useAlpha: false
+                        });
+
+                        annotation_remove_event();
+
                         $('.annotation .modal-footer button.btn-primary').click(function (){
                             var message = '';
 
@@ -384,11 +396,15 @@ $tab = $_GET['tab'] ?? 'users';
                             if ($('.modal.annotation input[name=size]').val() == '') {
                                 message += 'Введите размер шрифта<br>';
                             }
-                            if ($('.modal.annotation input[name=color]').val() == '') {
+                            var color = $('.modal.annotation input[name=color]').val();
+                            if (color == '') {
                                 message += 'Выберите цвет<br>';
                             }
+                            if (/^rgb(\d+, \d+, \d+)$/.test(color)) {
+                                message += 'Неверный формат кода цвета<br>';
+                            }
                             if ($('.modal.annotation input[name=format]').val() == '') {
-                                message += 'Заполните формат / цвет<br>';
+                                message += 'Заполните формат / текст<br>';
                             }
 
                             if (message == '') {
