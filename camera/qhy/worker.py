@@ -26,12 +26,11 @@ channel = connection.channel()
 channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE'), durable=True)
 print(' [*] Waiting for messages. To exit press CTRL+C')
 
-def callback(ch, method, properties, body):
+def callback(ch, method, props, body):
     global qc
 
     payload = json.loads(body.decode())
     print(" [x] Received %r" % body.decode())
-    ch.basic_ack(delivery_tag=method.delivery_tag)
 
     qc.SetGain(payload['gain'])
     qc.SetExposure(payload['exposure'])
@@ -47,6 +46,13 @@ def callback(ch, method, properties, body):
     hdul.writeto('/fits/current.fit', overwrite=True)
 
     print(" [x] Done")
+
+    ch.basic_publish(exchange='',
+                     routing_key=props.reply_to,
+                     properties=pika.BasicProperties(correlation_id = props.correlation_id),
+                     body='Ok')
+
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 channel.basic_qos(prefetch_count=1)
 channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE'), on_message_callback=callback)
