@@ -21,7 +21,7 @@ db.autocommit(True)
 cursor = db.cursor()
 
 binning = config.ccd['binning']
-exposure = 1.0  # init exposure
+exposure = 5.0  # init exposure
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 minute = datetime.now().strftime("%Y-%m-%d_%H-%M")

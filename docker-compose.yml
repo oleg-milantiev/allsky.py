@@ -1,12 +1,12 @@
 version: "3.8"
 
 services:
-  daemon:
-#    build: indi
-    image: olegmilantiev/indi:latest
+  allsky:
+    image: olegmilantiev/allsky:latest
     depends_on:
       - db
-      - indiserver
+      - rabbit
+      - camera
     restart: unless-stopped
     volumes:
       - .:/opt/allsky.py
@@ -32,22 +32,26 @@ services:
 #        aliases:
 #          - watchdog
 
-  indiserver:
+  camera:
 #    /opt/allsky.py/fxload/fxload -t fx3 -I /lib/firmware/qhy/QHY5III462.img -D /dev/bus/usb/003/002
-#    build: indi
-    image: olegmilantiev/indi:latest
+    image: olegmilantiev/allsky:latest
+    depends_on:
+      - rabbit
+    env_file:
+      - .env
     restart: unless-stopped
-    command: indiserver -vvv indi_qhy_ccd
+    command: python3 /camera/worker.py
     privileged: true
-    expose:
-      - 7624
     volumes:
-      - .:/opt/allsky.py # для теста
+      # change here qhy|zwo|sx
+      - ./camera/qhy:/camera
+      - ./web/fits:/fits
+    devices:
       - /dev/bus/usb:/dev/bus/usb
     networks:
       appnet:
         aliases:
-          - indi
+          - camera
 
   db:
     image: tobi312/rpi-mariadb:10.6-alpine
@@ -67,19 +71,21 @@ services:
         aliases:
           - db
 
-  gearman:
-    build: gearman
+  rabbit:
+    image: rabbitmq:3.11
     restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - 5672
     networks:
       appnet:
         aliases:
-          - gearman
+          - rabbit
 
   nginx:
     image: nginx:latest
     restart: unless-stopped
-    depends_on:
-      - php
     ports:
       - 81:80
     volumes:
@@ -95,7 +101,8 @@ services:
     restart: unless-stopped
     depends_on:
       - db
-      - gearman
+      - rabbit
+      - nginx
     expose:
       - 9000
     networks:
@@ -108,7 +115,6 @@ services:
 
 volumes:
   my-db:
-  config:
 
 networks:
   appnet:
