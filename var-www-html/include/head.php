@@ -242,31 +242,36 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 
 		case 'settings-relay':
 			if (
-				isset($_SESSION['user']) and
-				isset($_POST['relays']) and
-				is_array($_POST['relays'])
+				!isset($_SESSION['user'])
 			) {
-				$relays = [];
+				die('Страница недоступна');
+			}
+
+
+			$relays = [];
+
+			if (isset($_POST['relays']) and
+				is_array($_POST['relays']) ) {
 
 				foreach ($_POST['relays'] as $relay) {
-					if (!$relay['name'] or ((int) $relay['gpio'] < 0)) {
+					if (!$relay['name'] or ((int)$relay['gpio'] < 0)) {
 						continue;
 					}
 
 					$relays[] = [
-						'name' => $relay['name'],
-						'gpio' => (int) $relay['gpio'],
+						'name'   => $relay['name'],
+						'gpio'   => (int)$relay['gpio'],
 						'hotter' => $relay['hotter'] === 'обогрев',
-						'temp' => (float) $relay['temp'],
+						'temp'   => (float)$relay['temp'],
 					];
 				}
-
-				$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
-				$sth->execute([
-					'id'  => 'relays',
-					'val' => json_encode($relays),
-				]);
 			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'relays',
+				'val' => json_encode($relays),
+			]);
 
 			header('Location: /settings.php?tab=relays&time='. time());
 			exit;
