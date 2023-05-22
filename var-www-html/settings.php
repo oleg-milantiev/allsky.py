@@ -196,6 +196,18 @@ $tab = $_GET['tab'] ?? 'users';
                         <label>Максимальная выдержка, секунд:</label>
                         <input class="form-control" type="text" name="expMax" value="<?php echo $config['ccd']['expMax'] ?? '45'; ?>">
                     </div>
+                    <div class="form-group">
+                        <label>Минимальный gain:</label>
+                        <input class="form-control" type="number" min="1" max="100" name="gainMin" value="<?php echo $config['ccd']['gainMin'] ?? '1'; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Максимальный gain:</label>
+                        <input class="form-control" type="number" min="1" max="100" name="gainMax" value="<?php echo $config['ccd']['gainMax'] ?? '100'; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Шаг подбора gain:</label>
+                        <input class="form-control" type="number" min="1" max="100" name="gainStep" value="<?php echo $config['ccd']['gainStep'] ?? '10'; ?>">
+                    </div>
                 </div>
             </div>
 

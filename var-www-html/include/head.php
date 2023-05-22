@@ -133,7 +133,10 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				!isset($_POST['avgMax']) or
 				!isset($_POST['center']) or
 				!isset($_POST['expMin']) or
-				!isset($_POST['expMax'])
+				!isset($_POST['expMax']) or
+				!isset($_POST['gainMin']) or
+				!isset($_POST['gainMax']) or
+				!isset($_POST['gainStep'])
 			) {
 				die('Страница недоступна');
 			}
@@ -150,6 +153,9 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					'center' => (int) $_POST['center'],
 					'expMin' => (float) $_POST['expMin'],
 					'expMax' => (int) $_POST['expMax'],
+					'gainMin' => (int) $_POST['gainMin'],
+					'gainMax' => (int) $_POST['gainMax'],
+					'gainStep' => (int) $_POST['gainStep'],
 				]),
 			]);
 			header('Location: /settings.php?tab=ccd&time='. time());
