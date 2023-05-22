@@ -10,6 +10,9 @@ create table config (
 --	date int unsigned not null
 );
 
+#INSERT INTO `config` (`id`, `val`) VALUES ('archive','{\"jpg\":30,\"fit\":3,\"sensors\":30,\"video\":30}'),('ccd','{\"name\":\"QHY CCD QHY5-M-\",\"binning\":1,\"bits\":8,\"avgMin\":55,\"avgMax\":150,\"center\":50,\"expMin\":0.001,\"expMax\":45}'),('processing','{\"crop\":{\"left\":0,\"right\":0,\"top\":0,\"bottom\":0},\"logo\":{\"x\":0,\"y\":0},\"annotation\":[],\"wb\":{\"type\":\"gain\",\"r\":\"8\",\"g\":\"1.2\",\"b\":\"0.9\"}}'),('publish','{\"jpg\":\"\\u044b\\u044b\"}'),('relays','[{\"name\":\"\\u041e\\u043b\\u0435\\u0433\",\"gpio\":1,\"hotter\":false,\"temp\":0},{\"name\":\"\\u041c\\u0438\\u043b\\u0430\\u043d\\u0442\\u044c\\u0435\\u0432 \\u041e\\u043b\\u0435\\u0433 \\u0410\\u043d\\u0434\\u0440\\u0435\\u0435\\u0432\\u0438\\u0447\",\"gpio\":2,\"hotter\":true,\"temp\":33}]'),('sensors','{\"bme280\":[{\"name\":\"3\"},{\"name\":\"2\"}],\"ads1115\":[{\"name\":\"3\",\"divider\":\"4\"},{\"name\":\"5\",\"divider\":\"6\"}]}'),('web','{\"name\":\"2\",\"counter\":\"\"}');
+
+
 create table user (
 	id int unsigned auto_increment not null primary key,
 	email varchar(255) not null,
@@ -21,7 +24,7 @@ insert into user (email, name, password) values ('admin', 'admin', 'admin');
 
 create table sensor (
 	id int unsigned auto_increment not null primary key,
-	type enum('temperature', 'humidity', 'pressure', 'voltage', 'wind-speed', 'wind-direction', 'sky-temperature', 'ccd-exposure', 'ccd-average') not null,
+	type enum('temperature', 'humidity', 'pressure', 'voltage', 'wind-speed', 'wind-direction', 'sky-temperature', 'ccd-exposure', 'ccd-average', 'ccd-gain') not null,
 	channel int unsigned not null,
 	date int unsigned not null,
 	val double not null
@@ -30,7 +33,7 @@ alter table sensor add index channel_type_date (channel, type, date);
 alter table sensor add index type (type);
 
 create table sensor_last (
-	type enum('temperature', 'humidity', 'pressure', 'voltage', 'wind-speed', 'wind-direction', 'sky-temperature', 'ccd-exposure', 'ccd-average') not null,
+	type enum('temperature', 'humidity', 'pressure', 'voltage', 'wind-speed', 'wind-direction', 'sky-temperature', 'ccd-exposure', 'ccd-average', 'ccd-gain') not null,
 	channel int unsigned not null,
 	date int unsigned not null,
 	val double not null,
