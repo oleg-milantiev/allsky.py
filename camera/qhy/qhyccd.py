@@ -3,6 +3,7 @@ import ctypes
 from ctypes import *
 import numpy as np
 import time
+import os
 from libqhy import *
 
 """
@@ -17,7 +18,7 @@ Basic functions to control qhyccd camera
 class qhyccd():
     def __init__(self):
         # create sdk handle
-        self.sdk= CDLL('/camera/libqhyccd.so.22.9.9')
+        self.sdk= CDLL('/camera/'+ os.getenv('ARCH') +'libqhyccd.so.22.9.9')
         self.sdk.GetQHYCCDParam.restype = c_double
         self.sdk.OpenQHYCCD.restype = ctypes.POINTER(c_uint32)
         # ref: https://www.qhyccd.com/bbs/index.php?topic=6356.0
