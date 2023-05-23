@@ -5,7 +5,10 @@ FROM ubuntu
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    libusb-1.0-0 python3 python3-numpy python3-astropy python3-pika && \
+    usbutils libusb-1.0-0 python3 python3-numpy python3-astropy python3-pika && \
     apt-get clean
 
 WORKDIR /camera
+
+#udevadm control --reload-rules && udevadm trigger 
+#/lib/systemd/systemd-udevd --daemon

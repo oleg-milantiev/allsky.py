@@ -1,7 +1,11 @@
 #!/usr/bin/python3
+
+import os
+
+os.system('/camera/udev.py')
+
 import pika
 import time
-import os
 import json
 
 import qhyccd

@@ -33,7 +33,6 @@ services:
 #          - watchdog
 
   camera:
-#    /opt/allsky.py/fxload/fxload -t fx3 -I /lib/firmware/qhy/QHY5III462.img -D /dev/bus/usb/003/002
     image: olegmilantiev/allsky:latest
     depends_on:
       - rabbit
@@ -45,6 +44,8 @@ services:
     volumes:
       # change here qhy|zwo|sx
       - ./camera/qhy:/camera
+      - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
+      - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
       - ./web/fits:/fits
     devices:
       - /dev/bus/usb:/dev/bus/usb
