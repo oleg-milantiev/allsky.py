@@ -21,6 +21,12 @@ db = mysql.connector.connect(host=config.db['host'], user=config.db['user'], pas
 							 database=config.db['database'], charset='utf8')
 cursor = db.cursor(dictionary=True)
 
+
+binning  = config.ccd['binning']
+exposure = 1.0 # init exposure
+gain = config.ccd['gainMin']
+attempt = 0
+
 web = {}
 cursor.execute('select id, val from config')
 for row in cursor.fetchall():
@@ -52,6 +58,8 @@ class IndiClient(PyIndi.BaseClient):
 
 	def newBLOB(self, bp):
 		global exposure
+        global gain
+		global attempt
 
 		logging.debug('Получаю новый кадр...')
 
@@ -76,13 +84,15 @@ class IndiClient(PyIndi.BaseClient):
 		# если среднее = 0  -  что-то пошло не так и нужно переснять кадр
 
 		logging.info('Получил кадр выдержкой {} сек. со средним {}'.format(exposure, avg))
-		if (web['ccd']['avgMin'] < avg < web['ccd']['avgMax']) or (
-				(exposure == web['ccd']['expMin']) and (avg > web['ccd']['avgMax'])) or (
-				(exposure == web['ccd']['expMax']) and (avg < web['ccd']['avgMin'])):
+		if (attempt>=web['ccd']['maxAttempt']) or 
+            (avg >= web['ccd']['avgMin'] and avg <= web['ccd']['avgMax']) or 
+            ( (exposure <= web['ccd']['expMin']) and (avg >= web['ccd']['avgMax']) and (gain <= web['ccd']['gainMin']) ) or 
+            ( (exposure == web['ccd']['expMax']) and (avg < web['ccd']['avgMin']) and ( gain >= web['ccd']['gainMax'])):
 
 			# запись
 			global minute
-
+            if attempt >=web['ccd']['maxAttempt']:
+				attempt = 0
 			logging.info('Сохраняю кадр в файл fit...')
 			hdu.writeto(config.path['fit'] + minute + '.fit', overwrite=True)
 
@@ -152,6 +162,7 @@ class IndiClient(PyIndi.BaseClient):
 						case 'datetime': text = savedDate.strftime(annotation['format'])
 						case 'avg' | 'average':  text = annotation['format'].format(avg)
 						case 'exposure':  text = annotation['format'].format(exposure)
+                        case 'gain':  text = annotation['format'].format(gain)
 						case _: text = ''
 
 					d.text(
@@ -178,6 +189,10 @@ class IndiClient(PyIndi.BaseClient):
 			cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 				""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": avg})
+                
+            cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+				""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": gain})
 
 			db.commit()
 
@@ -235,19 +250,39 @@ class IndiClient(PyIndi.BaseClient):
 			else:
 				target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
 				exposure = target * exposure / avg
+                decimal = str(web['ccd']['expMin'])[::-1].find('.')
+				if (decimal<0):
+					decimal = 0
+				exposure = round(exposure, decimal)
 				# @todo защита от зацикливания
-
 				if exposure < web['ccd']['expMin']:
 					exposure = web['ccd']['expMin']
 				if exposure > web['ccd']['expMax']:
 					exposure = web['ccd']['expMax']
-			logging.info('Новая выдержка {}'.format(exposure))
+
+			if (exposure == web['ccd']['expMax']) and (gain < web['ccd']['gainMax']):
+				gain += web['ccd']['gainStep']
+				if gain>web['ccd']['gainMax']:
+					gain = web['ccd']['gainMax']
+			elif (exposure == web['ccd']['expMin']) and (gain > web['ccd']['gainMin']):
+				gain -= web['ccd']['gainStep']
+				if gain < web['ccd']['gainMin']:
+					gain = web['ccd']['gainMin'];
+			attempt += 1
+				if exposure < web['ccd']['expMin']:
+					exposure = web['ccd']['expMin']
+				if exposure > web['ccd']['expMax']:
+					exposure = web['ccd']['expMax']
+			logging.info('Новая выдержка {}, новый gain {}, попытка {}'.format(exposure, gain, attempt))
+
 
 		global ccd_exposure
+        global ccd_gain
 
 		ccd_exposure[0].value = exposure
 		self.sendNewNumber(ccd_exposure)
-
+        ccd_gain[0].value = gain
+		self.sendNewNumber(ccd_gain)
 		logging.info('Получение кадра закончено')
 
 		pass
@@ -357,6 +392,18 @@ while not ccd_binning:
 
 if hasBinning:
 	logging.debug('BINNING нашёл')
+    retries = 10
+ccd_gain = ccd.getNumber("CCD_GAIN")
+while not(ccd_gain):
+	retries -= 1
+	if retries == 0:
+		logging.error('Не могу получить CCD_GAIN')
+		break
+	time.sleep(0.5)
+	ccd_gain = ccd.getNumber("CCD_GAIN")
+
+logging.debug('GAIN нашёл: {}'.format(ccd_gain[0].value))
+
 	ccd_binning[0].value = web['ccd']['binning']
 	ccd_binning[1].value = web['ccd']['binning']
 	indi.sendNewNumber(ccd_binning)
@@ -367,6 +414,11 @@ indi.sendNewNumber(ccd_exposure)
 
 logging.info('EXPOSURE отправил')
 
+
+ccd_gain[0].value = gain
+indi.sendNewNumber(ccd_gain)
+
+logging.info('GAIN отправил {}'.format(gain))
 indi.setBLOBMode(PyIndi.B_ALSO, web['ccd']['name'], "CCD1")
 
 logging.info('setBLOB отправил')
