@@ -2,7 +2,7 @@
 <?php include 'include/head.php'; ?>
 <?php
 
-$videoDir = scandir('/var/www/html/video/', SCANDIR_SORT_DESCENDING);
+$videoDir = scandir($config['path']['video'], SCANDIR_SORT_DESCENDING);
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">

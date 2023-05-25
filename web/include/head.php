@@ -1,16 +1,13 @@
 <?php
 session_start();
 
-# TODO переношу эту часть в watchdog
-/*
 $statConfig = stat('/opt/allsky.py/config.py');
 $statJSON   = stat('/opt/allsky.py/config.py.json');
 
 if (!isset($statJSON['mtime']) or !$statJSON['size'] or ($statJSON['mtime'] < $statConfig['mtime'])) {
 	`/opt/allsky.py/config.json.py`;
 }
-*/
-# TODO пока что считаю json всегда актуальным
+
 $config = json_decode(file_get_contents('/opt/allsky.py/config.py.json'), true);
 
 $dbh = new PDO(
@@ -18,15 +15,14 @@ $dbh = new PDO(
 	$config['db']['user'],
 	$config['db']['passwd']);
 
-$config['web'] = [];
-
 $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-	$config['web'][ $row['id'] ] = json_decode($row['val'], true);
+    if (in_array($row['id'], ['web', 'ccd', 'processing', 'publish', 'archive', 'sensors', 'relays'])) {
+		$config[ $row['id'] ] = json_decode($row['val'], true);
+    }
 }
-
 
 if (isset($_GET['action'])) {
 	switch ($_GET['action']) {
@@ -79,45 +75,6 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			
 			die('Реле не найдено');
 
-		case 'settings':
-			if (
-				!isset($_SESSION['user']) or
-				!isset($_POST['hotPercent']) or
-				(intval($_POST['hotPercent']) < 0) or
-				(intval($_POST['hotPercent']) > 100)
-			) {
-				die('Страница недоступна');
-			}
-
-			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
-			$sth->execute([
-				'id'  => 'hotPercent',
-				'val' => json_encode(intval($_POST['hotPercent'])),
-			]);
-
-			header('Location: /settings.php?time='. time());
-			exit;
-
-		case 'video-demand':
-			if (
-				!isset($_SESSION['user'])
-			) {
-				die('Страница недоступна');
-			}
-
-			$sth = $dbh->prepare('insert into video (job, work_queue, video_begin, video_end) values (:job, :work_queue, :video_begin, :video_end)');
-			$sth->execute([
-				'job'         => gearman,
-				'work_queue'  => time(),
-				'video_begin' => time() - 3600,
-				'video_end'   => time(),
-			]);
-
-			`/usr/bin/gearman -b -f video-demand 0`;
-
-			header('Location: /video-demand.php?time='. time());
-			exit;
-
 		case 'settings-users':
 			if (!isset($_SESSION['user'])) {
 				die('Страница недоступна');
@@ -141,6 +98,258 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			}
 
 			header('Location: /settings.php?time='. time());
+			exit;
+
+		case 'settings-web':
+			if (
+				!isset($_SESSION['user']) or
+                !isset($_POST['name']) or
+				!isset($_POST['counter'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'web',
+				'val' => json_encode([
+					'name' => $_POST['name'],
+					'counter' => $_POST['counter'],
+				]),
+			]);
+
+			header('Location: /settings.php?tab=web&time='. time());
+			exit;
+
+	    case 'settings-ccd':
+			if (
+				!isset($_SESSION['user']) or
+				!isset($_POST['binning']) or
+				!isset($_POST['bits']) or
+				!isset($_POST['avgMin']) or
+				!isset($_POST['avgMax']) or
+				!isset($_POST['center']) or
+				!isset($_POST['expMin']) or
+				!isset($_POST['expMax']) or
+				!isset($_POST['gainMin']) or
+				!isset($_POST['gainMax']) or
+				!isset($_POST['gainStep'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'ccd',
+				'val' => json_encode([
+					'binning' => (int) $_POST['binning'],
+					'bits' => (int) $_POST['bits'],
+					'avgMin' => (int) $_POST['avgMin'],
+					'avgMax' => (int) $_POST['avgMax'],
+					'center' => (int) $_POST['center'],
+					'expMin' => (float) $_POST['expMin'],
+					'expMax' => (int) $_POST['expMax'],
+					'gainMin' => (int) $_POST['gainMin'],
+					'gainMax' => (int) $_POST['gainMax'],
+					'gainStep' => (int) $_POST['gainStep'],
+				]),
+			]);
+			header('Location: /settings.php?tab=ccd&time='. time());
+			exit;
+
+		case 'settings-processing':
+			if (
+				!isset($_SESSION['user']) or
+				!isset($_POST['left']) or
+				!isset($_POST['right']) or
+				!isset($_POST['top']) or
+				!isset($_POST['bottom']) or
+				!isset($_POST['logoX']) or
+				!isset($_POST['logoY']) or
+				!isset($_POST['wb'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$val = [
+				'crop' => [
+					'left' => (int) $_POST['left'],
+					'right' => (int) $_POST['right'],
+					'top' => (int) $_POST['top'],
+					'bottom' => (int) $_POST['bottom'],
+				],
+				'logo' => [
+					'x' => (int) $_POST['logoX'],
+					'y' => (int) $_POST['logoY'],
+				],
+				'annotation' => $_POST['annotation'],
+				'wb' => [
+					'type' => $_POST['wb'],
+					'r' => $_POST['r'],
+					'g' => $_POST['g'],
+					'b' => $_POST['b'],
+				],
+			];
+
+			if (isset($_FILES['file']['error']) and
+				($_FILES['file']['error'] === 0) and
+				is_file($_FILES['file']['tmp_name']) and
+				in_array($_FILES['file']['type'], ['image/jpeg', 'image/png'])
+			) {
+				foreach (['jpeg', 'png'] as $ext) {
+					$filename = $config['path']['web'] .'/logo.'. $ext;
+					if (file_exists($filename)) {
+						unlink($filename);
+					}
+				}
+
+				$filename = 'logo.'. explode('/', $_FILES['file']['type'])[1];
+				copy($_FILES['file']['tmp_name'], $config['path']['web'] .'/'. $filename);
+				$val['logo']['file'] = $filename;
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'processing',
+				'val' => json_encode($val),
+			]);
+
+			header('Location: /settings.php?tab=processing&time='. time());
+			exit;
+
+		case 'settings-publish':
+			if (
+				!isset($_SESSION['user']) or
+				!isset($_POST['jpg'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'publish',
+				'val' => json_encode([
+					'jpg' => $_POST['jpg'],
+				]),
+			]);
+
+			header('Location: /settings.php?tab=publish&time='. time());
+			exit;
+
+		case 'settings-relay':
+			if (
+				!isset($_SESSION['user'])
+			) {
+				die('Страница недоступна');
+			}
+
+
+			$relays = [];
+
+			if (isset($_POST['relays']) and
+				is_array($_POST['relays']) ) {
+
+				foreach ($_POST['relays'] as $relay) {
+					if (!$relay['name'] or ((int)$relay['gpio'] < 0)) {
+						continue;
+					}
+
+					$relays[] = [
+						'name'   => $relay['name'],
+						'gpio'   => (int)$relay['gpio'],
+						'hotter' => $relay['hotter'] === 'обогрев',
+						'temp'   => (float)$relay['temp'],
+					];
+				}
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'relays',
+				'val' => json_encode($relays),
+			]);
+
+			header('Location: /settings.php?tab=relays&time='. time());
+			exit;
+
+		case 'settings-archive':
+			if (
+				!isset($_SESSION['user']) or
+				!isset($_POST['jpg']) or
+				!isset($_POST['fit']) or
+				!isset($_POST['sensors']) or
+				!isset($_POST['video'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'archive',
+				'val' => json_encode([
+					'jpg' => (int) $_POST['jpg'],
+					'fit' => (int) $_POST['fit'],
+					'sensors' => (int) $_POST['sensors'],
+					'video' => (int) $_POST['video'],
+				]),
+			]);
+
+			header('Location: /settings.php?tab=archive&time='. time());
+			exit;
+
+		case 'settings-sensors':
+			if (
+				!isset($_SESSION['user']) or
+				!isset($_POST['bme280']) or
+				!is_array($_POST['bme280']) or
+				!isset($_POST['ads1115']) or
+				!is_array($_POST['ads1115'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'sensors',
+				'val' => json_encode([
+					'bme280' => [
+						0 => ['name' => $_POST['bme280'][0]['name'] ?? ''],
+						1 => ['name' => $_POST['bme280'][1]['name'] ?? ''],
+					],
+					'ads1115' => [
+						0 => [
+							'name' => $_POST['ads1115'][0]['name'] ?? '',
+							'divider' => $_POST['ads1115'][0]['divider'] ?? '',
+						],
+						1 => [
+							'name' => $_POST['ads1115'][1]['name'] ?? '',
+							'divider' => $_POST['ads1115'][1]['divider'] ?? '',
+						],
+					]
+				]),
+			]);
+
+			header('Location: /settings.php?tab=sensors&time='. time());
+			exit;
+
+		case 'video-demand':
+			if (
+				!isset($_SESSION['user'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('insert into video (job, work_queue, video_begin, video_end) values (:job, :work_queue, :video_begin, :video_end)');
+			$sth->execute([
+				'job'         => gearman,
+				'work_queue'  => time(),
+				'video_begin' => time() - 3600,
+				'video_end'   => time(),
+			]);
+
+			`/usr/bin/gearman -b -f video-demand 0`;
+
+			header('Location: /video-demand.php?time='. time());
 			exit;
 
 		case 'login':
@@ -230,6 +439,8 @@ if (
 
 		<!-- Bootstrap core CSS -->
 		<link href="/css/bootstrap.min.css" rel="stylesheet">
+		<link href="/css/bootstrap-datepicker.min.css" rel="stylesheet">
+        <link href="/css/bootstrap-colorpicker.min.css" rel="stylesheet">
 
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
 		<script>window.jQuery || document.write('<script src="/js/vendor/jquery-3.3.1.min.js"><\/script>')</script>
@@ -256,8 +467,9 @@ if (
 
 
 <body>
+	<?php echo $config['web']['counter'] ?? ''; ?>
 	<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">AllSky - <?php echo $config['name']; ?></a>
+	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">AllSky - <?php echo $config['web']['name']; ?></a>
 	<div class="d-block d-md-none">
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent15" aria-controls="navbarSupportedContent15" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
 	</div>

@@ -2,10 +2,10 @@
 <?php include 'include/head.php'; ?>
 
 <?php
-$current = stat('current.jpg');
+$current = file_exists('current.jpg') ?? stat('current.jpg');
 
-$videoDir = scandir('/var/www/html/video/', SCANDIR_SORT_DESCENDING);
-$video    = (count($videoDir) > 3) ? stat('/var/www/html/video/'. $videoDir[0]) : null;
+$videoDir = scandir($config['path']['video'], SCANDIR_SORT_DESCENDING);
+$video    = (count($videoDir) > 3) ? stat($config['path']['video']. $videoDir[0]) : null;
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -15,10 +15,12 @@ $video    = (count($videoDir) > 3) ? stat('/var/www/html/video/'. $videoDir[0]) 
 			последнее видео: <a target="_blank" href="/video/<?php echo $videoDir[0]; ?>"><?php echo $videoDir[0]; ?> от <?php echo date('d/m/Y H:i', $video['ctime']);?></a>
 		</span>
 	<?php endif?>
-	<h1 class="h2 text-right">
-		Сейчас <span style="color: gray; font-size: 22px">(по состоянию на <?php echo date('d/m/Y H:i', $current['ctime']); ?>)</span>
-		<input type="checkbox" title="Автообновление" class="auto-refresh">
-	</h1>
+	<?php if ($current):?>
+		<h1 class="h2 text-right">
+			Сейчас <span style="color: gray; font-size: 22px">(по состоянию на <?php echo date('d/m/Y H:i', $current['ctime']); ?>)</span>
+			<input type="checkbox" title="Автообновление" class="auto-refresh">
+		</h1>
+	<?php endif?>
 	<!--
 	<div class="btn-toolbar mb-2 mb-md-0">
 		<div class="btn-group mr-2">
@@ -33,11 +35,13 @@ $video    = (count($videoDir) > 3) ? stat('/var/www/html/video/'. $videoDir[0]) 
 	-->
 </div>
 
-<div class="row">
-	<div class="col-lg-12">
-		<img style="width:100%" src="current.jpg?date=<?php echo $current['ctime']; ?>">
+<?php if ($current):?>
+	<div class="row">
+		<div class="col-lg-12">
+			<img style="width:100%" src="current.jpg?date=<?php echo $current['ctime']; ?>">
+		</div>
 	</div>
-</div>
+<?php endif?>
 
 <script>
 	var reloadTimer;

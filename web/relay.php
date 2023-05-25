@@ -3,7 +3,11 @@
 <?php
 
 if (!isset($_SESSION['user'])) {
-	die('Страница недоступна');
+	echo 'Страница недоступна';
+
+	include 'include/tail.php';
+
+	exit;
 }
 
 $relays = [];
