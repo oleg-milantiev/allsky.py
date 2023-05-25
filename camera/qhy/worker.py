@@ -2,7 +2,7 @@
 
 import os
 
-os.system('/camera/udev.py')
+os.system('/common/udev.py')
 
 import pika
 import time
@@ -30,14 +30,22 @@ channel = connection.channel()
 channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE'), durable=True)
 print(' [*] Waiting for messages. To exit press CTRL+C')
 
+exposure = 100
+gain = None
+
 def callback(ch, method, props, body):
-    global qc
+    global qc, gain, exposure
 
     payload = json.loads(body.decode())
     print(" [x] Received %r" % body.decode())
 
-    qc.SetGain(payload['gain'])
-    qc.SetExposure(payload['exposure'])
+    if payload['gain'] != gain:
+        qc.SetGain(payload['gain'])
+        gain = payload['gain']
+
+    if payload['exposure'] != exposure:
+        qc.SetExposure(round(payload['exposure'] * 1000))
+        exposure = payload['exposure']
 
     hdr = fits.Header()
     hdr['TELESCOP'] = 'AllSky'

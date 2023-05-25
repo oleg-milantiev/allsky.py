@@ -1,14 +1,14 @@
 <?php
 session_start();
 
-$statConfig = stat('/opt/allsky.py/config.py');
-$statJSON   = stat('/opt/allsky.py/config.py.json');
+$statConfig = stat('/opt/allsky.py/camera/common/config.py');
+$statJSON   = stat('/opt/allsky.py/camera/common/config.py.json');
 
 if (!isset($statJSON['mtime']) or !$statJSON['size'] or ($statJSON['mtime'] < $statConfig['mtime'])) {
-	`/opt/allsky.py/config.json.py`;
+	`/opt/allsky.py/camera/common/config.json.py`;
 }
 
-$config = json_decode(file_get_contents('/opt/allsky.py/config.py.json'), true);
+$config = json_decode(file_get_contents('/opt/allsky.py/camera/common/config.py.json'), true);
 
 $dbh = new PDO(
 	'mysql:dbname='. $config['db']['database'] .';host='. $config['db']['host'],

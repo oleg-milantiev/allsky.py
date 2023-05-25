@@ -4,14 +4,15 @@ services:
   allsky:
     image: olegmilantiev/allsky:latest
     depends_on:
-      - db
       - rabbit
       - camera
+    env_file:
+      - .env
     restart: unless-stopped
     volumes:
-      - .:/opt/allsky.py
-#    command: python3 /opt/allsky.py/allsky.py
-    command: python3 /opt/allsky.py/list.py
+      - ./camera/common:/camera:ro
+      - ./web/fits:/fits
+    command: python3 /camera/allsky.py
     networks:
       appnet:
         aliases:
@@ -43,7 +44,8 @@ services:
     privileged: true
     volumes:
       # change here qhy|zwo|sx
-      - ./camera/qhy:/camera
+      - ./camera/qhy:/camera:ro
+      - ./camera/common:/common:ro
       - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
       - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
       - ./web/fits:/fits
@@ -88,7 +90,7 @@ services:
     image: nginx:latest
     restart: unless-stopped
     ports:
-      - 81:80
+      - 80:80
     volumes:
       - ./nginx/allsky.conf:/etc/nginx/conf.d/allsky.conf
       - ./web:/var/www/html
@@ -120,5 +122,3 @@ volumes:
 networks:
   appnet:
     driver: bridge
-
-# docker build --squash .

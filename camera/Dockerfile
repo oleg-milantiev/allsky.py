@@ -5,7 +5,7 @@ FROM ubuntu
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    usbutils libusb-1.0-0 python3 python3-numpy python3-astropy python3-pika && \
+    usbutils libusb-1.0-0 python3 python3-numpy python3-astropy python3-pika python3-mysqldb && \
     apt-get clean
 
 WORKDIR /camera
