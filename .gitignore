@@ -1,5 +1,3 @@
 __pycache__/*
-config.py
-config.py.json
 web/fits/*
 web/snap/*

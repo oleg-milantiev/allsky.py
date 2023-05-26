@@ -1,0 +1,1 @@
+{"db": {"host": "db", "user": "root", "passwd": "master", "database": "allsky"}, "path": {"web": "/opt/allsky.py/web/", "ffmpeg": "/usr/bin/ffmpeg", "jpg": "/opt/allsky.py/web/snap/", "keogram": "/opt/allsky.py/web/keogram/", "video": "/opt/allsky.py/web/video/", "video-demand": "/opt/allsky.py/web/video-demand/", "fit": "/opt/allsky.py/web/fits/"}}
