@@ -27,7 +27,7 @@ connection = pika.BlockingConnection(
 
 channel = connection.channel()
 
-channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE'), durable=True)
+channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_CAMERA'), durable=True)
 print(' [*] Waiting for messages. To exit press CTRL+C')
 
 exposure = 100
@@ -67,6 +67,6 @@ def callback(ch, method, props, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE'), on_message_callback=callback)
+channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE_CAMERA'), on_message_callback=callback)
 
 channel.start_consuming()
