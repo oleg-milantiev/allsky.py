@@ -28,6 +28,8 @@ class CameraClient(object):
 
 		self.channel = self.connection.channel()
 
+		self.channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_PROCESS'), durable=True)
+
 		result = self.channel.queue_declare(queue='', exclusive=True)
 		self.callback_queue = result.method.queue
 
@@ -48,7 +50,7 @@ class CameraClient(object):
 		self.corr_id = str(uuid.uuid4())
 		self.channel.basic_publish(
 			exchange='',
-			routing_key=os.getenv('RABBITMQ_QUEUE'),
+			routing_key=os.getenv('RABBITMQ_QUEUE_CAMERA'),
 			properties=pika.BasicProperties(
 				reply_to=self.callback_queue,
 				correlation_id=self.corr_id,
@@ -130,8 +132,17 @@ while True:
 
 		minute = now
 
-		os.system('cp /fits/current.fit /fits/'+ minute +'.fit')
+		os.system('mv /fits/current.fit /fits/'+ minute +'.fit')
 		logging.info('Файл {}.fit сохранён'.format(minute))
+
+		camera.channel.basic_publish(
+			exchange='',
+			routing_key=os.getenv('RABBITMQ_QUEUE_PROCESS'),
+			body=minute,
+			properties=pika.BasicProperties(
+				delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE,
+				))
+
 
 	else:
 		# подбор выдержки
