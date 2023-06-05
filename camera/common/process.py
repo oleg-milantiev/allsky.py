@@ -10,6 +10,7 @@ import logging
 from PIL import Image, ImageDraw, ImageFont
 from astropy.io import fits
 from datetime import datetime
+from collections.abc import Iterable
 
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
@@ -90,7 +91,8 @@ def callback(ch, method, properties, body):
 		imgWb = cv2.bitwise_and(rgb, rgb, mask=maskInv)
 		img = Image.fromarray(cv2.add(imgWb, imgOverexposed), 'RGB')
 	else:
-		img = Image.fromarray(hdu.data if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'))
+#		img = Image.fromarray(hdu.data if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'))
+		img = Image.fromarray(hdu.data.astype('uint8'))
 
 	if 'logo' in web['processing'] and 'file' in web['processing']['logo']:
 		logging.debug('Дообавляю лого...')
@@ -99,7 +101,7 @@ def callback(ch, method, properties, body):
 
 		img.paste(watermark, (web['processing']['logo']['x'], web['processing']['logo']['y']))
 
-	if 'annotation' in web['processing']:
+	if 'annotation' in web['processing'] and isinstance(web['processing']['annotation'], Iterable):
 		logging.debug('Добавляю аннотации')
 
 		txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
@@ -107,6 +109,7 @@ def callback(ch, method, properties, body):
 
 		dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
 
+		sys.exit(-1)
 		for annotation in web['processing']['annotation']:
 			font = ImageFont.truetype('sans-serif.ttf', int(annotation['size']))
 
@@ -127,26 +130,25 @@ def callback(ch, method, properties, body):
 		img = Image.alpha_composite(img.convert('RGBA'), txt).convert('RGB')
 
 	logging.debug('Записываю jpg в файл...')
-	filename = config.path['jpg'] + minute
-	img.save(filename + '.jpg')
-	logging.info('Файл ' + minute + ' записан. Жду следующей минуты')
+	img.save('/snap/'+ body.decode()  +'.jpg')
+	logging.info('Файл ' + body.decode() + '.jpg записан. Жду следующей минуты')
 
 	ts = int(time.time())
 	channel = 0  # мультикамеры
 
 	cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-		""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": exposure})
+		""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": hdu.header['EXPTIME']})
 
 	cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-		""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": avg})
+		""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['GAIN']})
 
 	db.commit()
 
-	if os.path.islink(config.path['web'] + 'current.jpg'):
-		os.remove(config.path['web'] + 'current.jpg')
-	os.symlink(config.path['jpg'] + minute + '.jpg', config.path['web'] + 'current.jpg')
+	if os.path.islink('/snap/current.jpg'):
+		os.remove('/snap/current.jpg')
+	os.symlink('/snap/'+ body.decode() +'.jpg', '/snap/current.jpg')
 
 	logging.debug('[+] Done')
 	ch.basic_ack(delivery_tag=method.delivery_tag)

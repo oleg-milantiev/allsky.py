@@ -18,6 +18,24 @@ services:
         aliases:
           - daemon
 
+  process:
+    image: olegmilantiev/allsky:latest
+    depends_on:
+      - allsky
+      - rabbit
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./camera/common:/camera:ro
+      - ./web/fits:/fits:ro
+      - ./web/snap:/snap
+    command: python3 /camera/process.py
+    networks:
+      appnet:
+        aliases:
+          - daemon
+
 #  watchdog:
 #    image: olegmilantiev/indi:latest
 #    depends_on:

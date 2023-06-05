@@ -197,14 +197,14 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				in_array($_FILES['file']['type'], ['image/jpeg', 'image/png'])
 			) {
 				foreach (['jpeg', 'png'] as $ext) {
-					$filename = $config['path']['web'] .'/logo.'. $ext;
+					$filename = $config['path']['jpg'] .'/logo.'. $ext;
 					if (file_exists($filename)) {
 						unlink($filename);
 					}
 				}
 
 				$filename = 'logo.'. explode('/', $_FILES['file']['type'])[1];
-				copy($_FILES['file']['tmp_name'], $config['path']['web'] .'/'. $filename);
+				copy($_FILES['file']['tmp_name'], $config['path']['jpg'] .'/'. $filename);
 				$val['logo']['file'] = $filename;
 			}
 
