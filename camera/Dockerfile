@@ -9,8 +9,14 @@ ENV TZ=Europe/Moscow
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     usbutils libusb-1.0-0 python3 python3-numpy python3-astropy \
-    python3-pika python3-pil python3-mysqldb && \
+    swig git python3-setuptools python3-pika python3-pil python3-mysqldb && \
     apt-get clean
+
+WORKDIR /tmp
+RUN env GIT_SSL_NO_VERIFY=true git clone https://github.com/python-zwoasi/python-zwoasi.git && \
+    cd /tmp/python-zwoasi && \
+    python3 setup.py install && \
+    rm -Rf /tmp/python-zwoasi
 
 WORKDIR /camera
 
