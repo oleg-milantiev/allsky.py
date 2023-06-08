@@ -30,12 +30,14 @@ else:
     print('Using #%d: %s' % (camera_id, cameras_found[0]))
 
 camera = asi.Camera(0)
-#camera_info = camera.get_camera_property()
+camera_info = camera.get_camera_property()
 controls = camera.get_controls()
 camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, controls['BandWidth']['MinValue'])
 camera.disable_dark_subtract()
 camera.stop_video_capture()
 camera.stop_exposure()
+
+camera.set_roi(0, 0, camera_info["MaxWidth"], camera_info["MaxHeight"], 1, asi.ASI_IMG_RAW16)
 
 print(' [*] Start')
 

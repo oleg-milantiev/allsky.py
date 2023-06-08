@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.3"
 
 services:
   allsky:
@@ -36,21 +36,6 @@ services:
         aliases:
           - daemon
 
-#  watchdog:
-#    image: olegmilantiev/indi:latest
-#    depends_on:
-#      - db
-#      - gearman
-#      - indiserver
-#    restart: unless-stopped
-#    volumes:
-#      - .:/opt/allsky.py
-#    command: python3 /opt/allsky.py/watchdog.py
-#    networks:
-#      appnet:
-#        aliases:
-#          - watchdog
-
   camera:
     image: olegmilantiev/allsky:latest
     depends_on:
@@ -62,10 +47,12 @@ services:
     privileged: true
     volumes:
       # change here qhy|zwo|sx
-      - ./camera/qhy:/camera:ro
+      - ./camera/zwo:/camera:ro
+#      - ./camera/qhy:/camera:ro
+#      - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
+#      - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
+
       - ./camera/common:/common:ro
-      - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
-      - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
       - ./web/fits:/fits
     devices:
       - /dev/bus/usb:/dev/bus/usb

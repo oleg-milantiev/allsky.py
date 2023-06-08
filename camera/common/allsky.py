@@ -72,7 +72,6 @@ cursor.execute('select id, val from config')
 for row in cursor.fetchall():
 	web[row[0]] = json.loads(row[1])
 
-
 # Старт
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
