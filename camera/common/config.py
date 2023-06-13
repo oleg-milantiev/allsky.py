@@ -15,7 +15,7 @@ import logging
 log = {
 #	'path':		'/var/log/allsky.log',	# путь до лога. И уровень болтливости (debug = максимальный)
 	'path':		'/dev/stdout',
-	'level':	logging.DEBUG,			# менее подробные: logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
+	'level':	logging.INFO #DEBUG,			# менее подробные: logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
 }
 
 

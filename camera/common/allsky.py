@@ -75,7 +75,7 @@ for row in cursor.fetchall():
 # Старт
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
-logging.debug('[+] Start')
+logging.info('[+] Start')
 
 camera = CameraClient()
 
@@ -94,14 +94,14 @@ while True:
 
 	# rabbit - получение кадра с начальным exposure / gain / bin
 	if camera.call(gain=gain, exposure=exposure) is None:
-		logging.info('Не смог отправить запрос к rabbitmq')
+		logging.error('Не смог отправить запрос к rabbitmq')
 		sys.exit(-1)
 
 	try:
 		fit = fits.open('/fits/current.fit')
 		hdu = fit[0]
 	except:
-		logging.info('Не получил fit от контейнера камеры')
+		logging.error('Не получил fit от контейнера камеры')
 		sys.exit(-1)
 
 	# Подсчёт среднего по центру кадра
@@ -145,8 +145,6 @@ while True:
 
 	else:
 		# подбор выдержки
-		logging.debug('Подбор выдержки...')
-
 		if avg > (250.0 if web['ccd']['bits'] == 8 else 65000.0):
 			exposure = web['ccd']['expMin']
 		elif avg < 0.001:

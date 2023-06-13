@@ -14,7 +14,7 @@ from collections.abc import Iterable
 
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
-logging.debug('[+] Start')
+logging.info('[+] Start')
 
 # Чтение конфига
 db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
@@ -50,21 +50,21 @@ def callback(ch, method, properties, body):
 		fit = fits.open('/fits/'+ body.decode() +'.fit')
 		hdu = fit[0]
 	except:
-		logging.info('Не получил fit от контейнера камеры')
+		logging.error('Не получил fit от контейнера камеры')
 		sys.exit(-1)
 
 	minval = hdu.data.min()
 	maxval = hdu.data.max()
 
 	if minval != maxval:
-		logging.debug('Нормализую...')
+		logging.warning('Нормализую...')
 		hdu.data -= minval
 		hdu.data = (hdu.data * ((255.0 if web['ccd']['bits'] == 8 else 65535.0) / (maxval - minval))).astype('int')
 
 	if 'cfa' in web['ccd']:
 		import cv2
 
-		logging.debug('Дебаейризую...')
+		logging.warning('Дебаейризую...')
 		rgb = cv2.cvtColor(
 				hdu.data.astype('uint8') if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'),
 				web['ccd']['cfa']
@@ -77,7 +77,7 @@ def callback(ch, method, properties, body):
 		imgOverexposed = cv2.bitwise_and(rgb, rgb, mask=mask)
 
 		if 'wb' in web['processing'] and 'type' in web['processing']['wb']:
-			logging.debug('Выравниваю баланс белого методом: ' + web['processing']['wb']['type'])
+			logging.warning('Выравниваю баланс белого методом: ' + web['processing']['wb']['type'])
 			if web['processing']['wb']['type'] == 'gain':
 				rgb = cv2.xphoto.applyChannelGains(rgb, web['processing']['wb']['r'], web['processing']['wb']['g'], web['processing']['wb']['b'])
 			elif web['processing']['wb']['type'] == 'simple':
@@ -95,14 +95,14 @@ def callback(ch, method, properties, body):
 		img = Image.fromarray(hdu.data.astype('uint8'))
 
 	if 'logo' in web['processing'] and 'file' in web['processing']['logo']:
-		logging.debug('Дообавляю лого...')
+		logging.warning('Дообавляю лого...')
 
 		watermark = Image.open(config['path']['jpg'] +'/'+ web['processing']['logo']['file'])
 
 		img.paste(watermark, (web['processing']['logo']['x'], web['processing']['logo']['y']))
 
 	if 'annotation' in web['processing'] and isinstance(web['processing']['annotation'], Iterable):
-		logging.debug('Добавляю аннотации')
+		logging.warning('Добавляю аннотации')
 
 		txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
 		d = ImageDraw.Draw(txt)
@@ -148,9 +148,9 @@ def callback(ch, method, properties, body):
 
 	if os.path.islink('/snap/current.jpg'):
 		os.remove('/snap/current.jpg')
-	os.symlink('/snap/'+ body.decode() +'.jpg', '/snap/current.jpg')
+	os.symlink(body.decode() +'.jpg', '/snap/current.jpg')
 
-	logging.debug('[+] Done')
+	logging.info('[+] Done')
 	ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
