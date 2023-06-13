@@ -4,9 +4,9 @@ session_start();
 $statConfig = stat('/opt/allsky.py/camera/common/config.py');
 $statJSON   = stat('/opt/allsky.py/camera/common/config.py.json');
 
-if (!isset($statJSON['mtime']) or !$statJSON['size'] or ($statJSON['mtime'] < $statConfig['mtime'])) {
-	`/opt/allsky.py/camera/common/config.json.py`;
-}
+#if (!isset($statJSON['mtime']) or !$statJSON['size'] or ($statJSON['mtime'] < $statConfig['mtime'])) {
+#	`/opt/allsky.py/camera/common/config.json.py`;
+#}
 
 $config = json_decode(file_get_contents('/opt/allsky.py/camera/common/config.py.json'), true);
 

@@ -2,7 +2,7 @@
 <?php include 'include/head.php'; ?>
 
 <?php
-$current = file_exists('current.jpg') ?? stat('current.jpg');
+$current = file_exists('snap/current.jpg') ? stat('snap/current.jpg') : null;
 
 $videoDir = scandir($config['path']['video'], SCANDIR_SORT_DESCENDING);
 $video    = (count($videoDir) > 3) ? stat($config['path']['video']. $videoDir[0]) : null;
@@ -21,24 +21,12 @@ $video    = (count($videoDir) > 3) ? stat($config['path']['video']. $videoDir[0]
 			<input type="checkbox" title="Автообновление" class="auto-refresh">
 		</h1>
 	<?php endif?>
-	<!--
-	<div class="btn-toolbar mb-2 mb-md-0">
-		<div class="btn-group mr-2">
-			<button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-			<button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
-		</div>
-		<button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-			<span data-feather="calendar"></span>
-			This week
-		</button>
-	</div>
-	-->
 </div>
 
 <?php if ($current):?>
 	<div class="row">
 		<div class="col-lg-12">
-			<img style="width:100%" src="current.jpg?date=<?php echo $current['ctime']; ?>">
+			<img style="width:100%" src="snap/current.jpg?date=<?php echo $current['ctime']; ?>">
 		</div>
 	</div>
 <?php endif?>
