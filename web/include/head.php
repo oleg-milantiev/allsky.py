@@ -1,6 +1,55 @@
 <?php
 session_start();
 
+require_once '/var/www/vendor/autoload.php';
+
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Exchange\AMQPExchangeType;
+use PhpAmqpLib\Message\AMQPMessage;
+
+// reload allsky.py or / and process.py via rabbit
+function reload($modules = [])
+{
+	if (!is_array($modules) or !count($modules) or
+		(!isset($modules['allsky']) and !isset($modules['process']))
+	) {
+		return;
+	}
+
+	$connection = new AMQPStreamConnection(
+		$_ENV['RABBITMQ_HOST'], 
+		$_ENV['RABBITMQ_PORT'], 
+		$_ENV['RABBITMQ_DEFAULT_USER'], 
+		$_ENV['RABBITMQ_DEFAULT_PASS'], 
+		'/');
+	$channel = $connection->channel();
+
+	$channel->exchange_declare('direct', AMQPExchangeType::DIRECT, false, true, false);
+
+	$message = new AMQPMessage('reload', [
+		'content_type' => 'text/plain',
+		'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
+		]);
+
+	if (isset($modules['allsky']) and $modules['allsky']) {
+		$channel->queue_declare($_ENV['RABBITMQ_QUEUE_RELOAD_ALLSKY'], false, true, false, false);
+		$channel->queue_bind($_ENV['RABBITMQ_QUEUE_RELOAD_ALLSKY'], 'direct', $_ENV['RABBITMQ_QUEUE_RELOAD_ALLSKY']);
+
+		$channel->basic_publish($message, 'direct', $_ENV['RABBITMQ_QUEUE_RELOAD_ALLSKY']);
+	}
+
+	if (isset($modules['process']) and $modules['process']) {
+		$channel->queue_declare($_ENV['RABBITMQ_QUEUE_RELOAD_PROCESS'], false, true, false, false);
+		$channel->queue_bind($_ENV['RABBITMQ_QUEUE_RELOAD_PROCESS'], 'direct', $_ENV['RABBITMQ_QUEUE_RELOAD_PROCESS']);
+
+		$channel->basic_publish($message, 'direct', $_ENV['RABBITMQ_QUEUE_RELOAD_PROCESS']);
+	}
+
+
+	$channel->close();
+	$connection->close();
+}
+
 $statConfig = stat('/opt/allsky.py/camera/common/config.py');
 $statJSON   = stat('/opt/allsky.py/camera/common/config.py.json');
 
@@ -19,9 +68,9 @@ $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-    if (in_array($row['id'], ['web', 'ccd', 'processing', 'publish', 'archive', 'sensors', 'relays'])) {
+	if (in_array($row['id'], ['web', 'ccd', 'processing', 'publish', 'archive', 'sensors', 'relays'])) {
 		$config[ $row['id'] ] = json_decode($row['val'], true);
-    }
+	}
 }
 
 if (isset($_GET['action'])) {
@@ -103,7 +152,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 		case 'settings-web':
 			if (
 				!isset($_SESSION['user']) or
-                !isset($_POST['name']) or
+				!isset($_POST['name']) or
 				!isset($_POST['counter'])
 			) {
 				die('Страница недоступна');
@@ -118,10 +167,15 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				]),
 			]);
 
+			reload([
+				'allsky' => false,
+				'process' => true
+			]);
+
 			header('Location: /settings.php?tab=web&time='. time());
 			exit;
 
-	    case 'settings-ccd':
+		case 'settings-ccd':
 			if (
 				!isset($_SESSION['user']) or
 				!isset($_POST['binning']) or
@@ -154,6 +208,12 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					'gainStep' => (int) $_POST['gainStep'],
 				]),
 			]);
+
+			reload([
+				'allsky' => true,
+				'process' => true,
+			]);
+
 			header('Location: /settings.php?tab=ccd&time='. time());
 			exit;
 
@@ -214,6 +274,11 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				'val' => json_encode($val),
 			]);
 
+			reload([
+				'allsky' => false,
+				'process' => true,
+			]);
+
 			header('Location: /settings.php?tab=processing&time='. time());
 			exit;
 
@@ -231,6 +296,11 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				'val' => json_encode([
 					'jpg' => $_POST['jpg'],
 				]),
+			]);
+
+			reload([
+				'allsky' => false,
+				'process' => true,
 			]);
 
 			header('Location: /settings.php?tab=publish&time='. time());
@@ -433,14 +503,14 @@ if (
 		<meta name="description" content="">
 		<meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
 		<meta name="generator" content="Jekyll v3.8.5">
-		<title>AllSky - <?php echo $config['name']; ?></title>
+		<title>AllSky - <?php echo $config['web']['name']; ?></title>
 
 		<link rel="canonical" href="https://getbootstrap.com/docs/4.3/examples/dashboard/">
 
 		<!-- Bootstrap core CSS -->
 		<link href="/css/bootstrap.min.css" rel="stylesheet">
 		<link href="/css/bootstrap-datepicker.min.css" rel="stylesheet">
-        <link href="/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+		<link href="/css/bootstrap-colorpicker.min.css" rel="stylesheet">
 
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
 		<script>window.jQuery || document.write('<script src="/js/vendor/jquery-3.3.1.min.js"><\/script>')</script>

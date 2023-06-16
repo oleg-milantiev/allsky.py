@@ -13,6 +13,11 @@ import time
 import os
 import uuid
 
+def reload(ch, method, properties, body):
+	print(" [x] Received RELOAD")
+	ch.basic_ack(delivery_tag=method.delivery_tag)
+	sys.exit(0);
+
 # Класс общения с docker.camera контейнером через rabbitmq в шаблоне RPC-Client
 class CameraClient(object):
 
@@ -29,6 +34,7 @@ class CameraClient(object):
 		self.channel = self.connection.channel()
 
 		self.channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_PROCESS'), durable=True)
+		self.channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_RELOAD_ALLSKY'), durable=True)
 
 		result = self.channel.queue_declare(queue='', exclusive=True)
 		self.callback_queue = result.method.queue
@@ -40,6 +46,8 @@ class CameraClient(object):
 
 		self.response = None
 		self.corr_id = None
+
+		self.channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE_RELOAD_ALLSKY'), on_message_callback=reload)
 
 	def on_response(self, ch, method, props, body):
 		if self.corr_id == props.correlation_id:

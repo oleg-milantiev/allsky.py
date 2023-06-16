@@ -3,6 +3,8 @@
 import config
 import os
 import pika
+import requests
+import sys
 import time
 import json
 import MySQLdb
@@ -39,6 +41,7 @@ connection = pika.BlockingConnection(
 channel = connection.channel()
 
 channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_PROCESS'), durable=True)
+channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_RELOAD_PROCESS'), durable=True)
 print(' [*] Waiting for messages. To exit press CTRL+C')
 
 def callback(ch, method, properties, body):
@@ -131,7 +134,7 @@ def callback(ch, method, properties, body):
 
 	logging.debug('Записываю jpg в файл...')
 	img.save('/snap/'+ body.decode()  +'.jpg')
-	logging.info('Файл ' + body.decode() + '.jpg записан. Жду следующей минуты')
+	logging.info('Файл ' + body.decode() + '.jpg записан.')
 
 	ts = int(time.time())
 	channel = 0  # мультикамеры
@@ -150,11 +153,30 @@ def callback(ch, method, properties, body):
 		os.remove('/snap/current.jpg')
 	os.symlink(body.decode() +'.jpg', '/snap/current.jpg')
 
+	if 'jpg' in web['publish'] and web['publish']['jpg'] != '':
+		try:
+			r = requests.post(
+				web['publish']['jpg'],
+				files={'file': open('/snap/'+ body.decode() +'.jpg', 'rb')},
+				data={'name': web['web']['name'], 'pass': 'kjH3vxzm4G'}
+			)
+			logging.info('Файл ' + body.decode() + ' опубликован: ' + r.text)
+		except:
+			logging.error('ОШИБКА публикации файла ' + body.decode())
+
+
 	logging.info('[+] Done')
 	ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
+def reload(ch, method, properties, body):
+	print(" [x] Received RELOAD")
+	ch.basic_ack(delivery_tag=method.delivery_tag)
+	sys.exit(0);
+
+
 channel.basic_qos(prefetch_count=1)
 channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE_PROCESS'), on_message_callback=callback)
+channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE_RELOAD_PROCESS'), on_message_callback=reload)
 
 channel.start_consuming()

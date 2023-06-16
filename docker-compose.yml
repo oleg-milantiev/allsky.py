@@ -3,6 +3,10 @@ version: "3.3"
 services:
   allsky:
     image: olegmilantiev/allsky:latest
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - rabbit
       - camera
@@ -20,6 +24,10 @@ services:
 
   process:
     image: olegmilantiev/allsky:latest
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - allsky
       - rabbit
@@ -38,6 +46,10 @@ services:
 
   camera:
     image: olegmilantiev/allsky:latest
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - rabbit
     env_file:
@@ -47,10 +59,10 @@ services:
     privileged: true
     volumes:
       # change here qhy|zwo|sx
-      - ./camera/zwo:/camera:ro
-#      - ./camera/qhy:/camera:ro
-#      - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
-#      - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
+#      - ./camera/zwo:/camera:ro
+      - ./camera/qhy:/camera:ro
+      - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
+      - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
 
       - ./camera/common:/common:ro
       - ./web/fits:/fits
@@ -63,6 +75,10 @@ services:
 
   db:
     image: tobi312/rpi-mariadb:10.6-alpine
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: 'allsky'
@@ -73,7 +89,7 @@ services:
       - 3306
     volumes:
       - my-db:/var/lib/mysql
-      - ./db/:/docker-entrypoint-initdb.d/
+      - ./db/:/docker-entrypoint-initdb.d/:ro
     networks:
       appnet:
         aliases:
@@ -81,6 +97,10 @@ services:
 
   rabbit:
     image: rabbitmq:3.11
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
     env_file:
       - .env
@@ -93,11 +113,15 @@ services:
 
   nginx:
     image: nginx:latest
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
     ports:
       - 80:80
     volumes:
-      - ./nginx/allsky.conf:/etc/nginx/conf.d/allsky.conf
+      - ./nginx/allsky.conf:/etc/nginx/conf.d/allsky.conf:ro
       - ./web:/var/www/html
     networks:
       appnet:
@@ -106,7 +130,13 @@ services:
 
   php:
     build: php
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
+    env_file:
+      - .env
     depends_on:
       - db
       - rabbit
@@ -118,8 +148,9 @@ services:
         aliases:
           - php
     volumes:
-      - ./web:/var/www/html
-      - .:/opt/allsky.py
+      - ./web:/var/www/html:ro
+      - ./vendor:/var/www/vendor:ro
+      - .:/opt/allsky.py:ro
 
 volumes:
   my-db:
