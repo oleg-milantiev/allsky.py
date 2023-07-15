@@ -168,8 +168,3 @@ while True:
 				exposure = web['ccd']['expMax']
 
 		logging.info('Новая выдержка {}'.format(exposure))
-
-
-
-
-

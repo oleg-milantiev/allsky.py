@@ -818,7 +818,7 @@ $tab = $_GET['tab'] ?? 'users';
 
             <div class="form-group">
                 <label>Архив видео (MP4), дней:</label>
-                <input class="form-control" type="number" name="video" min="0" value="<?php echo $config['archive']['video'] ?? '30'; ?>">
+                <input class="form-control" type="number" name="mp4" min="0" value="<?php echo $config['archive']['mp4'] ?? '30'; ?>">
             </div>
 
             <br>

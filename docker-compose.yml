@@ -1,8 +1,39 @@
 version: "3.3"
 
 services:
+  watchdog:
+    image: olegmilantiev/allsky:latest
+    container_name: allsky-watchdog
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - allsky
+      - process
+      - camera
+      - db
+      - rabbit
+      - nginx
+      - php
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./watchdog.py:/watchdog.py:ro
+      - ./camera/common/config.py:/config.py:ro
+      - ./camera/common:/camera:ro
+      - ./web:/web
+    command: python3 /camera/process.py
+#    command: python3 /watchdog.py
+    networks:
+      appnet:
+        aliases:
+          - daemon
+
   allsky:
     image: olegmilantiev/allsky:latest
+    container_name: allsky-allsky
     logging:
       options:
         max-size: "10m"
@@ -24,6 +55,7 @@ services:
 
   process:
     image: olegmilantiev/allsky:latest
+    container_name: allsky-process
     logging:
       options:
         max-size: "10m"
@@ -46,6 +78,7 @@ services:
 
   camera:
     image: olegmilantiev/allsky:latest
+    container_name: allsky-camera
     logging:
       options:
         max-size: "10m"
@@ -75,6 +108,7 @@ services:
 
   db:
     image: tobi312/rpi-mariadb:10.6-alpine
+    container_name: allsky-db
     logging:
       options:
         max-size: "10m"
@@ -97,6 +131,7 @@ services:
 
   rabbit:
     image: rabbitmq:3.11
+    container_name: allsky-rabbit
     logging:
       options:
         max-size: "10m"
@@ -113,6 +148,7 @@ services:
 
   nginx:
     image: nginx:latest
+    container_name: allsky-nginx
     logging:
       options:
         max-size: "10m"
@@ -130,6 +166,7 @@ services:
 
   php:
     build: php
+    container_name: allsky-php
     logging:
       options:
         max-size: "10m"

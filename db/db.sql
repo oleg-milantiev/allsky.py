@@ -6,7 +6,7 @@ create table allsky.config (
 --	date int unsigned not null
 );
 
-INSERT INTO `config` (`id`, `val`) VALUES ('archive','{\"jpg\":30,\"fit\":3,\"sensors\":30,\"video\":30}'),('ccd','{\"name\":\"QHY CCD QHY5-M-\",\"binning\":1,\"bits\":8,\"avgMin\":55,\"avgMax\":150,\"center\":50,\"expMin\":0.001,\"expMax\":45,\"gainMin\":1,\"gainMax\":100,\"gainStep\":11}'),('processing','{\"crop\":{\"left\":0,\"right\":0,\"top\":0,\"bottom\":0},\"logo\":{\"x\":0,\"y\":0},\"annotation\":null,\"wb\":{\"type\":\"gain\",\"r\":\"8\",\"g\":\"1.2\",\"b\":\"0.9\"}}'),('publish','{\"jpg\":\"https:\\/\\/oleg.milantiev.com\\/allsky\\/publish\\/jpg\\/\"}'),('relays','[]'),('sensors','{\"bme280\":[{\"name\":\"\"},{\"name\":\"\"}],\"ads1115\":[{\"name\":\"\",\"divider\":\"\"},{\"name\":\"\",\"divider\":\"\"}]}'),('web','{\"name\":\"\\u041d\\u0430\\u0437\\u0432\\u0430\\u043d\\u0438\\u0435\",\"counter\":\"\"}');
+INSERT INTO `config` (`id`, `val`) VALUES ('archive','{\"jpg\":30,\"fit\":3,\"sensors\":30,\"mp4\":30}'),('ccd','{\"binning\":1,\"bits\":8,\"avgMin\":55,\"avgMax\":150,\"center\":50,\"expMin\":0.001,\"expMax\":45,\"gainMin\":1,\"gainMax\":100,\"gainStep\":11}'),('processing','{\"crop\":{\"left\":0,\"right\":0,\"top\":0,\"bottom\":0},\"logo\":{\"x\":0,\"y\":0},\"annotation\":null,\"wb\":{\"type\":\"gain\",\"r\":\"8\",\"g\":\"1.2\",\"b\":\"0.9\"}}'),('publish','{\"jpg\":\"https:\\/\\/oleg.milantiev.com\\/allsky\\/publish\\/jpg\\/\"}'),('relays','[]'),('sensors','{\"bme280\":[{\"name\":\"\"},{\"name\":\"\"}],\"ads1115\":[{\"name\":\"\",\"divider\":\"\"},{\"name\":\"\",\"divider\":\"\"}]}'),('web','{\"name\":\"\\u041d\\u0430\\u0437\\u0432\\u0430\\u043d\\u0438\\u0435\",\"counter\":\"\"}');
 
 create table allsky.user (
 	id int unsigned auto_increment not null primary key,

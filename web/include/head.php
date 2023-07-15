@@ -348,7 +348,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				!isset($_POST['jpg']) or
 				!isset($_POST['fit']) or
 				!isset($_POST['sensors']) or
-				!isset($_POST['video'])
+				!isset($_POST['mp4'])
 			) {
 				die('Страница недоступна');
 			}
@@ -360,7 +360,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					'jpg' => (int) $_POST['jpg'],
 					'fit' => (int) $_POST['fit'],
 					'sensors' => (int) $_POST['sensors'],
-					'video' => (int) $_POST['video'],
+					'mp4' => (int) $_POST['mp4'],
 				]),
 			]);
 

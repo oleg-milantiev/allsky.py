@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+# @todo: stardetect
+
 import config
 import os
 import pika
