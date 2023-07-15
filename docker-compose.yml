@@ -22,10 +22,8 @@ services:
     volumes:
       - ./watchdog.py:/watchdog.py:ro
       - ./camera/common/config.py:/config.py:ro
-      - ./camera/common:/camera:ro
       - ./web:/web
-    command: python3 /camera/process.py
-#    command: python3 /watchdog.py
+    command: python3 /watchdog.py
     networks:
       appnet:
         aliases:
