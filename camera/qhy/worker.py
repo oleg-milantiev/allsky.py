@@ -2,7 +2,7 @@
 
 import os
 
-os.system('/common/udev.py')
+os.system('python3 /common/udev.py')
 
 import pika
 import time
