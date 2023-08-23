@@ -11,9 +11,9 @@ foreach ($snapDir as $item) {
 	}
 }
 
-if (isset($_GET['date'])) {
-	$date = null;
+$date = null;
 
+if (isset($_GET['date'])) {
 	if (
 		preg_match('#(\d\d)\.(\d\d)\.(\d\d\d\d) (\d\d):(\d\d)#', $_GET['date'], $out) and
 		in_array($out[3] .'-'. $out[2] .'-'. $out[1] .'_'. $out[4] .'-'. $out[5] .'.jpg', $snapDir)
