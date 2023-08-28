@@ -11,6 +11,7 @@ import time
 import json
 import MySQLdb
 import logging
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from astropy.io import fits
 from datetime import datetime
@@ -64,7 +65,28 @@ def callback(ch, method, properties, body):
 	if minval != maxval:
 		logging.warning('Нормализую...')
 		hdu.data -= minval
-		hdu.data = (hdu.data * ((255.0 if web['ccd']['bits'] == 8 else 65535.0) / (maxval - minval))).astype('int')
+		hdu.data = (hdu.data * (255.0 / (maxval - minval))).astype('int')
+
+		hist, bin = np.histogram(np.array(hdu.data), bins=64)
+		begin = 0
+		end = len(hist) - 1
+		threshold = 20
+
+		#todo np find first threshold index
+#		for i in range(len(hist) - 1):
+#			if (hist[i] > threshold):
+#				begin = i * 4
+#				break
+
+		#todo np find last threshold index
+		for i in reversed(range(len(hist) - 1)):
+			if (hist[i] > threshold):
+				end = i * 4
+				break
+
+		if (begin < end):
+			hdu.data -= begin
+			hdu.data = np.clip(np.array(hdu.data * (255.0 / (end - begin))), 0, 255).astype('int')
 
 	if 'cfa' in web['ccd']:
 		import cv2
