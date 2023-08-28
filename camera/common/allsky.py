@@ -53,7 +53,7 @@ class CameraClient(object):
 		if self.corr_id == props.correlation_id:
 			self.response = body
 
-	def call(self, gain, exposure):
+	def call(self, gain, exposure, bin):
 		self.response = None
 		self.corr_id = str(uuid.uuid4())
 		self.channel.basic_publish(
@@ -63,7 +63,7 @@ class CameraClient(object):
 				reply_to=self.callback_queue,
 				correlation_id=self.corr_id,
 			),
-			body=json.dumps({'gain': gain, 'exposure': exposure}))
+			body=json.dumps({'gain': gain, 'exposure': exposure, 'bin': bin}))
 		self.connection.process_data_events(time_limit=exposure + 5)
 
 		return str(self.response)
@@ -94,14 +94,16 @@ camera = CameraClient()
 #	hdu.data = hdu.data[crop['left']:(hdu.header['NAXIS1'] - crop['right']), crop['top']:(hdu.header['NAXIS2'] - crop['bottom'])]
 
 minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
+bin = 1
 gain = 10
 exposure = 0.1
+attempt = 0
 
 while True:
 	logging.debug('Получаю новый кадр...')
 
 	# rabbit - получение кадра с начальным exposure / gain / bin
-	if camera.call(gain=gain, exposure=exposure) is None:
+	if camera.call(gain=gain, exposure=exposure, bin=bin) is None:
 		logging.error('Не смог отправить запрос к rabbitmq')
 		sys.exit(-1)
 
@@ -126,10 +128,80 @@ while True:
 
 	logging.info('Получил кадр выдержкой {} сек. со средним {}'.format(exposure, avg))
 
-	if (web['ccd']['avgMin'] < avg < web['ccd']['avgMax']) or (
+	# Надо найти следующие bin / gain / exp, даже если удачная выдержка
+
+	# Используем обучающуюся нейросетку с входами:
+	# - date, time, dayPart, moon из эфемеед [1-4]
+	# - clear / cloud из yolo [5]
+	# - stardetect из scipy [6]
+	# - avg, bin / gain / exposure из предыдущего кадра [7-10]
+	# 
+	# Функция loss:
+	# - попадание в avgMin / avgMax = 0.5
+	# - приближение к avgAvg = 0.5
+	# 
+	# На выходе нужны новые:
+	# - bin / gain / exposure
+	
+	# Мне нужна мультивыходная регрессия! (10 -> 3)
+	# - получен кадр, имеем 10 входов
+	# - по ним получаем новые bin / gain / exp
+	# - делаем новый кадр, получаем avg
+	# - имеем loss функцию
+	#(не, херь какая-то)
+	
+	# таблица из 10 входов, 3 выходов и avg (по нему loss)
+	# а ещё надо учитывать 3..5 предыдущих кадров
+'''
+Нужны ли эти данные?
+дата(день) - Дата всё время разная
+время - повторяется, но не привязано к солнцу / Луне
+
+Датасет. То, что повторяется, имеет закономерности:
+
+Нужны ли dayPart и dayPartTime? Или достаточно sunAltAz, moonAltAz, moonPhase?
+dayPart - {0 = day | 0.33 = morning | 0.66 = evening | 1 = night}
+dayPartTime - 0..1 доля части дня. ex. полдень = day, 0.5
+moonPhase - 0..1 фаза Луны
+moonAlt - 0..1 высота Луны
+cloud - 0..1 clear / cloud из YOLO
+starsCount - int16 кол-во звёзд из scipy
+
+was3*** - 3 кадра назад, 4 параметра
+was2*** - 2 кадра назад, 4 параметра
+
+wasAvg - 0..1 среднее по прошлому кадру (0.5 идеал)
+wasBin - {0 | 1} (0 = bin1, 1 = bin2) бин прошлого кадра
+wasGain - 0..1 gain прошлого кадра
+wasExp - 0..1 exp/55 прошлого кадра (1 = 55 секунд)
+
+nowAvg - 0..1 среднее по кадру (0.5 идеал)
+nowBin - {0 | 1} (0 = bin1, 1 = bin2) бин кадра
+nowGain - 0..1 gain кадра
+nowExp - 0..1 exp/55 кадра (1 = 55 секунд)
+
+--
+nowAvg используется для loss
+Остальные три now* - искомый результат по всем остальным параметрам.
+
+--
+*avg считаются = 0.5, если:
+- пережОг и выдержка, бин и gain = min
+- недожОг и выдержка, bin и gain = max
+То есть модель сделала что могла, дальше камера не тянет
+Учесть, что лучше недожОг, чем пережОг.
+
+--
+А не привинтить ли к датасету ещё и показания погодника в этот момент?
+'''
+	attempt += 1
+
+	if (web['ccd']['avgMin'] < avg < web['ccd']['avgMax']) or (attempt == 10) or (attempt > 6 and avg < web['ccd']['avgMax']) or (
 			(exposure == web['ccd']['expMin']) and (avg > web['ccd']['avgMax'])) or (
 			(exposure == web['ccd']['expMax']) and (avg < web['ccd']['avgMin'])):
 # учёт gainMin, gainMax, maxAttempt
+
+		attempt = 0
 		logging.debug('Жду следующей минуты')
 		while True:
 			now = datetime.now().strftime("%Y-%m-%d_%H-%M")
@@ -150,7 +222,6 @@ while True:
 				delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE,
 				))
 
-
 	else:
 		# подбор выдержки
 		if avg > (250.0 if web['ccd']['bits'] == 8 else 65000.0):
@@ -159,12 +230,16 @@ while True:
 			exposure = web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) / 2
 		else:
 			target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
+
+			# case: было expMin, дали дофига, всё сгорело
+			#       уменьшили до expMin - цикл.
+			#       Решение: expMin * 10
+
 			exposure = target * exposure / avg
-			# @todo защита от зацикливания
 
 			if exposure < web['ccd']['expMin']:
 				exposure = web['ccd']['expMin']
 			if exposure > web['ccd']['expMax']:
 				exposure = web['ccd']['expMax']
 
-		logging.info('Новая выдержка {}'.format(exposure))
+		logging.info('Новая выдержка {}, попытка {}'.format(exposure, attempt))
