@@ -39,6 +39,7 @@ services:
     depends_on:
       - rabbit
       - camera
+      - db
     env_file:
       - .env
     restart: unless-stopped
