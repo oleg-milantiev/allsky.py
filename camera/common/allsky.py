@@ -194,6 +194,15 @@ while True:
 
 	--
 	А не привинтить ли к датасету ещё и показания погодника в этот момент?
+	
+	регрессия с множеством выходов
+	https://scikit-learn.org/stable/modules/generated/sklearn.multioutput.MultiOutputRegressor.html
+	
+	RNN
+	https://habr.com/ru/articles/701798/ -> https://github.com/LevPerla/Time_Series_Prediction_RNN
+	
+	ARIMA
+	https://pythonpip.ru/examples/model-arima-v-python
 	'''
 
 	attempt += 1
@@ -201,7 +210,7 @@ while True:
 	if (web['ccd']['avgMin'] < avg < web['ccd']['avgMax']) or (attempt == 10) or (attempt > 6 and avg < web['ccd']['avgMax']) or (
 			(exposure == web['ccd']['expMin']) and (avg > web['ccd']['avgMax'])) or (
 			(exposure == web['ccd']['expMax']) and (avg < web['ccd']['avgMin'])):
-# учёт gainMin, gainMax, maxAttempt
+		# учёт gainMin, gainMax, maxAttempt
 
 		attempt = 0
 		logging.debug('Жду следующей минуты')
