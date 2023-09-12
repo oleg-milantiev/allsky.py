@@ -12,7 +12,7 @@ import json
 import MySQLdb
 import logging
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from astropy.io import fits
 from datetime import datetime
 from collections.abc import Iterable
@@ -59,35 +59,6 @@ def callback(ch, method, properties, body):
 		logging.error('Не получил fit от контейнера камеры')
 		sys.exit(-1)
 
-	minval = hdu.data.min()
-	maxval = hdu.data.max()
-
-	if minval != maxval:
-		logging.warning('Нормализую...')
-		hdu.data -= minval
-		hdu.data = (hdu.data * (255.0 / (maxval - minval))).astype('int')
-
-		hist, bin = np.histogram(np.array(hdu.data), bins=64)
-		begin = 0
-		end = len(hist) - 1
-		threshold = 20
-
-		#todo np find first threshold index
-#		for i in range(len(hist) - 1):
-#			if (hist[i] > threshold):
-#				begin = i * 4
-#				break
-
-		#todo np find last threshold index
-		for i in reversed(range(len(hist) - 1)):
-			if (hist[i] > threshold):
-				end = i * 4
-				break
-
-		if (begin < end):
-			hdu.data -= begin
-			hdu.data = np.clip(np.array(hdu.data * (255.0 / (end - begin))), 0, 255).astype('int')
-
 	if 'cfa' in web['ccd']:
 		import cv2
 
@@ -118,8 +89,10 @@ def callback(ch, method, properties, body):
 		imgWb = cv2.bitwise_and(rgb, rgb, mask=maskInv)
 		img = Image.fromarray(cv2.add(imgWb, imgOverexposed), 'RGB')
 	else:
-#		img = Image.fromarray(hdu.data if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'))
-		img = Image.fromarray(hdu.data.astype('uint8'))
+		img = Image.fromarray(hdu.data if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'))
+#		img = Image.fromarray(hdu.data.astype('uint8'))
+
+	img = ImageOps.autocontrast(img, cutoff=0.05)
 
 	if 'logo' in web['processing'] and 'file' in web['processing']['logo']:
 		logging.warning('Дообавляю лого...')
@@ -128,7 +101,7 @@ def callback(ch, method, properties, body):
 
 		img.paste(watermark, (web['processing']['logo']['x'], web['processing']['logo']['y']))
 
-	if 'annotation' in web['processing'] and isinstance(web['processing']['annotation'], Iterable):
+	if 'annotation' in web['processing'] and isinstance(web['processing']['annotation'], Iterable) and len(web['processing']['annotation']) > 0:
 		logging.warning('Добавляю аннотации')
 
 		txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
@@ -155,6 +128,10 @@ def callback(ch, method, properties, body):
 			)
 
 		img = Image.alpha_composite(img.convert('RGBA'), txt).convert('RGB')
+
+	if 'transpose' in web['processing'] and 6 >= web['processing']['transpose'] >= 0:
+		logging.debug('Транспонирую (поворот / зеркало)')
+		img = img.transpose(web['processing']['transpose'])
 
 	logging.debug('Записываю jpg в файл...')
 	img.save('/snap/'+ body.decode()  +'.jpg')
