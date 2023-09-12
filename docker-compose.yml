@@ -76,7 +76,6 @@ services:
           - daemon
 
   # Starlight Xpress (base on INDI)
-  # TBD include INDI into container
   camera:
     image: olegmilantiev/allsky-sx:latest
     container_name: allsky-camera
@@ -86,11 +85,11 @@ services:
         max-file: "3"
     depends_on:
       - rabbit
+      - indi
     env_file:
       - .env
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+#    command: python3 /camera/sleep.py
     command: python3 /camera/worker.py
     privileged: true
     volumes:
@@ -104,6 +103,25 @@ services:
       appnet:
         aliases:
           - camera
+
+  indi:
+    image: olegmilantiev/allsky-sx:latest
+    container_name: allsky-indi
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    command: indiserver indi_sx_ccd
+    expose:
+      - 7624
+    privileged: true
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    networks:
+      appnet:
+        aliases:
+          - indi
 
 #  # qhy | zwo
 #  camera:

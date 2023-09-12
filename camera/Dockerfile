@@ -9,7 +9,7 @@ ENV TZ=Europe/Moscow
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     usbutils python3-requests libusb-1.0-0 python3 python3-numpy python3-astropy \
-    swig git python3-setuptools python3-pika python3-pil python3-mysqldb && \
+    swig git python3-setuptools python3-pika python3-pillow python3-mysqldb && \
     apt-get clean
 
 WORKDIR /tmp

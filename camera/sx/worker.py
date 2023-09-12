@@ -73,7 +73,7 @@ class IndiClient(PyIndi.BaseClient):
 
 # ------------------ начало ---------------------
 indi = IndiClient()
-indi.setServer('host.docker.internal', 7624)
+indi.setServer('indi', 7624)
 
 if not indi.connectServer():
 	print('Не найден INDI-сервер камеры')

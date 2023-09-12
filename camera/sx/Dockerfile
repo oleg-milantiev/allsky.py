@@ -12,7 +12,7 @@ RUN apt-get update && \
     apt-get clean
 
 RUN apt-get install -y --no-install-recommends \
-    libindi-dev indi-sx && \
+    libindi-dev indi-bin indi-sx && \
     apt-get clean
 
 ARG DEBIAN_FRONTEND=noninteractive
