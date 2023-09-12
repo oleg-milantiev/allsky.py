@@ -226,6 +226,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				!isset($_POST['bottom']) or
 				!isset($_POST['logoX']) or
 				!isset($_POST['logoY']) or
+				!isset($_POST['transpose']) or
 				!isset($_POST['wb'])
 			) {
 				die('Страница недоступна');
@@ -242,13 +243,14 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					'x' => (int) $_POST['logoX'],
 					'y' => (int) $_POST['logoY'],
 				],
-				'annotation' => $_POST['annotation'],
+				'annotation' => $_POST['annotation'] ?? [],
 				'wb' => [
 					'type' => $_POST['wb'],
 					'r' => $_POST['r'],
 					'g' => $_POST['g'],
 					'b' => $_POST['b'],
 				],
+				'transpose' => (int) $_POST['transpose'],
 			];
 
 			if (isset($_FILES['file']['error']) and
