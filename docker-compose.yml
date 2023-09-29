@@ -1,3 +1,5 @@
+# start with camera name in profile, like:
+# docker-compose --profile qhy up -d
 version: "3.3"
 
 services:
@@ -11,7 +13,7 @@ services:
     depends_on:
       - allsky
       - process
-      - camera
+#      - camera
       - db
       - rabbit
       - nginx
@@ -38,7 +40,7 @@ services:
         max-file: "3"
     depends_on:
       - rabbit
-      - camera
+#      - camera
       - db
     env_file:
       - .env
@@ -76,8 +78,10 @@ services:
           - daemon
 
   # Starlight Xpress (base on INDI)
-  camera:
+  camera-sx:
     image: olegmilantiev/allsky-sx:latest
+    profiles:
+      - sx
     container_name: allsky-camera
     logging:
       options:
@@ -106,6 +110,8 @@ services:
 
   indi:
     image: olegmilantiev/allsky-sx:latest
+    profiles:
+      - sx
     container_name: allsky-indi
     logging:
       options:
@@ -123,37 +129,61 @@ services:
         aliases:
           - indi
 
-#  # qhy | zwo
-#  camera:
-#    image: olegmilantiev/allsky:latest
-#    container_name: allsky-camera-sleep
-#    logging:
-#      options:
-#        max-size: "10m"
-#        max-file: "3"
-#    depends_on:
-#      - rabbit
-#    env_file:
-#      - .env
-#    restart: unless-stopped
-#    command: python3 /camera/worker.py
-#    privileged: true
-#    volumes:
-#      # uncomment ZWO or QHY block
-##      - ./camera/zwo:/camera:ro
-#
-##      - ./camera/qhy:/camera:ro
-##      - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
-##      - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
-#
-#      - ./camera/common:/common:ro
-#      - ./web/fits:/fits
-#    devices:
-#      - /dev/bus/usb:/dev/bus/usb
-#    networks:
-#      appnet:
-#        aliases:
-#          - camera
+  camera-qhy:
+    image: olegmilantiev/allsky:latest
+    container_name: allsky-camera
+    profiles:
+      - qhy
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - rabbit
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python3 /camera/worker.py
+    privileged: true
+    volumes:
+      - ./camera/qhy:/camera:ro
+      - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
+      - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
+      - ./camera/common:/common:ro
+      - ./web/fits:/fits
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    networks:
+      appnet:
+        aliases:
+          - camera
+
+  camera-zwo:
+    image: olegmilantiev/allsky:latest
+    container_name: allsky-camera
+    profiles:
+      - zwo
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - rabbit
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python3 /camera/worker.py
+    privileged: true
+    volumes:
+      - ./camera/zwo:/camera:ro
+      - ./camera/common:/common:ro
+      - ./web/fits:/fits
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    networks:
+      appnet:
+        aliases:
+          - camera
 
   db:
     image: tobi312/rpi-mariadb:10.6-alpine
