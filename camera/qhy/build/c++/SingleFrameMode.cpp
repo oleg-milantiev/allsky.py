@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
 		long naxes[2] = {roiSizeX, roiSizeY};
 		long curUnixTime = time(0);
 
-		const char *fitsfilename = "current.fits";
+		const char *fitsfilename = "/fits/current.fits";
 
 		// Remove if exists already
 		remove(fitsfilename);
@@ -393,6 +393,7 @@ int main(int argc, char *argv[])
 		fits_update_key(fptr, TINT, "EXPTIME", &EXPOSURE_TIME, "Exposure time in microseconds", &status);
 		fits_update_key(fptr, TINT, "OFFSET", &CHIP_OFFSET, "Offset Setting", &status);
 		fits_update_key(fptr, TINT, "GAIN", &CHIP_GAIN, "Gain Setting", &status);
+		fits_update_key(fptr, TINT, "BIN", &camBinX, "Binning Setting", &status);
 		fits_update_key(fptr, TLONG, "TIME", &curUnixTime, "UNIX Time", &status);
 
 		// Write to File
