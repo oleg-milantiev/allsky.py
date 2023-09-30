@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
 	int camBinX = atoi(argv[5]); // 1
 	int camBinY = atoi(argv[5]); // 1
 
+	printf("Try to capture with trafic=%d, offset=%d, gain=%d, exp=%d, bin=%d\n", USB_TRAFFIC, CHIP_OFFSET, CHIP_GAIN, EXPOSURE_TIME, camBinX);
+
 	double chipWidthMM;
 	double chipHeightMM;
 	double pixelWidthUM;
@@ -380,7 +382,7 @@ int main(int argc, char *argv[])
 		long naxes[2] = {roiSizeX, roiSizeY};
 		long curUnixTime = time(0);
 
-		const char *fitsfilename = "/fits/current.fits";
+		const char *fitsfilename = "/fits/current.fit";
 
 		// Remove if exists already
 		remove(fitsfilename);
