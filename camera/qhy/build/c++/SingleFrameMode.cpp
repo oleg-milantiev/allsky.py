@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 	int CHIP_GAIN = atoi(argv[2]); // 10
 	int CHIP_OFFSET = atoi(argv[3]); // 140
 	int EXPOSURE_TIME = atoi(argv[4]); // 2000
+	double EXPOSURE_TIME_DOUBLE; // for writing into fits header
 	int camBinX = atoi(argv[5]); // 1
 	int camBinY = atoi(argv[5]); // 1
 
@@ -392,7 +393,8 @@ int main(int argc, char *argv[])
 		fits_create_img(fptr, USHORT_IMG, 2, naxes, &status);
 
 		// Headers Information
-		fits_update_key(fptr, TINT, "EXPTIME", &EXPOSURE_TIME, "Exposure time in microseconds", &status);
+		EXPOSURE_TIME_DOUBLE = EXPOSURE_TIME / 1000000.;
+		fits_update_key(fptr, TDOUBLE, "EXPTIME", &EXPOSURE_TIME_DOUBLE, "Exposure time in microseconds", &status);
 		fits_update_key(fptr, TINT, "OFFSET", &CHIP_OFFSET, "Offset Setting", &status);
 		fits_update_key(fptr, TINT, "GAIN", &CHIP_GAIN, "Gain Setting", &status);
 		fits_update_key(fptr, TINT, "BIN", &camBinX, "Binning Setting", &status);
