@@ -29,6 +29,8 @@ $typeChannel['wind-direction']  = ['Напр. ветра'];
 $typeChannel['sky-temperature'] = ['Темп. неба'];
 $typeChannel['ccd-exposure']    = ['CCD выдержка'];
 $typeChannel['ccd-average']     = ['CCD среднее'];
+$typeChannel['ccd-gain']        = ['CCD gain'];
+$typeChannel['ccd-bin']         = ['CCD bin'];
 
 $typeChannelExists = [];
 
