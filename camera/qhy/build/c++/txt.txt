@@ -1,4 +1,4 @@
-apt install libusb-1.0-0-dev
+apt install libusb-1.0-0-dev libcfitsio-dev
 
 copy lib to /usr/local/lib
 ldconfig
@@ -10,4 +10,3 @@ make
 
 
 
-libcfitsio-dev

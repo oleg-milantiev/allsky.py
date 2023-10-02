@@ -6,6 +6,7 @@ import config
 import os
 import pika
 import requests
+import signal
 import sys
 import time
 import json
@@ -16,6 +17,14 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from astropy.io import fits
 from datetime import datetime
 from collections.abc import Iterable
+
+
+def terminate(signal,frame):
+	print("Start Terminating: %s" % datetime.now())
+	sys.exit(0)
+
+signal.signal(signal.SIGTERM, terminate)
+
 
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 

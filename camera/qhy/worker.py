@@ -5,14 +5,23 @@ import os
 os.system('python3 /common/udev.py')
 
 import pika
+import signal
+import sys
 import time
 import json
 
-#USE_CPP = True
-USE_CPP = False
+USE_CPP = True
+#USE_CPP = False
 
 from astropy.io import fits
 from datetime import datetime
+
+def terminate(signal,frame):
+	print("Start Terminating: %s" % datetime.now())
+	sys.exit(0)
+
+signal.signal(signal.SIGTERM, terminate)
+
 
 if USE_CPP:
 	os.environ['LD_LIBRARY_PATH'] = '/camera/'+ os.getenv('ARCH')
@@ -67,7 +76,7 @@ def callback(ch, method, props, body):
 
 	if USE_CPP:
 
-		os.system('/camera/'+ os.getenv('ARCH') +'/SingleFrameMode 10 '+ str(gain) +' 140 '+ str(exposure) +'000 '+ str(bin))
+		os.system('/camera/'+ os.getenv('ARCH') +'/SingleFrameMode 10 '+ str(gain) +' 140 '+ str(round(exposure * 1000000)) +' '+ str(bin))
 
 	else:
 		hdr = fits.Header()

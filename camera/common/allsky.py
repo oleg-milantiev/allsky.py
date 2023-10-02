@@ -8,10 +8,18 @@ import logging
 import MySQLdb
 import numpy as np
 import pika # rabbitmq client
+import signal
 import sys
 import time
 import os
 import uuid
+
+def terminate(signal,frame):
+	print("Start Terminating: %s" % datetime.now())
+	sys.exit(0)
+
+signal.signal(signal.SIGTERM, terminate)
+
 
 def reload(ch, method, properties, body):
 	print(" [x] Received RELOAD")
@@ -64,7 +72,7 @@ class CameraClient(object):
 				correlation_id=self.corr_id,
 			),
 			body=json.dumps({'gain': gain, 'exposure': exposure, 'bin': bin}))
-		self.connection.process_data_events(time_limit=exposure + 5)
+		self.connection.process_data_events(time_limit=exposure + 10)
 
 		return str(self.response)
 
