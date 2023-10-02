@@ -155,7 +155,15 @@ def callback(ch, method, properties, body):
 
 	cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-		""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['GAIN']})
+		""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['AVG']})
+
+	cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+		""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": hdu.header['GAIN']})
+
+	cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+		""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
 
 	db.commit()
 
