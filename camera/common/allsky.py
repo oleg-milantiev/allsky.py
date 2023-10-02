@@ -116,7 +116,7 @@ while True:
 		sys.exit(-1)
 
 	try:
-		fit = fits.open('/fits/current.fit')
+		fit = fits.open('/fits/current.fit', mode='update')
 		hdu = fit[0]
 	except:
 		logging.error('Не получил fit от контейнера камеры')
@@ -133,6 +133,12 @@ while True:
 		avg = np.mean(hdu.data[
 			int(hdu.data.shape[0] * (50 - center / 2) / 100):int(hdu.data.shape[0] * (50 + center / 2) / 100),
 			int(hdu.data.shape[1] * (50 - center / 2) / 100):int(hdu.data.shape[1] * (50 + center / 2) / 100)])
+
+		hdu.header.set('AVGPART', center, 'Average measure image center part in percent')
+		hdu.header.set('AVG', avg, 'Average measured value')
+
+		fit.close()
+
 
 	logging.info('Получил кадр выдержкой {} сек. со средним {}'.format(exposure, avg))
 
