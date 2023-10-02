@@ -9,10 +9,12 @@ if (isset($config['sensors']['bme280'])) {
 	$typeChannel['humidity']    = [];
 	$typeChannel['pressure']    = [];
 
-	foreach ($config['sensors']['bme280'] as $id => $name) {
-		$typeChannel['temperature'][$id] = 'Температура/'. $name;
-		$typeChannel['humidity'][$id]    = 'Влажность/'. $name;
-		$typeChannel['pressure'][$id]    = 'Давление/'. $name;
+	foreach ($config['sensors']['bme280'] as $id => $row) {
+		if (isset($row['name']) and $row['name']) {
+			$typeChannel['temperature'][$id] = 'Температура/'. $name;
+			$typeChannel['humidity'][$id]    = 'Влажность/'. $name;
+			$typeChannel['pressure'][$id]    = 'Давление/'. $name;
+		}
 	}
 }
 else {
@@ -37,9 +39,8 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 	$typeChannelExists[ $row['type'] ][ $row['channel'] ] = true;
 }
 #echo '<pre>';print_r($typeChannelExists);exit;
-$type = $_GET['type'];
-
-$channel = (int) $_GET['channel'];
+$type = $_GET['type'] ?? '';
+$channel = (int) ($_GET['channel'] ?? 0);
 
 if (!isset($typeChannel[ $type ][ $channel ])) {
 	foreach ($typeChannel as $typeItem => $channels) {
@@ -70,7 +71,7 @@ $periodTime = [
 	'week'  => 60 * 60 * 24 * 7,
 	'month' => 60 * 60 * 24 * 30,
 ];
-$period = $_GET['period'];
+$period = $_GET['period'] ?? '';
 
 if (!isset($periods[ $period ])) {
 	$period = array_keys($periods)[0];
