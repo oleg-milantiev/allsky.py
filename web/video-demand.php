@@ -29,7 +29,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 				<a class="nav-link" href="keogram.php">Кеограммы</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link " href="video-day.php">Видео</a>
+				<a class="nav-link " href="video-day.php">Видео за ночь</a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link active" href="#">Видео за час</a>

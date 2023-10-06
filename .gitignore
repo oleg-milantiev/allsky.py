@@ -2,4 +2,5 @@ camera/common/__pycache__/*
 __pycache__/*
 web/fits/*
 web/snap/*
+web/keogram/*
 vendor/*

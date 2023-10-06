@@ -20,7 +20,7 @@ $keoDir = scandir('/var/www/html/keogram/', SCANDIR_SORT_DESCENDING);
 				<a class="nav-link active" href="#">Кеограммы</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" href="video-day.php">Видео</a>
+				<a class="nav-link" href="video-day.php">Видео за ночь</a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link" href="video-demand.php">Видео за час</a>

@@ -38,7 +38,7 @@ if (isset($_GET['date'])) {
 				<a class="nav-link" href="keogram.php">Кеограммы</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" href="video-day.php">Видео за сутки</a>
+				<a class="nav-link" href="video-day.php">Видео за ночь</a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link" href="video-demand.php">Видео за час</a>

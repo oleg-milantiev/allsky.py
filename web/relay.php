@@ -12,8 +12,10 @@ if (!isset($_SESSION['user'])) {
 
 $relays = [];
 
-foreach ($config['relay'] as $relay) {
-	$relays[ $relay['gpio'] ] = intval(trim(file_get_contents('/sys/class/gpio/gpio'. $relay['gpio'] .'/value')));
+if (isset($config['relay'])) {
+	foreach ($config['relay'] as $relay) {
+		$relays[ $relay['gpio'] ] = intval(trim(file_get_contents('/sys/class/gpio/gpio'. $relay['gpio'] .'/value')));
+	}
 }
 ?>
 
@@ -27,18 +29,22 @@ foreach ($config['relay'] as $relay) {
 </p>
 
 <div class="row">
-	<?php foreach ($config['relay'] as $relay): ?>
-		<div class="col-lg-2 text-center">
-			<a href="#" rel="<?php echo $relay['gpio']; ?>" class="btn btn-<?php echo $relays[ $relay['gpio'] ] ? 'success': 'danger'?> relay">
-				<span data-feather="power"></span>
-				<?php echo $relay['name']; ?>
-			</a>
-		</div>
-	<?php endforeach; ?>
+	<?php if (isset($config['relay'])): ?>
+		<?php foreach ($config['relay'] as $relay): ?>
+			<div class="col-lg-2 text-center">
+				<a href="#" rel="<?php echo $relay['gpio']; ?>" class="btn btn-<?php echo $relays[ $relay['gpio'] ] ? 'success': 'danger'?> relay">
+					<span data-feather="power"></span>
+					<?php echo $relay['name']; ?>
+				</a>
+			</div>
+		<?php endforeach; ?>
+	<?php else: ?>
+		<h6>Нет реле</h6>
+	<?php endif; ?>
 </div>
 
 <p style="padding-top: 50px">
-	Настройка реле в файле <a href="https://github.com/oleg-milantiev/allsky.py/blob/master/config.py.dist" target="_blank">/opt/allsky.py/config.py</a>.<br>
+	Настройка реле в разделе "реле" настроек <a href="/settings.php" target="_blank">Настройки</a>.<br>
 </p>
 
 

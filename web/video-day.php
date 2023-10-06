@@ -20,7 +20,7 @@ $videoDir = scandir($config['path']['video'], SCANDIR_SORT_DESCENDING);
 				<a class="nav-link" href="keogram.php">Кеограммы</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link active" href="#">Видео</a>
+				<a class="nav-link active" href="#">Видео за ночь</a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link" href="video-demand.php">Видео за час</a>
