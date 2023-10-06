@@ -83,6 +83,8 @@ def callback(ch, method, props, body):
 		hdr['TELESCOP'] = 'AllSky'
 		hdr['INSTRUME'] = qc.id.value.decode("utf-8")
 		hdr['GAIN'] = gain
+		hdr['XBINNING'] = bin
+		hdr['YBINNING'] = bin
 		hdr['EXPTIME'] = exposure
 		hdr['DATE-OBS'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 		hdu = fits.PrimaryHDU(qc.GetSingleFrame(), header=hdr)
