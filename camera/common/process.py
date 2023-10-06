@@ -101,7 +101,7 @@ def callback(ch, method, properties, body):
 		img = Image.fromarray(hdu.data if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'))
 #		img = Image.fromarray(hdu.data.astype('uint8'))
 
-	img = ImageOps.autocontrast(img, cutoff=0.05)
+	img = ImageOps.autocontrast(img, cutoff=0.07)
 
 	if 'logo' in web['processing'] and 'file' in web['processing']['logo']:
 		logging.warning('Дообавляю лого...')
@@ -149,21 +149,25 @@ def callback(ch, method, properties, body):
 	ts = int(time.time())
 	channel = 0  # мультикамеры
 
-	cursor.execute("""INSERT INTO sensor(date, channel, type, val)
-		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-		""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": hdu.header['EXPTIME']})
+	if 'EXPTIME' in hdu.header:
+		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": hdu.header['EXPTIME']})
 
-	cursor.execute("""INSERT INTO sensor(date, channel, type, val)
-		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-		""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['AVG']})
+	if 'AVG' in hdu.header:
+		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['AVG']})
 
-	cursor.execute("""INSERT INTO sensor(date, channel, type, val)
-		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-		""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": hdu.header['GAIN']})
+	if 'GAIN' in hdu.header:
+		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": hdu.header['GAIN']})
 
-	cursor.execute("""INSERT INTO sensor(date, channel, type, val)
-		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-		""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
+	if 'XBINNING' in hdu.header:
+		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
 
 	db.commit()
 
