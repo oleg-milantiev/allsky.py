@@ -71,6 +71,7 @@ services:
       - ./camera/common:/camera:ro
       - ./web/fits:/fits:ro
       - ./web/snap:/snap
+      - ./web/keogram:/keogram
     command: python3 /camera/process.py
     networks:
       appnet:
