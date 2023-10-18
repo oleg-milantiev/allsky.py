@@ -15,6 +15,9 @@ import os
 import uuid
 
 def terminate(signal,frame):
+	global camera;
+
+	camera.purge()
 	print("Start Terminating: %s" % datetime.now())
 	sys.exit(0)
 
@@ -44,7 +47,7 @@ class CameraClient(object):
 		self.channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_PROCESS'), durable=True)
 		self.channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_RELOAD_ALLSKY'), durable=True)
 
-		result = self.channel.queue_declare(queue='', exclusive=True)
+		result = self.channel.queue_declare(queue='camera_callback', exclusive=True)
 		self.callback_queue = result.method.queue
 
 		self.channel.basic_consume(
@@ -56,6 +59,9 @@ class CameraClient(object):
 		self.corr_id = None
 
 		self.channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE_RELOAD_ALLSKY'), on_message_callback=reload)
+
+	def purge(self):
+		self.channel.queue_purge(os.getenv('RABBITMQ_QUEUE_CAMERA'))
 
 	def on_response(self, ch, method, props, body):
 		if self.corr_id == props.correlation_id:
@@ -72,7 +78,7 @@ class CameraClient(object):
 				correlation_id=self.corr_id,
 			),
 			body=json.dumps({'gain': gain, 'exposure': exposure, 'bin': bin}))
-		self.connection.process_data_events(time_limit=exposure + 10)
+		self.connection.process_data_events(time_limit=exposure + 20)
 
 		return str(self.response)
 
@@ -95,32 +101,35 @@ logging.info('[+] Start')
 
 camera = CameraClient()
 
-#set default ROI camera
-#if 'processing' in web and 'crop' in web['processing']:
-#	crop = web['processing']['crop']
-#	logging.debug('Вырезаю CROP: {}-{}, {}-{}'.format(crop['left'], crop['right'], crop['top'], crop['bottom']))
-#	hdu.data = hdu.data[crop['left']:(hdu.header['NAXIS1'] - crop['right']), crop['top']:(hdu.header['NAXIS2'] - crop['bottom'])]
-
 minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
 bin = 1
-gain = 10
+gain = 20
 exposure = 0.1
 attempt = 0
 
 while True:
 	logging.debug('Получаю новый кадр...')
 
-	# rabbit - получение кадра с начальным exposure / gain / bin
-	if camera.call(gain=gain, exposure=exposure, bin=bin) is None:
-		logging.error('Не смог отправить запрос к rabbitmq')
-		sys.exit(-1)
+	while True:
+		# rabbit - получение кадра с начальным exposure / gain / bin
+		camera.purge()
+		if camera.call(gain=gain, exposure=exposure, bin=bin) is None:
+			logging.error('Не смог отправить запрос к rabbitmq')
+			sys.exit(-1)
 
-	try:
-		fit = fits.open('/fits/current.fit', mode='update')
-		hdu = fit[0]
-	except:
-		logging.error('Не получил fit от контейнера камеры')
-		sys.exit(-1)
+		try:
+			fit = fits.open('/fits/current.fit', mode='update')
+			hdu = fit[0]
+		except:
+			hdu = None
+			logging.error('Не получил fit от контейнера камеры')
+
+		if hdu is not None and round(hdu.header['EXPTIME'], 2) == round(exposure, 2):
+			break;
+
+		if hdu is not None:
+			# старый кадр. Ждём запрошенного
+			logging.info('Выдержка полученного кадра не соответствует запрошенной '+ str(exposure) +' != '+ str(hdu.header['EXPTIME']))
 
 	# Подсчёт среднего по центру кадра
 	center = 50
@@ -138,7 +147,6 @@ while True:
 		hdu.header.set('AVG', avg, 'Average measured value')
 
 		fit.close()
-
 
 	logging.info('Получил кадр выдержкой {} сек. со средним {}'.format(exposure, avg))
 
