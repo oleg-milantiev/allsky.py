@@ -101,7 +101,9 @@ def callback(ch, method, properties, body):
 		img = Image.fromarray(hdu.data if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'))
 #		img = Image.fromarray(hdu.data.astype('uint8'))
 
-	img = ImageOps.autocontrast(img, cutoff=0.07)
+	gamma = 0.5
+	img = img.point(lambda x: int(((x/255)**gamma)*255))
+	img = ImageOps.autocontrast(img, cutoff=0.1)
 
 	if 'logo' in web['processing'] and 'file' in web['processing']['logo']:
 		logging.warning('Дообавляю лого...')
