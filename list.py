@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-import config
-
 import os
 import sys
 import time
@@ -50,7 +48,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
 indiclient=IndiClient()
 
-indiclient.setServer(config.indi['host'], config.indi['port'])
+indiclient.setServer('indi', 7624)
 
 print("Connecting and waiting 2secs")
 
@@ -61,6 +59,6 @@ if (not(indiclient.connectServer())):
 
 time.sleep(2)
 
-while True:
-	time.sleep(1)
+#while True:
+#	time.sleep(1)
 

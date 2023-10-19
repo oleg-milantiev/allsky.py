@@ -17,7 +17,8 @@ def terminate(signal,frame):
 
 signal.signal(signal.SIGTERM, terminate)
 
-cameraName = 'SX CCD SuperStar'
+# camera name could be found via run /opt/allsky.py/list.sh
+cameraName = 'QHY CCD QHY5LII-C-6197d'
 
 class IndiClient(PyIndi.BaseClient):
 	device = None
