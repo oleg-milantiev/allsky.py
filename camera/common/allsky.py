@@ -82,73 +82,8 @@ class CameraClient(object):
 
 		return str(self.response)
 
-
-# Чтение конфига
-db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
-	 database=config.db['database'], charset='utf8')
-
-cursor = db.cursor()
-
-web = {}
-cursor.execute('select id, val from config')
-for row in cursor.fetchall():
-	web[row[0]] = json.loads(row[1])
-
-# Старт
-logging.basicConfig(filename=config.log['path'], level=config.log['level'])
-
-logging.info('[+] Start')
-
-camera = CameraClient()
-
-minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
-bin = 1
-gain = 20
-exposure = 0.1
-attempt = 0
-
-while True:
-	logging.debug('Получаю новый кадр...')
-
-	while True:
-		# rabbit - получение кадра с начальным exposure / gain / bin
-		camera.purge()
-		if camera.call(gain=gain, exposure=exposure, bin=bin) is None:
-			logging.error('Не смог отправить запрос к rabbitmq')
-			sys.exit(-1)
-
-		try:
-			fit = fits.open('/fits/current.fit', mode='update')
-			hdu = fit[0]
-		except:
-			hdu = None
-			logging.error('Не получил fit от контейнера камеры')
-
-		if hdu is not None and round(hdu.header['EXPTIME'], 2) == round(exposure, 2):
-			break;
-
-		if hdu is not None:
-			# старый кадр. Ждём запрошенного
-			logging.info('Выдержка полученного кадра не соответствует запрошенной '+ str(exposure) +' != '+ str(hdu.header['EXPTIME']))
-
-	# Подсчёт среднего по центру кадра
-	center = 50
-
-	if 'ccd' in web and 'center' in web['ccd']:
-		center = web['ccd']['center']
-
-	if 0 < center <= 100:
-		logging.debug('Среднее по центральным {}%'.format(center))
-		avg = np.mean(hdu.data[
-			int(hdu.data.shape[0] * (50 - center / 2) / 100):int(hdu.data.shape[0] * (50 + center / 2) / 100),
-			int(hdu.data.shape[1] * (50 - center / 2) / 100):int(hdu.data.shape[1] * (50 + center / 2) / 100)])
-
-		hdu.header.set('AVGPART', center, 'Average measure image center part in percent')
-		hdu.header.set('AVG', avg, 'Average measured value')
-
-		fit.close()
-
-	logging.info('Получил кадр выдержкой {} сек. со средним {}'.format(exposure, avg))
+def findExpo():
+	global web, exposure, gain, bin, avg
 
 	'''
 	# Надо найти следующие bin / gain / exp, даже если удачная выдержка
@@ -227,22 +162,149 @@ while True:
 	https://pythonpip.ru/examples/model-arima-v-python
 	'''
 
+	# выдержка в пределах min ... max, но ещё не предельная - пробую подобрать выдержку
+	if web['ccd']['expMin'] < exposure < web['ccd']['expMax']:
+		if avg > web['ccd']['avgMax'] and exposure < (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.1):
+			logging.debug('Выдержка < 10% мин-макс, но всё ещё сгорело - ставлю минимальную выдержку')
+			exposure = web['ccd']['expMin']
+
+			return
+
+		if avg < web['ccd']['avgMin'] and exposure > (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.75):
+			logging.debug('Выдержка > 75% мин-макс, но всё ещё темно - ставлю максимальную выдержку')
+			exposure = web['ccd']['expMax']
+
+			return
+
+		target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
+
+		exposure = target * exposure / avg
+
+		if exposure < web['ccd']['expMin']:
+			exposure = web['ccd']['expMin']
+		if exposure > web['ccd']['expMax']:
+			exposure = web['ccd']['expMax']
+
+		return
+
+	if exposure == web['ccd']['expMin'] and avg > web['ccd']['avgMax']:
+		logging.debug('Выдержка минимальная, но всё ещё много света - опущу gain / bin')
+
+		if gain > web['ccd']['gainMin']:
+			gain -= web['ccd']['gainStep']
+
+			if gain < web['ccd']['gainMin']:
+				gain = web['ccd']['gainMin']
+
+			logging.debug('Gain ещё есть куда опускать. Опустил до {}'.format(gain))
+		else:
+			if bin != 1:
+				logging.debug('Gain уже минимальный. Опущу bin до 1')
+
+				bin = 1
+
+		return
+
+	if exposure == web['ccd']['expMax'] and avg < web['ccd']['avgMin']:
+		logging.debug('Выдержка максимальная, но всё ещё мало света - подниму gain / bin')
+
+		if gain < web['ccd']['gainMax']:
+			gain += web['ccd']['gainStep']
+
+			if gain > web['ccd']['gainMax']:
+				gain = web['ccd']['gainMax']
+
+			logging.debug('Gain ещё есть куда поднимать. Поднял до {}'.format(gain))
+		else:
+			if bin != 2:
+				logging.debug('Gain уже максиамльный. Поднял бин до 2')
+
+				bin = 2
+
+		return
+
+
+# Чтение конфига
+db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+	 database=config.db['database'], charset='utf8')
+
+cursor = db.cursor()
+
+web = {}
+cursor.execute('select id, val from config')
+for row in cursor.fetchall():
+	web[row[0]] = json.loads(row[1])
+
+# Старт
+logging.basicConfig(filename=config.log['path'], level=config.log['level'])
+
+logging.info('[+] Start')
+
+camera = CameraClient()
+
+minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
+bin = 1
+gain = 20
+exposure = 0.1
+attempt = 0
+
+while True:
+	logging.debug('Получаю новый кадр...')
+
+	while True:
+		# rabbit - получение кадра с начальным exposure / gain / bin
+		camera.purge()
+		if camera.call(gain=gain, exposure=exposure, bin=bin) is None:
+			logging.error('Не смог отправить запрос к rabbitmq')
+			sys.exit(-1)
+
+		try:
+			fit = fits.open('/fits/current.fit', mode='update')
+			hdu = fit[0]
+		except:
+			hdu = None
+			logging.error('Не получил fit от контейнера камеры')
+
+		if hdu is not None and round(hdu.header['EXPTIME'], 2) == round(exposure, 2):
+			break;
+
+		if hdu is not None:
+			# старый кадр. Ждём запрошенного
+			logging.info('Выдержка полученного кадра не соответствует запрошенной '+ str(exposure) +' != '+ str(hdu.header['EXPTIME']))
+
+	# Подсчёт среднего по центру кадра
+	center = 50
+
+	if 'ccd' in web and 'center' in web['ccd']:
+		center = web['ccd']['center']
+
+	if 0 < center <= 100:
+		logging.debug('Среднее по центральным {}%'.format(center))
+		avg = np.mean(hdu.data[
+			int(hdu.data.shape[0] * (50 - center / 2) / 100):int(hdu.data.shape[0] * (50 + center / 2) / 100),
+			int(hdu.data.shape[1] * (50 - center / 2) / 100):int(hdu.data.shape[1] * (50 + center / 2) / 100)])
+
+		hdu.header.set('AVGPART', center, 'Average measure image center part in percent')
+		hdu.header.set('AVG', avg, 'Average measured value')
+
+		fit.close()
+
+	logging.info('Получил кадр выдержкой {} сек. со средним {}'.format(exposure, avg))
+
 	attempt += 1
 
-	if (web['ccd']['avgMin'] < avg < web['ccd']['avgMax']) or (attempt == 10) or (attempt > 6 and avg < web['ccd']['avgMax']) or (
-			(exposure == web['ccd']['expMin']) and (avg > web['ccd']['avgMax'])) or (
-			(exposure == web['ccd']['expMax']) and (avg < web['ccd']['avgMin'])):
-		# учёт gainMin, gainMax, maxAttempt
+	if (
+		(web['ccd']['avgMin'] < avg < web['ccd']['avgMax'])		# удачная экспозиция
+		or (attempt == 10)										# или кол-во попыток максимально
+		or (attempt > 6 and avg < web['ccd']['avgMax'])			# или после шестой попытки изображение не горелое (компромисс)
+																# или максимум выдержки, gain и bin, но avg мало
+		or (exposure == web['ccd']['expMax'] and gain == web['ccd']['gainMax'] and bin == 2 and avg < web['ccd']['avgMin'])
+																# или минимум выдержки, gain и bin, но avg много
+		or (exposure == web['ccd']['expMin'] and gain == web['ccd']['gainMin'] and bin == 1 and avg > web['ccd']['avgMax'])):
+
+		logging.debug('Удачная экспозиция или дальше некуда крутить, или кол-во попыток превышено')
 
 		attempt = 0
-		logging.debug('Жду следующей минуты')
-		while True:
-			now = datetime.now().strftime("%Y-%m-%d_%H-%M")
-			if now != minute:
-				break
-			time.sleep(1)
-
-		minute = now
 
 		os.system('mv /fits/current.fit /fits/'+ minute +'.fit')
 		logging.info('Файл {}.fit сохранён'.format(minute))
@@ -255,24 +317,19 @@ while True:
 				delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE,
 				))
 
+		logging.debug('Жду следующей минуты')
+
+		while True:
+			now = datetime.now().strftime("%Y-%m-%d_%H-%M")
+			if now != minute:
+				break
+			time.sleep(1)
+
+		minute = now
+
 	else:
-		# подбор выдержки
-		if avg > (250.0 if web['ccd']['bits'] == 8 else 65000.0):
-			exposure = web['ccd']['expMin']
-		elif avg < 0.001:
-			exposure = web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) / 2
-		else:
-			target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
+		logging.debug('Неудачная экспозиция. И ещё есть что подобрать')
 
-			# case: было expMin, дали дофига, всё сгорело
-			#       уменьшили до expMin - цикл.
-			#       Решение: expMin * 10
+		findExpo()
 
-			exposure = target * exposure / avg
-
-			if exposure < web['ccd']['expMin']:
-				exposure = web['ccd']['expMin']
-			if exposure > web['ccd']['expMax']:
-				exposure = web['ccd']['expMax']
-
-		logging.info('Новая выдержка {}, попытка {}'.format(exposure, attempt))
+		logging.info('Попытка {}. Новая выдержка {}, gain {}, bin {}'.format(attempt, exposure, gain, bin))
