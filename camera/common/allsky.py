@@ -162,30 +162,11 @@ def findExpo():
 	https://pythonpip.ru/examples/model-arima-v-python
 	'''
 
-	# выдержка в пределах min ... max, но ещё не предельная - пробую подобрать выдержку
-	if web['ccd']['expMin'] < exposure < web['ccd']['expMax']:
-		if avg > web['ccd']['avgMax'] and exposure < (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.1):
-			logging.debug('Выдержка < 10% мин-макс, но всё ещё сгорело - ставлю минимальную выдержку')
-			exposure = web['ccd']['expMin']
+	if gain < web['ccd']['gainMin']:
+		gain = web['ccd']['gainMin']
 
-			return
-
-		if avg < web['ccd']['avgMin'] and exposure > (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.75):
-			logging.debug('Выдержка > 75% мин-макс, но всё ещё темно - ставлю максимальную выдержку')
-			exposure = web['ccd']['expMax']
-
-			return
-
-		target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
-
-		exposure = target * exposure / avg
-
-		if exposure < web['ccd']['expMin']:
-			exposure = web['ccd']['expMin']
-		if exposure > web['ccd']['expMax']:
-			exposure = web['ccd']['expMax']
-
-		return
+	if gain > web['ccd']['gainMax']:
+		gain = web['ccd']['gainMax']
 
 	if exposure == web['ccd']['expMin'] and avg > web['ccd']['avgMax']:
 		logging.debug('Выдержка минимальная, но всё ещё много света - опущу gain / bin')
@@ -220,6 +201,31 @@ def findExpo():
 				logging.debug('Gain уже максиамльный. Поднял бин до 2')
 
 				bin = 2
+
+		return
+
+	# выдержка в пределах min ... max, но ещё не предельная - пробую подобрать выдержку
+	if web['ccd']['expMin'] <= exposure <= web['ccd']['expMax']:
+		if avg > web['ccd']['avgMax'] and web['ccd']['expMin'] < exposure < (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.1):
+			logging.debug('Выдержка < 10% мин-макс, но всё ещё сгорело - ставлю минимальную выдержку')
+			exposure = web['ccd']['expMin']
+
+			return
+
+		if avg < web['ccd']['avgMin'] and web['ccd']['expMax'] > exposure > (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.75):
+			logging.debug('Выдержка > 75% мин-макс, но всё ещё темно - ставлю максимальную выдержку')
+			exposure = web['ccd']['expMax']
+
+			return
+
+		target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
+
+		exposure = target * exposure / avg
+
+		if exposure < web['ccd']['expMin']:
+			exposure = web['ccd']['expMin']
+		if exposure > web['ccd']['expMax']:
+			exposure = web['ccd']['expMax']
 
 		return
 
