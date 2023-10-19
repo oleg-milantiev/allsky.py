@@ -8,12 +8,10 @@ RUN apt-get update && \
     libjpeg-dev libkrb5-dev libnova-dev libtiff-dev libfftw3-dev \
     librtlsdr-dev libcfitsio-dev libgphoto2-dev build-essential \
     libusb-1.0-0-dev libdc1394-dev libboost-regex-dev libcurl4-gnutls-dev \
-    libtheora-dev python3-dev swig libcfitsio-dev libnova-dev && \
+    libtheora-dev python3-dev swig libcfitsio-dev libnova-dev \
+    python3-astropy python3-pika python3-pillow python3-mysqldb \
+    python3-requests python3-ephem usbutils && \
     apt-get clean
-
-#RUN apt-get install -y --no-install-recommends \
-#    libindi-dev indi-bin indi-sx && \
-#    apt-get clean
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Moscow

@@ -6,7 +6,7 @@ ENV TZ=Europe/Moscow
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gpg-agent \
     python3 python3-astropy python3-pika python3-pillow python3-mysqldb \
-    python3-requests python3-ephem software-properties-common && \
+    python3-requests python3-ephem software-properties-common usbutils && \
     apt-get clean
 
 RUN add-apt-repository -y ppa:mutlaqja/ppa && \
