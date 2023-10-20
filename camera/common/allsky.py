@@ -215,8 +215,8 @@ def findExpo():
 
 		right = exposure
 
-		if attempt > 5:
-			left /= 2
+		if attempt > 1:
+			left /= 1.1
 
 			if left < web['ccd']['expMin']:
 				left = web['ccd']['expMin']
@@ -228,8 +228,8 @@ def findExpo():
 
 		left = exposure
 
-		if attempt > 5:
-			right *= 2
+		if attempt > 1:
+			right *= 1.1
 
 			if right > web['ccd']['expMax']:
 				right = web['ccd']['expMax']
