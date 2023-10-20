@@ -83,7 +83,7 @@ class CameraClient(object):
 		return str(self.response)
 
 def findExpo():
-	global web, exposure, gain, bin, avg
+	global web, exposure, gain, bin, avg, left, right
 
 	'''
 	# Надо найти следующие bin / gain / exp, даже если удачная выдержка
@@ -168,8 +168,8 @@ def findExpo():
 	if gain > web['ccd']['gainMax']:
 		gain = web['ccd']['gainMax']
 
-	if exposure == web['ccd']['expMin'] and avg > web['ccd']['avgMax']:
-		logging.debug('Выдержка минимальная, но всё ещё много света - опущу gain / bin')
+	if exposure < (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.01) and avg > web['ccd']['avgMax']:
+		logging.debug('Выдержка < 1%, но всё ещё много света - опущу gain / bin')
 
 		if gain > web['ccd']['gainMin']:
 			gain -= web['ccd']['gainStep']
@@ -186,8 +186,8 @@ def findExpo():
 
 		return
 
-	if exposure == web['ccd']['expMax'] and avg < web['ccd']['avgMin']:
-		logging.debug('Выдержка максимальная, но всё ещё мало света - подниму gain / bin')
+	if exposure > (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.85) and avg < web['ccd']['avgMin']:
+		logging.debug('Выдержка > 85%, но всё ещё мало света - подниму gain / bin')
 
 		if gain < web['ccd']['gainMax']:
 			gain += web['ccd']['gainStep']
@@ -205,27 +205,27 @@ def findExpo():
 		return
 
 	# выдержка в пределах min ... max, но ещё не предельная - пробую подобрать выдержку
-	if web['ccd']['expMin'] <= exposure <= web['ccd']['expMax']:
-		if avg > web['ccd']['avgMax'] and web['ccd']['expMin'] < exposure < (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.1):
-			logging.debug('Выдержка < 10% мин-макс, но всё ещё сгорело - ставлю минимальную выдержку')
-			exposure = web['ccd']['expMin']
+	if web['ccd']['expMin'] < exposure < web['ccd']['expMax']:
+		if avg > web['ccd']['avgMax']:
+			logging.debug('Right стал {}'.format(exposure))
 
-			return
+			right = exposure
 
-		if avg < web['ccd']['avgMin'] and web['ccd']['expMax'] > exposure > (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.75):
-			logging.debug('Выдержка > 75% мин-макс, но всё ещё темно - ставлю максимальную выдержку')
-			exposure = web['ccd']['expMax']
+		if avg < web['ccd']['avgMin']:
+			logging.debug('Left стал {}'.format(exposure))
 
-			return
+			left = exposure
 
-		target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
+		exposure = left + (right - left) / 2
 
-		exposure = target * exposure / avg
+#		target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
 
-		if exposure < web['ccd']['expMin']:
-			exposure = web['ccd']['expMin']
-		if exposure > web['ccd']['expMax']:
-			exposure = web['ccd']['expMax']
+#		exposure = target * exposure / avg
+
+#		if exposure < web['ccd']['expMin']:
+#			exposure = web['ccd']['expMin']
+#		if exposure > web['ccd']['expMax']:
+#			exposure = web['ccd']['expMax']
 
 		return
 
@@ -250,9 +250,12 @@ camera = CameraClient()
 
 minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
 bin = 1
-gain = 20
-exposure = 0.1
+gain = web['ccd']['gainMin']
+exposure = web['ccd']['expMin']
+
 attempt = 0
+left = web['ccd']['expMin']
+right = web['ccd']['expMax']
 
 while True:
 	logging.debug('Получаю новый кадр...')
@@ -311,6 +314,8 @@ while True:
 		logging.debug('Удачная экспозиция или дальше некуда крутить, или кол-во попыток превышено')
 
 		attempt = 0
+		left = web['ccd']['expMin']
+		right = web['ccd']['expMax']
 
 		os.system('mv /fits/current.fit /fits/'+ minute +'.fit')
 		logging.info('Файл {}.fit сохранён'.format(minute))
