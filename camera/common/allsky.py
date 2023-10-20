@@ -83,7 +83,7 @@ class CameraClient(object):
 		return str(self.response)
 
 def findExpo():
-	global web, exposure, gain, bin, avg, left, right
+	global web, exposure, gain, bin, avg, left, right, attempt
 
 	'''
 	# Надо найти следующие bin / gain / exp, даже если удачная выдержка
@@ -210,17 +210,31 @@ def findExpo():
 			return
 
 	# выдержка в пределах min ... max, но ещё не предельная - пробую подобрать выдержку
-	#if web['ccd']['expMin'] < exposure < web['ccd']['expMax']:
-
 	if avg > web['ccd']['avgMax']:
-		logging.debug('Right стал {}'.format(exposure))
+		logging.debug('Right сузился и стал {}'.format(exposure))
 
 		right = exposure
 
+		if attempt > 5:
+			left /= 2
+
+			if left < web['ccd']['expMin']:
+				left = web['ccd']['expMin']
+
+			logging.debug('5+ попытка. Left расширился и стал {}'.format(left))
+
 	if avg < web['ccd']['avgMin']:
-		logging.debug('Left стал {}'.format(exposure))
+		logging.debug('Left сузился и стал {}'.format(exposure))
 
 		left = exposure
+
+		if attempt > 5:
+			right *= 2
+
+			if right > web['ccd']['expMax']:
+				right = web['ccd']['expMax']
+
+			logging.debug('5+ попытка. Right расширился и стал {}'.format(right))
 
 	exposure = left + (right - left) / 2
 
@@ -228,10 +242,10 @@ def findExpo():
 
 #		exposure = target * exposure / avg
 
-#		if exposure < web['ccd']['expMin']:
-#			exposure = web['ccd']['expMin']
-#		if exposure > web['ccd']['expMax']:
-#			exposure = web['ccd']['expMax']
+	if exposure < web['ccd']['expMin']:
+		exposure = web['ccd']['expMin']
+	if exposure > web['ccd']['expMax']:
+		exposure = web['ccd']['expMax']
 
 	return
 
@@ -320,8 +334,6 @@ while True:
 		logging.debug('Удачная экспозиция или дальше некуда крутить, или кол-во попыток превышено')
 
 		attempt = 0
-		left = web['ccd']['expMin']
-		right = web['ccd']['expMax']
 
 		os.system('mv /fits/current.fit /fits/'+ minute +'.fit')
 		logging.info('Файл {}.fit сохранён'.format(minute))
