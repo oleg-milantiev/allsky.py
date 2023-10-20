@@ -168,6 +168,9 @@ def findExpo():
 	if gain > web['ccd']['gainMax']:
 		gain = web['ccd']['gainMax']
 
+	gainWas = gain
+	binWas = bin
+
 	if exposure < (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.01) and avg > web['ccd']['avgMax']:
 		logging.debug('Выдержка < 1%, но всё ещё много света - опущу gain / bin')
 
@@ -184,7 +187,8 @@ def findExpo():
 
 				bin = 1
 
-		return
+		if gainWas != gain or binWas != bin:
+			return
 
 	if exposure > (web['ccd']['expMin'] + (web['ccd']['expMax'] - web['ccd']['expMin']) * 0.85) and avg < web['ccd']['avgMin']:
 		logging.debug('Выдержка > 85%, но всё ещё мало света - подниму gain / bin')
@@ -202,7 +206,8 @@ def findExpo():
 
 				bin = 2
 
-		return
+		if gainWas != gain or binWas != bin:
+			return
 
 	# выдержка в пределах min ... max, но ещё не предельная - пробую подобрать выдержку
 	#if web['ccd']['expMin'] < exposure < web['ccd']['expMax']:
