@@ -205,18 +205,19 @@ def findExpo():
 		return
 
 	# выдержка в пределах min ... max, но ещё не предельная - пробую подобрать выдержку
-	if web['ccd']['expMin'] < exposure < web['ccd']['expMax']:
-		if avg > web['ccd']['avgMax']:
-			logging.debug('Right стал {}'.format(exposure))
+	#if web['ccd']['expMin'] < exposure < web['ccd']['expMax']:
 
-			right = exposure
+	if avg > web['ccd']['avgMax']:
+		logging.debug('Right стал {}'.format(exposure))
 
-		if avg < web['ccd']['avgMin']:
-			logging.debug('Left стал {}'.format(exposure))
+		right = exposure
 
-			left = exposure
+	if avg < web['ccd']['avgMin']:
+		logging.debug('Left стал {}'.format(exposure))
 
-		exposure = left + (right - left) / 2
+		left = exposure
+
+	exposure = left + (right - left) / 2
 
 #		target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
 
@@ -227,7 +228,7 @@ def findExpo():
 #		if exposure > web['ccd']['expMax']:
 #			exposure = web['ccd']['expMax']
 
-		return
+	return
 
 
 # Чтение конфига
