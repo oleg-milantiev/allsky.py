@@ -65,8 +65,9 @@ def callback(ch, method, properties, body):
 		fit = fits.open('/fits/'+ body.decode() +'.fit')
 		hdu = fit[0]
 	except:
-		logging.error('Не получил fit от контейнера камеры')
-		sys.exit(-1)
+		logging.error('[!] Не получил fit от контейнера камеры')
+		ch.basic_ack(delivery_tag=method.delivery_tag)
+		return
 
 	if 'cfa' in web['ccd']:
 		import cv2
