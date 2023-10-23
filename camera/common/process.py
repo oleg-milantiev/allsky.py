@@ -76,15 +76,16 @@ def callback(ch, method, properties, body):
 
 	# fit processing
 
+	stars = None
+
 	if 'sd' in web['processing'] and 'enable' in web['processing']['sd'] and web['processing']['sd']['enable']:
 		logging.info('Считаю звёзды')
 		mean, median, std = sigma_clipped_stats(hdu.data, sigma=3.0)
 
-		sources = None
-		if median < (16384 if web['ccd']['bits'] == 8 else 64):
+		if float(hdu.header['EXPTIME']) > float(float(web['ccd']['expMin']) + (float(web['ccd']['expMax']) - float(web['ccd']['expMin'])) * 0.75):
 			daofind = DAOStarFinder(fwhm=float(web['processing']['sd']['fwhm']), threshold=float(web['processing']['sd'])*std)
-			sources = daofind(hdu.data - median)
-			logging.info('Считаю звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(sources)))
+			stars = daofind(hdu.data - median)
+			logging.info('Считаю звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(stars)))
 
 	if 'cfa' in web['ccd']:
 		import cv2
@@ -148,7 +149,7 @@ def callback(ch, method, properties, body):
 			font = ImageFont.truetype('/camera/sans-serif.ttf', int(int(annotation['size']) / bin))
 
 			match annotation['type']:
-				case 'stars': text = annotation['format'].format(len(sources) if sources is not None else 0)
+				case 'stars': text = annotation['format'].format(len(stars) if stars is not None else 0)
 				case 'text': text = annotation['format']
 				case 'datetime': text = dateObs.strftime(annotation['format'])
 				case 'avg' | 'average':  text = annotation['format'].format(avg)
@@ -191,10 +192,10 @@ def callback(ch, method, properties, body):
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
 
-	if sources is not None:
+	if stars is not None:
 		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'stars-count', "val": len(sources)})
+			""" % {"time": ts, "channel": channel, "type": 'stars-count', "val": len(stars)})
 
 	db.commit()
 
