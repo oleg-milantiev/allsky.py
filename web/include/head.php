@@ -250,6 +250,11 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					'g' => $_POST['g'],
 					'b' => $_POST['b'],
 				],
+				'sd' => [
+					'enable' => isset($_POST['sd']['enable']) ? ($_POST['sd']['enable'] === 'on') : false,
+					'fwhm' => (float) ($_POST['sd']['fwhm'] ?? 1.5),
+					'threshold' => (float) ($_POST['sd']['threshold'] ?? 2),
+				],
 				'transpose' => (int) $_POST['transpose'],
 			];
 

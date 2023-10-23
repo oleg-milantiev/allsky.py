@@ -76,15 +76,17 @@ def callback(ch, method, properties, body):
 
 	# fit processing
 
-	# stars detect
-	mean, median, std = sigma_clipped_stats(hdu.data, sigma=3.0)
+	if 'sd' in web['processing'] and 'enable' in web['processing']['sd'] and web['processing']['sd']['enable']:
+		logging.info('Считаю звёзды')
+		# stars detect
+		mean, median, std = sigma_clipped_stats(hdu.data, sigma=3.0)
 
-	sources = None
-	if median < (16384 if web['ccd']['bits'] == 8 else 64):
-		# todo configure enable/disable StarDetect and fwhm / threshold via web
-		daofind = DAOStarFinder(fwhm=1.5, threshold=2.*std)
-		sources = daofind(hdu.data - median)
-		logging.info('Считаю звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(sources)))
+		sources = None
+		if median < (16384 if web['ccd']['bits'] == 8 else 64):
+			# todo configure enable/disable StarDetect and fwhm / threshold via web
+			daofind = DAOStarFinder(fwhm=float(web['processing']['sd']['fwhm']), threshold=float(web['processing']['sd'])*std)
+			sources = daofind(hdu.data - median)
+			logging.info('Считаю звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(sources)))
 
 	if 'cfa' in web['ccd']:
 		import cv2
@@ -148,6 +150,7 @@ def callback(ch, method, properties, body):
 			font = ImageFont.truetype('/camera/sans-serif.ttf', int(int(annotation['size']) / bin))
 
 			match annotation['type']:
+				case 'stars': text = annotation['format'].format(len(sources) if sources is not None else 0)
 				case 'text': text = annotation['format']
 				case 'datetime': text = dateObs.strftime(annotation['format'])
 				case 'avg' | 'average':  text = annotation['format'].format(avg)

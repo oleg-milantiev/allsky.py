@@ -385,6 +385,7 @@ $tab = $_GET['tab'] ?? 'users';
 										<option value="datetime">Дата / время</option>
 										<option value="avg">Среднее ADU</option>
 										<option value="exposure">Выдержка, сек</option>
+										<option value="stars">Количество звёзд</option>
 									</select>
 								</div>
 								<div class="form-group">
@@ -513,6 +514,45 @@ $tab = $_GET['tab'] ?? 'users';
 					});
 				</script>
 			</div>
+			<br>
+
+			<div class="card">
+				<div class="card-body">
+					<h6 class="card-title">Подсчёт количества звёзд</h6>
+
+					<div class="form-group">
+						<div>
+							<label><input id="sd-enable" type="checkbox" name="sd[enable]"<?php echo (isset($config['processing']['sd']['enable']) and $config['processing']['sd']['enable']) ? ' checked' : ''; ?>> Подсчёт звёзд включён</label>
+						</div>
+
+						<div class="form-group sd-enable">
+							<label>FWHM:</label>
+							<input class="form-control" type="text" name="sd[fwhm]" value="<?php echo $config['processing']['sd']['fwhm'] ?? '1.5'; ?>">
+						</div>
+						<div class="form-group sd-enable">
+							<label>Уровень (кратно STD):</label>
+							<input class="form-control" type="text" name="sd[threshold]" value="<?php echo $config['processing']['sd']['threshold'] ?? '2'; ?>">
+						</div>
+					</div>
+				</div>
+				<script>
+					$(function(){
+						$('input#sd-enable').click(sd_enable);
+					});
+
+					sd_enable();
+					function sd_enable()
+					{
+						if ($('input#sd-enable').is(':checked')) {
+							$('.sd-enable').show();
+						}
+						else {
+							$('.sd-enable').hide();
+						}
+					}
+				</script>
+			</div>
+
 			<br>
 
 			<div class="card">

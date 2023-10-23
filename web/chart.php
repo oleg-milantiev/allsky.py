@@ -31,6 +31,7 @@ $typeChannel['ccd-exposure']    = ['CCD выдержка'];
 $typeChannel['ccd-average']     = ['CCD среднее'];
 $typeChannel['ccd-gain']        = ['CCD gain'];
 $typeChannel['ccd-bin']         = ['CCD bin'];
+$typeChannel['stars-count']     = ['Количество звёзд'];
 
 $typeChannelExists = [];
 
