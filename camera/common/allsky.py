@@ -221,7 +221,7 @@ def findExpo():
 			if left < web['ccd']['expMin']:
 				left = web['ccd']['expMin']
 
-			logging.debug('5+ попытка. Left расширился и стал {}'.format(left))
+			logging.debug('1+ попытка. Left расширился и стал {}'.format(left))
 
 	if avg < web['ccd']['avgMin']:
 		logging.debug('Left сузился и стал {}'.format(exposure))
@@ -234,7 +234,7 @@ def findExpo():
 			if right > web['ccd']['expMax']:
 				right = web['ccd']['expMax']
 
-			logging.debug('5+ попытка. Right расширился и стал {}'.format(right))
+			logging.debug('1+ попытка. Right расширился и стал {}'.format(right))
 
 	exposure = left + (right - left) / 2
 

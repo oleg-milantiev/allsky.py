@@ -1,10 +1,9 @@
 #!/usr/bin/python3
 
-# @todo: stardetect
-
 import config
 import os
 import pika
+import re
 import requests
 import signal
 import sys
@@ -59,7 +58,13 @@ print(' [*] Waiting for messages. To exit press CTRL+C')
 def callback(ch, method, properties, body):
 	print(" [x] Received %r" % body.decode())
 
-	#todo check input via re.match
+	if not re.match(r"\d\d\d\d-\d\d-\d\d_\d\d-\d\d", body.decode()):
+		logging.error('[!] Неверный входной формат файла')
+		ch.basic_ack(delivery_tag=method.delivery_tag)
+		return
+
+	# fit processing
+	# stars detect
 
 	try:
 		fit = fits.open('/fits/'+ body.decode() +'.fit')
@@ -100,18 +105,24 @@ def callback(ch, method, properties, body):
 		img = Image.fromarray(cv2.add(imgWb, imgOverexposed), 'RGB')
 	else:
 		img = Image.fromarray(hdu.data if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'))
-#		img = Image.fromarray(hdu.data.astype('uint8'))
 
+	# todo полезно. Но нужно ли всем? Цифры точно нужно настраивать
 	gamma = 0.5
 	img = img.point(lambda x: int(((x/255)**gamma)*255))
 	img = ImageOps.autocontrast(img, cutoff=0.1)
+
+	if 'transpose' in web['processing'] and 6 >= web['processing']['transpose'] >= 0:
+		logging.debug('Транспонирую (поворот / зеркало)')
+		img = img.transpose(web['processing']['transpose'])
+
+	bin = int(hdu.header['XBINNING'] if 'XBINNING' in hdu.header else 1)
 
 	if 'logo' in web['processing'] and 'file' in web['processing']['logo']:
 		logging.warning('Дообавляю лого...')
 
 		watermark = Image.open(config['path']['jpg'] +'/'+ web['processing']['logo']['file'])
 
-		img.paste(watermark, (web['processing']['logo']['x'], web['processing']['logo']['y']))
+		img.paste(watermark, (int(web['processing']['logo']['x'] / bin), int(web['processing']['logo']['y'] / bin)))
 
 	if 'annotation' in web['processing'] and isinstance(web['processing']['annotation'], Iterable) and len(web['processing']['annotation']) > 0:
 		logging.warning('Добавляю аннотации')
@@ -121,9 +132,8 @@ def callback(ch, method, properties, body):
 
 		dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
 
-		sys.exit(-1)
 		for annotation in web['processing']['annotation']:
-			font = ImageFont.truetype('sans-serif.ttf', int(annotation['size']))
+			font = ImageFont.truetype('/camera/sans-serif.ttf', int(int(annotation['size']) / bin))
 
 			match annotation['type']:
 				case 'text': text = annotation['format']
@@ -133,17 +143,13 @@ def callback(ch, method, properties, body):
 				case _: text = ''
 
 			d.text(
-				(int(annotation['x']), int(annotation['y'])),
+				(int(int(annotation['x']) / bin), int(int(annotation['y']) / bin)),
 				text,
 				font=font,
 				fill=annotation['color']
 			)
 
 		img = Image.alpha_composite(img.convert('RGBA'), txt).convert('RGB')
-
-	if 'transpose' in web['processing'] and 6 >= web['processing']['transpose'] >= 0:
-		logging.debug('Транспонирую (поворот / зеркало)')
-		img = img.transpose(web['processing']['transpose'])
 
 	logging.debug('Записываю jpg в файл...')
 	img.save('/snap/'+ body.decode()  +'.jpg')
@@ -188,7 +194,6 @@ def callback(ch, method, properties, body):
 			logging.info('Файл ' + body.decode() + ' опубликован: ' + r.text)
 		except:
 			logging.error('ОШИБКА публикации файла ' + body.decode())
-
 
 	logging.info('[+] Done')
 	ch.basic_ack(delivery_tag=method.delivery_tag)
