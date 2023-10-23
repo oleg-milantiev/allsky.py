@@ -4,9 +4,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Moscow
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gpg-agent \
-    python3 python3-astropy python3-pika python3-pillow python3-mysqldb \
-    python3-requests python3-ephem software-properties-common usbutils && \
+    apt-get install -y --no-install-recommends gpg-agent usbutils python3-scipy \
+    python3 python3-astropy python3-photutils python3-pika python3-pillow \
+    python3-mysqldb python3-requests python3-ephem software-properties-common && \
     apt-get clean
 
 RUN add-apt-repository -y ppa:mutlaqja/ppa && \

@@ -78,12 +78,10 @@ def callback(ch, method, properties, body):
 
 	if 'sd' in web['processing'] and 'enable' in web['processing']['sd'] and web['processing']['sd']['enable']:
 		logging.info('Считаю звёзды')
-		# stars detect
 		mean, median, std = sigma_clipped_stats(hdu.data, sigma=3.0)
 
 		sources = None
 		if median < (16384 if web['ccd']['bits'] == 8 else 64):
-			# todo configure enable/disable StarDetect and fwhm / threshold via web
 			daofind = DAOStarFinder(fwhm=float(web['processing']['sd']['fwhm']), threshold=float(web['processing']['sd'])*std)
 			sources = daofind(hdu.data - median)
 			logging.info('Считаю звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(sources)))
