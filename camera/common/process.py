@@ -5,6 +5,9 @@ import os
 import pika
 import re
 import requests
+import scipy
+from astropy.stats import sigma_clipped_stats
+from photutils.detection import DAOStarFinder
 import signal
 import sys
 import time
@@ -63,9 +66,6 @@ def callback(ch, method, properties, body):
 		ch.basic_ack(delivery_tag=method.delivery_tag)
 		return
 
-	# fit processing
-	# stars detect
-
 	try:
 		fit = fits.open('/fits/'+ body.decode() +'.fit')
 		hdu = fit[0]
@@ -73,6 +73,18 @@ def callback(ch, method, properties, body):
 		logging.error('[!] Не получил fit от контейнера камеры')
 		ch.basic_ack(delivery_tag=method.delivery_tag)
 		return
+
+	# fit processing
+
+	# stars detect
+	mean, median, std = sigma_clipped_stats(hdu.data, sigma=3.0)
+
+	sources = None
+	if median < (16384 if web['ccd']['bits'] == 8 else 64):
+		# todo configure enable/disable StarDetect and fwhm / threshold via web
+		daofind = DAOStarFinder(fwhm=1.5, threshold=2.*std)
+		sources = daofind(hdu.data - median)
+		logging.info('Считаю звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(sources)))
 
 	if 'cfa' in web['ccd']:
 		import cv2
@@ -125,7 +137,7 @@ def callback(ch, method, properties, body):
 		img.paste(watermark, (int(web['processing']['logo']['x'] / bin), int(web['processing']['logo']['y'] / bin)))
 
 	if 'annotation' in web['processing'] and isinstance(web['processing']['annotation'], Iterable) and len(web['processing']['annotation']) > 0:
-		logging.warning('Добавляю аннотации')
+		logging.info('Добавляю аннотации')
 
 		txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
 		d = ImageDraw.Draw(txt)
@@ -177,6 +189,11 @@ def callback(ch, method, properties, body):
 		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
+
+	if sources is not None:
+		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'stars-count', "val": len(sources)})
 
 	db.commit()
 
