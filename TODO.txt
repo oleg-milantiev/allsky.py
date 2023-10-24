@@ -1,5 +1,3 @@
 @todo
-- gain
-- composer update через docker php, без установки на хост
 - install.sh с установкой докера, запуском composer.sh, build.sh разные и up -d всего
-- манифест на докер-ящик под разные платформы
+- https://jpgraph.net/download/ для графика кол-ва звёзд за ночь
