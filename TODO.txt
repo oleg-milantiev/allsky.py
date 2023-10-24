@@ -1,3 +1,4 @@
 @todo
 - install.sh с установкой докера, запуском composer.sh, build.sh разные и up -d всего
 - https://jpgraph.net/download/ для графика кол-ва звёзд за ночь
+- уйти от print() в сторону logging в *py

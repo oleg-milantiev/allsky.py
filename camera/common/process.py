@@ -70,7 +70,7 @@ def callback(ch, method, properties, body):
 		fit = fits.open('/fits/'+ body.decode() +'.fit', mode='update')
 		hdu = fit[0]
 	except:
-		logging.error('[!] Не получил fit от контейнера камеры')
+		logging.error('[!] Не могу открыть fit')
 		ch.basic_ack(delivery_tag=method.delivery_tag)
 		return
 
@@ -87,7 +87,7 @@ def callback(ch, method, properties, body):
 			daofind = DAOStarFinder(fwhm=float(web['processing']['sd']['fwhm']), threshold=float(web['processing']['sd']['threshold'])*std)
 			stars = daofind(hdu.data - median)
 			if stars is not None:
-				logging.info('Считаю звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(stars)))
+				logging.debug('Посчитал звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(stars)))
 				hdu.header.set('STAR-CNT', len(stars), 'Stars count by whole image using DAOStarFinder')
 
 	if 'cfa' in web['ccd']:
@@ -140,19 +140,21 @@ def callback(ch, method, properties, body):
 
 		img.paste(watermark, (int(web['processing']['logo']['x'] / bin), int(web['processing']['logo']['y'] / bin)))
 
+	dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
+
 	if 'annotation' in web['processing'] and isinstance(web['processing']['annotation'], Iterable) and len(web['processing']['annotation']) > 0:
 		logging.info('Добавляю аннотации')
 
 		txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
 		d = ImageDraw.Draw(txt)
 
-		dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
-
 		for annotation in web['processing']['annotation']:
 			font = ImageFont.truetype('/camera/sans-serif.ttf', int(int(annotation['size']) / bin))
 
 			match annotation['type']:
-				case 'stars': text = annotation['format'].format(len(stars) if stars is not None else 0)
+				case 'stars': text = annotation['format'].format(len(stars) if stars is not None else 'n/a')
+				case 'yolo-clear': text = annotation['format'].format('%0.2f' % (float(hdu.header['AI-CLEAR']) * 100) if 'AI-CLEAR' in hdu.header else 'n/a')
+				case 'yolo-cloud': text = annotation['format'].format('%0.2f' % (float(hdu.header['AI-CLOUD']) * 100) if 'AI-CLOUD' in hdu.header else 'n/a')
 				case 'text': text = annotation['format']
 				case 'datetime': text = dateObs.strftime(annotation['format'])
 				case 'avg' | 'average':  text = annotation['format'].format(avg)
@@ -174,7 +176,7 @@ def callback(ch, method, properties, body):
 	img.save('/snap/'+ body.decode()  +'.jpg')
 	logging.info('Файл ' + body.decode() + '.jpg записан.')
 
-	ts = int(time.time())
+	ts = int(dateObs.timestamp())
 	channel = 0  # мультикамеры
 
 	if 'EXPTIME' in hdu.header:
@@ -196,6 +198,16 @@ def callback(ch, method, properties, body):
 		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
+
+	if 'AI-CLEAR' in hdu.header:
+		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ai-clear', "val": hdu.header['AI-CLEAR']})
+
+	if 'AI-CLOUD' in hdu.header:
+		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ai-cloud', "val": hdu.header['AI-CLOUD']})
 
 	if stars is not None:
 		cursor.execute("""INSERT INTO sensor(date, channel, type, val)

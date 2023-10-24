@@ -386,6 +386,8 @@ $tab = $_GET['tab'] ?? 'users';
 										<option value="avg">Среднее ADU</option>
 										<option value="exposure">Выдержка, сек</option>
 										<option value="stars">Количество звёзд</option>
+										<option value="yolo-clear">ИИ небо</option>
+										<option value="yolo-cloud">ИИ облачность</option>
 									</select>
 								</div>
 								<div class="form-group">
@@ -548,6 +550,37 @@ $tab = $_GET['tab'] ?? 'users';
 						}
 						else {
 							$('.sd-enable').hide();
+						}
+					}
+				</script>
+			</div>
+
+			<br>
+
+			<div class="card">
+				<div class="card-body">
+					<h6 class="card-title">ИИ (нейросеть) определение облачности</h6>
+
+					<div class="form-group">
+						<div>
+							<label><input id="yolo-enable" type="checkbox" name="yolo[enable]"<?php echo (isset($config['processing']['yolo']['enable']) and $config['processing']['yolo']['enable']) ? ' checked' : ''; ?>> ИИ детектор облачности включён</label>
+						</div>
+
+					</div>
+				</div>
+				<script>
+					$(function(){
+						$('input#yolo-enable').click(yolo_enable);
+					});
+
+					yolo_enable();
+					function yolo_enable()
+					{
+						if ($('input#yolo-enable').is(':checked')) {
+							$('.yolo-enable').show();
+						}
+						else {
+							$('.yolo-enable').hide();
 						}
 					}
 				</script>

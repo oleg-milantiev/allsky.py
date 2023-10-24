@@ -217,11 +217,18 @@ def findExpo():
 
 		if attempt > 1:
 			left /= 1.1
+			left -= 0.1 # когда ex.: 0.002 делишь на 1.1, то идти к expMin можно вечно. Нужен форсаж на низких!
 
 			if left < web['ccd']['expMin']:
 				left = web['ccd']['expMin']
 
-			logging.debug('1+ попытка. Left расширился и стал {}'.format(left))
+			logging.debug('Left расширился и стал {}'.format(left))
+
+#		if attempt > 5:
+#			logging.debug('Очень долго иду к нулю. Поставлю exp = expMin')
+
+#			exposure = web['ccd']['expMin']
+
 
 	if avg < web['ccd']['avgMin']:
 		logging.debug('Left сузился и стал {}'.format(exposure))
@@ -231,21 +238,18 @@ def findExpo():
 		if attempt > 1:
 			right *= 1.1
 
-			if right > web['ccd']['expMax']:
-				right = web['ccd']['expMax']
-
-			logging.debug('1+ попытка. Right расширился и стал {}'.format(right))
+			logging.debug('Right расширился и стал {}'.format(right))
 
 	exposure = left + (right - left) / 2
-
-#		target = (web['ccd']['avgMax'] - web['ccd']['avgMin']) / 2 + web['ccd']['avgMin']
-
-#		exposure = target * exposure / avg
 
 	if exposure < web['ccd']['expMin']:
 		exposure = web['ccd']['expMin']
 	if exposure > web['ccd']['expMax']:
 		exposure = web['ccd']['expMax']
+
+		if right > web['ccd']['expMax']:
+			right = web['ccd']['expMax']
+			logging.debug('Right стукнулся о край и стал = expMax = {}'.format(right))
 
 	return
 
@@ -338,9 +342,11 @@ while True:
 		os.system('mv /fits/current.fit /fits/'+ minute +'.fit')
 		logging.info('Файл {}.fit сохранён'.format(minute))
 
+		# Если хочется AI классификации кадра, сначала пусть он отработает и впишет свои заголовки в фит.
+		# Потом он позовёт process.py сам
 		camera.channel.basic_publish(
 			exchange='',
-			routing_key=os.getenv('RABBITMQ_QUEUE_PROCESS'),
+			routing_key=os.getenv('RABBITMQ_QUEUE_YOLO') if 'yolo' in web['processing'] and 'enable' in web['processing']['yolo'] and web['processing']['yolo']['enable'] else os.getenv('RABBITMQ_QUEUE_PROCESS'),
 			body=minute,
 			properties=pika.BasicProperties(
 				delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE,

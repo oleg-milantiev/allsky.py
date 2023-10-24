@@ -19,7 +19,7 @@ insert into allsky.user (email, name, password) values ('admin', 'admin', 'admin
 
 create table allsky.sensor (
 	id int unsigned auto_increment not null primary key,
-	type enum('temperature', 'humidity', 'pressure', 'voltage', 'wind-speed', 'wind-direction', 'sky-temperature', 'ccd-exposure', 'ccd-average', 'ccd-gain', 'ccd-bin', 'stars-count') not null,
+	type enum('temperature', 'humidity', 'pressure', 'voltage', 'wind-speed', 'wind-direction', 'sky-temperature', 'ccd-exposure', 'ccd-average', 'ccd-gain', 'ccd-bin', 'stars-count', 'ai-clear', 'ai-cloud') not null,
 	channel int unsigned not null,
 	date int unsigned not null,
 	val double not null
@@ -28,7 +28,7 @@ alter table allsky.sensor add index channel_type_date (channel, type, date);
 alter table allsky.sensor add index type (type);
 
 create table allsky.sensor_last (
-	type enum('temperature', 'humidity', 'pressure', 'voltage', 'wind-speed', 'wind-direction', 'sky-temperature', 'ccd-exposure', 'ccd-average', 'ccd-gain', 'ccd-bin', 'stars-count') not null,
+	type enum('temperature', 'humidity', 'pressure', 'voltage', 'wind-speed', 'wind-direction', 'sky-temperature', 'ccd-exposure', 'ccd-average', 'ccd-gain', 'ccd-bin', 'stars-count', 'ai-clear', 'ai-cloud') not null,
 	channel int unsigned not null,
 	date int unsigned not null,
 	val double not null,
