@@ -67,25 +67,28 @@ def callback(ch, method, properties, body):
 		return
 
 	try:
-		fit = fits.open('/fits/'+ body.decode() +'.fit')
+		fit = fits.open('/fits/'+ body.decode() +'.fit', mode='update')
 		hdu = fit[0]
 	except:
 		logging.error('[!] Не получил fit от контейнера камеры')
 		ch.basic_ack(delivery_tag=method.delivery_tag)
 		return
 
-	# fit processing
-
 	stars = None
 
 	if 'sd' in web['processing'] and 'enable' in web['processing']['sd'] and web['processing']['sd']['enable']:
 		logging.info('Считаю звёзды')
 		mean, median, std = sigma_clipped_stats(hdu.data, sigma=3.0)
+		hdu.header.set('MEAN', mean, 'Mean by whole image')
+		hdu.header.set('MEDIAN', median, 'Median by whole image')
+		hdu.header.set('STD-DEV', std, 'Std.dev by whole image')
 
 		if float(hdu.header['EXPTIME']) > float(float(web['ccd']['expMin']) + (float(web['ccd']['expMax']) - float(web['ccd']['expMin'])) * 0.75):
-			daofind = DAOStarFinder(fwhm=float(web['processing']['sd']['fwhm']), threshold=float(web['processing']['sd'])*std)
+			daofind = DAOStarFinder(fwhm=float(web['processing']['sd']['fwhm']), threshold=float(web['processing']['sd']['threshold'])*std)
 			stars = daofind(hdu.data - median)
-			logging.info('Считаю звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(stars)))
+			if stars is not None:
+				logging.info('Считаю звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(stars)))
+				hdu.header.set('STAR-CNT', len(stars), 'Stars count by whole image using DAOStarFinder')
 
 	if 'cfa' in web['ccd']:
 		import cv2
@@ -164,6 +167,8 @@ def callback(ch, method, properties, body):
 			)
 
 		img = Image.alpha_composite(img.convert('RGBA'), txt).convert('RGB')
+
+	fit.close()
 
 	logging.debug('Записываю jpg в файл...')
 	img.save('/snap/'+ body.decode()  +'.jpg')
