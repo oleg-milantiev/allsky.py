@@ -1,4 +1,4 @@
-# test image: olegmilantiev/allsky-indi:ubuntu
+# test image: olegmilantiev/allsky-indi
 # armv7:
 # - cpp:
 #   - ASI: need to be testsed
@@ -38,8 +38,32 @@
 version: "3.3"
 
 services:
+  yolo:
+    profiles:
+      - yolo
+    image: olegmilantiev/allsky-yolo
+    container_name: allsky-yolo
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - rabbit
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./yolo:/yolo:ro
+      - ./web/fits:/fits
+    command: sleep 999999
+#    command: python3 /yolo/worker.py
+    networks:
+      appnet:
+        aliases:
+          - daemon
+
   watchdog:
-    image: olegmilantiev/allsky-indi:ubuntu
+    image: olegmilantiev/allsky-indi
     container_name: allsky-watchdog
     logging:
       options:
@@ -67,7 +91,7 @@ services:
           - daemon
 
   allsky:
-    image: olegmilantiev/allsky-indi:ubuntu
+    image: olegmilantiev/allsky-indi
     container_name: allsky-allsky
     logging:
       options:
@@ -90,7 +114,7 @@ services:
           - daemon
 
   process:
-    image: olegmilantiev/allsky-indi:ubuntu
+    image: olegmilantiev/allsky-indi
     container_name: allsky-process
     logging:
       options:
@@ -104,7 +128,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./camera/common:/camera:ro
-      - ./web/fits:/fits:ro
+      - ./yolo:/yolo:ro
+      - ./web/fits:/fits
       - ./web/snap:/snap
       - ./web/keogram:/keogram
     command: python3 /camera/process.py
@@ -115,7 +140,7 @@ services:
 
   # Starlight Xpress (base on INDI)
   camera-sx:
-    image: olegmilantiev/allsky-indi:ubuntu
+    image: olegmilantiev/allsky-indi
     profiles:
       - sx
     container_name: allsky-camera
@@ -144,7 +169,7 @@ services:
           - camera
 
   indi:
-    image: olegmilantiev/allsky-indi:ubuntu
+    image: olegmilantiev/allsky-indi
     profiles:
       - sx
     container_name: allsky-indi
@@ -169,7 +194,7 @@ services:
           - indi
 
   camera-qhy:
-    image: olegmilantiev/allsky-indi:ubuntu
+    image: olegmilantiev/allsky-indi
     container_name: allsky-camera
     profiles:
       - qhy
@@ -198,7 +223,7 @@ services:
           - camera
 
   camera-zwo:
-    image: olegmilantiev/allsky-indi:ubuntu
+    image: olegmilantiev/allsky-indi
     container_name: allsky-camera
     profiles:
       - zwo
