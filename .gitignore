@@ -4,3 +4,10 @@ web/fits/*
 web/snap/*
 web/keogram/*
 vendor/*
+yolo/day
+yolo/night
+yolo/evening
+yolo/morning
+yolo/cloud/*
+yolo/clear/*
+yolo/yolo*pt

@@ -13,3 +13,5 @@ RUN env PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --upgrade pip
 RUN env PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --upgrade ultralytics
 RUN env PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --upgrade imgaug
 RUN env PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --upgrade ephem
+
+RUN echo 'sync: false' >> /root/.config/Ultralytics/settings.yaml
