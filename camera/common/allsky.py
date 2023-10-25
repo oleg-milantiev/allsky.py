@@ -219,8 +219,8 @@ def findExpo():
 			left /= 1.1
 			left -= 0.1 # когда ex.: 0.002 делишь на 1.1, то идти к expMin можно вечно. Нужен форсаж на низких!
 
-			if left < web['ccd']['expMin']:
-				left = web['ccd']['expMin']
+#			if left < web['ccd']['expMin']:
+#				left = web['ccd']['expMin']
 
 			logging.debug('Left расширился и стал {}'.format(left))
 
