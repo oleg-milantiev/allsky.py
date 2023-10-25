@@ -14,6 +14,9 @@ import pika
 
 import signal
 
+#todo rebuild container with sync=false
+os.system("echo 'sync: false' >> /root/.config/Ultralytics/settings.yaml")
+
 
 def terminate(signal,frame):
 	print("Start Terminating: %s" % datetime.now())
@@ -31,7 +34,7 @@ observatory = ephem.Observer()
 observatory.lat, observatory.lon = '44.791395', '38.583824'
 s = ephem.Sun()
 
-version = '3'
+version = '4'
 model = {}
 
 for time in ['day', 'morning', 'evening', 'night', 'night/moon']:
@@ -88,7 +91,7 @@ def callback(ch, method, properties, body):
 			dayPart += '/moon'
 
 	print(d.strftime('%Y-%m-%d %H:%M') +': '+ dayPart)
-	os.system('convert /fits/'+ body.decode() +'.fit -normalize /tmp/fit.jpg')
+	os.system('convert /fits/'+ body.decode() +'.fit -resize 224x224! -normalize -colorspace sRGB -type truecolor /tmp/fit.jpg')
 	# todo sync=false to disable google.anal
 	results = model[dayPart]('/tmp/fit.jpg')
 

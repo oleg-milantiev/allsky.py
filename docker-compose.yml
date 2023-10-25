@@ -65,7 +65,7 @@ services:
       - .env
     restart: unless-stopped
     volumes:
-      - ./yolo:/yolo:ro
+      - ./yolo:/yolo
       - ./web/fits:/fits
     command: python3 /yolo/worker.py
     networks:
