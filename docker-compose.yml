@@ -33,6 +33,16 @@
 #   - QHY: need to be testsed
 #   + SX (only INDI): work fine with Oculus
 
+# test image: olegmilantiev/allsky-yolo
+# - armv7: no image yet :(
+# - arm64:
+#   - train: need to be tested
+#   - inference: need to be tested
+# - amd64:
+#   - train: need to be tested
+#   - inference: work fine!
+
+
 # start with camera name in profile, like:
 # docker-compose --profile qhy up -d
 version: "3.3"
@@ -40,7 +50,9 @@ version: "3.3"
 services:
   yolo:
     profiles:
-      - yolo # change it to qhy / sx / asi
+      - yolo
+#      - sx
+#      - qhy
     image: olegmilantiev/allsky-yolo
     container_name: allsky-yolo
     logging:
@@ -55,7 +67,6 @@ services:
     volumes:
       - ./yolo:/yolo:ro
       - ./web/fits:/fits
-#    command: sleep 999999
     command: python3 /yolo/worker.py
     networks:
       appnet:
