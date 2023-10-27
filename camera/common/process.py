@@ -32,7 +32,6 @@ logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 logging.info('[+] Start')
 
-# Чтение конфига
 db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
 	 database=config.db['database'], charset='utf8')
 

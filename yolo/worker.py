@@ -73,7 +73,7 @@ def callback(ch, method, properties, body):
 		ch.basic_ack(delivery_tag=method.delivery_tag)
 		return
 
-	# зачем заголовок, если есть имя файла? Заголовок надёжней, полагаю...
+	# fits header datetime prefered
 	d = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S') - timedelta(hours=3)
 	observatory.date = d.strftime('%Y-%m-%d %H:%M')
 	s.compute(observatory)
