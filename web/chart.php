@@ -4,10 +4,22 @@
 <?php
 $typeChannel = [];
 
+$typeChannel['voltage']         = ['Напряжение'];
+$typeChannel['wind-speed']      = ['Скорость ветра'];
+$typeChannel['wind-direction']  = ['Напр. ветра'];
+$typeChannel['sky-temperature'] = ['Темп. неба'];
+$typeChannel['ccd-exposure']    = ['CCD выдержка'];
+$typeChannel['ccd-average']     = ['CCD среднее'];
+$typeChannel['ccd-gain']        = ['CCD gain'];
+$typeChannel['ccd-bin']         = ['CCD bin'];
+$typeChannel['stars-count']     = ['Количество звёзд'];
+$typeChannel['ai-cloud']        = ['ИИ облачность'];
+$typeChannel['ai-clear']        = ['ИИ чистое небо'];
+
 if (isset($config['sensors']['bme280'])) {
-	$typeChannel['temperature'] = [];
 	$typeChannel['humidity']    = [];
 	$typeChannel['pressure']    = [];
+	$typeChannel['temperature'] = [];
 
 	foreach ($config['sensors']['bme280'] as $id => $row) {
 		if (isset($row['name']) and $row['name']) {
@@ -18,22 +30,11 @@ if (isset($config['sensors']['bme280'])) {
 	}
 }
 else {
-	$typeChannel['temperature'] = ['Температура'];
 	$typeChannel['humidity']    = ['Влажность'];
 	$typeChannel['pressure']    = ['Давление'];
+	$typeChannel['temperature'] = ['Температура'];
 }
 
-$typeChannel['voltage']         = ['Напряжение'];
-$typeChannel['wind-speed']      = ['Скорость ветра'];
-$typeChannel['wind-direction']  = ['Напр. ветра'];
-$typeChannel['sky-temperature'] = ['Темп. неба'];
-$typeChannel['ccd-exposure']    = ['CCD выдержка'];
-$typeChannel['ccd-average']     = ['CCD среднее'];
-$typeChannel['ccd-gain']        = ['CCD gain'];
-$typeChannel['ccd-bin']         = ['CCD bin'];
-$typeChannel['stars-count']     = ['Количество звёзд'];
-$typeChannel['ai-clear']        = ['ИИ чистое небо'];
-$typeChannel['ai-cloud']        = ['ИИ облачность'];
 
 $typeChannelExists = [];
 
@@ -43,7 +44,7 @@ $sth->execute();
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 	$typeChannelExists[ $row['type'] ][ $row['channel'] ] = true;
 }
-#echo '<pre>';print_r($typeChannelExists);exit;
+
 $type = $_GET['type'] ?? '';
 $channel = (int) ($_GET['channel'] ?? 0);
 
