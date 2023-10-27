@@ -61,11 +61,10 @@ def watchdog():
 
 	minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
-	#import MySQLdb
-	#db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
-	#							 database=config.db['database'], charset='utf8')
-	#db.autocommit(True)
-	#cursor = db.cursor()
+	db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+		 database=config.db['database'], charset='utf8')
+
+	cursor = db.cursor()
 
 	# Задачи watchdog
 	# + сбор мусора (архив фото, видео, фитов)
@@ -142,9 +141,20 @@ def watchdog():
 		'mp4': '/web/video/',
 	}
 
+	#web = {}
+	#cursor.execute('select id, val from config')
+	#for row in cursor.fetchall():
+	#	web[row[0]] = json.loads(row[1])
+
 	while running:
 
-		# удаление старых жпегов и фитов
+		if (datetime.now().minute == 44):
+			print('Removing old sensors data: start')
+			# every hour remove old sensor data from db
+			cursor.execute('delete from sensor where date < '+ str(time.time() - 86400 * int(web['archive']['sensors'])))
+			print('Removing old sensors data: done')
+
+		# remove old jpg, fit, mp4
 		for ext in folders:
 			old = datetime.now() - timedelta(web['archive'][ext])
 
@@ -167,18 +177,10 @@ def watchdog():
 			if now != minute:
 				break
 
-	#		print(queue.method.message_count)
-	#		print(channel.basic_get(os.getenv('RABBITMQ_QUEUE_RELOAD_WATCHDOG')))
-	#		for method_frame, properties, body in channel.consume(os.getenv('RABBITMQ_QUEUE_RELOAD_WATCHDOG')):
-
-	#			# Display the message parts
-	#			print(method_frame)
-	#			print(properties)
-	#			print(body)
-
 			time.sleep(1)
 
 		minute = now
+
 
 running = True
 thread = Thread(target = watchdog)
