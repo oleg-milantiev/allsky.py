@@ -11,7 +11,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 function reload($modules = [])
 {
 	if (!is_array($modules) or !count($modules) or
-		(!isset($modules['allsky']) and !isset($modules['process']))
+		(!isset($modules['allsky']) and !isset($modules['process']) and !isset($modules['watchdog']))
 	) {
 		return;
 	}
@@ -45,6 +45,12 @@ function reload($modules = [])
 		$channel->basic_publish($message, 'direct', $_ENV['RABBITMQ_QUEUE_RELOAD_PROCESS']);
 	}
 
+	if (isset($modules['watchdog']) and $modules['watchdog']) {
+		$channel->queue_declare($_ENV['RABBITMQ_QUEUE_RELOAD_WATCHDOG'], false, true, false, false);
+		$channel->queue_bind($_ENV['RABBITMQ_QUEUE_RELOAD_WATCHDOG'], 'direct', $_ENV['RABBITMQ_QUEUE_RELOAD_WATCHDOG']);
+
+		$channel->basic_publish($message, 'direct', $_ENV['RABBITMQ_QUEUE_RELOAD_WATCHDOG']);
+	}
 
 	$channel->close();
 	$connection->close();
@@ -372,6 +378,10 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					'sensors' => (int) $_POST['sensors'],
 					'mp4' => (int) $_POST['mp4'],
 				]),
+			]);
+
+			reload([
+				'watchdog' => true,
 			]);
 
 			header('Location: /settings.php?tab=archive&time='. time());

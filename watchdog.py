@@ -6,8 +6,18 @@ import json
 import logging
 import MySQLdb
 import os
+import pika
 import re
+import signal
+import sys
 import time
+
+def terminate(signal,frame):
+	print("Start Terminating: %s" % datetime.now())
+	sys.exit(0)
+
+signal.signal(signal.SIGTERM, terminate)
+
 
 # Чтение конфига
 db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
@@ -24,6 +34,29 @@ for row in cursor.fetchall():
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 logging.info('[+] Start')
+
+connection = pika.BlockingConnection(
+	pika.ConnectionParameters(
+		os.getenv('RABBITMQ_HOST'),
+		os.getenv('RABBITMQ_PORT'),
+		'/',
+		pika.PlainCredentials(
+			os.getenv('RABBITMQ_DEFAULT_USER'),
+			os.getenv('RABBITMQ_DEFAULT_PASS'))))
+
+channel = connection.channel()
+
+channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_RELOAD_WATCHDOG'), durable=True)
+print(' [*] Waiting for messages. To exit press CTRL+C')
+
+def reload(ch, method, properties, body):
+	print(" [x] Received RELOAD")
+	ch.basic_ack(delivery_tag=method.delivery_tag)
+	sys.exit(0);
+
+channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE_RELOAD_WATCHDOG'), on_message_callback=reload)
+
+channel.start_consuming()
 
 
 minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
