@@ -32,6 +32,9 @@ $tab = $_GET['tab'] ?? 'users';
 		<a class="nav-link<?php echo $tab === 'users' ? ' active' : ''; ?>" data-toggle="tab" href="#users">Пользователи</a>
 	</li>
 	<li class="nav-item">
+		<a class="nav-link<?php echo $tab === 'observatory' ? ' active' : ''; ?>" data-toggle="tab" href="#observatory">Обсерватория</a>
+	</li>
+	<li class="nav-item">
 		<a class="nav-link<?php echo $tab === 'web' ? ' active' : ''; ?>" data-toggle="tab" href="#web">Веб</a>
 	</li>
 	<li class="nav-item">
@@ -106,6 +109,45 @@ $tab = $_GET['tab'] ?? 'users';
 		</form>
 	</div>
 
+	<div class="tab-pane fade<?php echo $tab === 'observatory' ? ' show active' : ''; ?>" id="observatory">
+		<br>
+		<h5 class="card-title">Обсерватория</h5>
+
+		<form method="POST">
+
+			<input type="hidden" name="action" value="settings-observatory">
+
+			<div class="form-group">
+				<label>Название обсерватории:</label>
+				<input class="form-control" type="text" name="name" value="<?php echo $config['observatory']['name'] ?? ''; ?>">
+			</div>
+
+			<div class="card">
+				<div class="card-body">
+					<h6 class="card-title">Координаты и timezone обсерватории</h6>
+					<div class="form-group">
+						<label>Широта:</label>
+						<input class="form-control" type="text" name="lat" value="<?php echo $config['observatory']['lat'] ?? '45'; ?>">
+					</div>
+					<div class="form-group">
+						<label>Долгота:</label>
+						<input name="lon" class="form-control" type="text" value="<?php echo $config['observatory']['lon'] ?? '35'; ?>">
+					</div>
+					<div class="form-group">
+						<label>Timezone:</label>
+						<select class="form-control" name="timezone">
+							<?php for ($i = -11; $i <= 12; $i++) { ?>
+								<option value="<?php echo $i; ?>"<?php echo (isset($config['observatory']['timezone']) and $config['observatory']['timezone'] == $i) ? ' selected' : '' ?>>GMT<?php echo $i <= 0 ? '' : '+'; ?><?php echo $i == 0 ? '' : $i; ?></option>
+							<?php } ?>
+						</select>
+					</div>
+				</div>
+			</div>
+
+			<button class="btn btn-success btn-lg" type="submit">Сохранить</button>
+		</form>
+	</div>
+
 	<div class="tab-pane fade<?php echo $tab === 'web' ? ' show active' : ''; ?>" id="web">
 		<br>
 		<h5 class="card-title">Настройки веб</h5>
@@ -113,11 +155,6 @@ $tab = $_GET['tab'] ?? 'users';
 		<form method="POST">
 
 			<input type="hidden" name="action" value="settings-web">
-
-			<div class="form-group">
-				<label>Название обсерватории:</label>
-				<input class="form-control" type="text" name="name" value="<?php echo $config['web']['name'] ?? ''; ?>">
-			</div>
 
 			<div class="form-group">
 				<label>Счётчик (HTML-код на всех страницах, сразу после открывающегося тега body):</label>

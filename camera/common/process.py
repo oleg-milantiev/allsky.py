@@ -224,7 +224,7 @@ def callback(ch, method, properties, body):
 			r = requests.post(
 				web['publish']['jpg'],
 				files={'file': open('/snap/'+ body.decode() +'.jpg', 'rb')},
-				data={'name': web['web']['name'], 'pass': 'kjH3vxzm4G'}
+				data={'name': web['observatory']['name'], 'pass': 'kjH3vxzm4G'}
 			)
 			logging.info('Файл ' + body.decode() + ' опубликован: ' + r.text)
 		except:

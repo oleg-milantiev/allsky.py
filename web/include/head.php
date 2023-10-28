@@ -74,7 +74,7 @@ $sth = $dbh->prepare('select * from config');
 $sth->execute();
 
 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-	if (in_array($row['id'], ['web', 'ccd', 'processing', 'publish', 'archive', 'sensors', 'relays'])) {
+	if (in_array($row['id'], ['observatory', 'web', 'ccd', 'processing', 'publish', 'archive', 'sensors', 'relays'])) {
 		$config[ $row['id'] ] = json_decode($row['val'], true);
 	}
 }
@@ -155,10 +155,38 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			header('Location: /settings.php?time='. time());
 			exit;
 
-		case 'settings-web':
+		case 'settings-observatory':
 			if (
 				!isset($_SESSION['user']) or
 				!isset($_POST['name']) or
+				!isset($_POST['lat']) or
+				!isset($_POST['lon']) or
+				!isset($_POST['timezone'])
+			) {
+				die('Страница недоступна');
+			}
+
+			$sth = $dbh->prepare('replace into config (id, val) values (:id, :val)');
+			$sth->execute([
+				'id'  => 'observatory',
+				'val' => json_encode([
+					'name'     => $_POST['name'],
+					'lat'      => (float) $_POST['lat'],
+					'lon'      => (float) $_POST['lon'],
+					'timezone' => (int) $_POST['timezone'],
+				]),
+			]);
+
+			reload([
+				'process' => true
+			]);
+
+			header('Location: /settings.php?tab=observatory&time='. time());
+			exit;
+
+		case 'settings-web':
+			if (
+				!isset($_SESSION['user']) or
 				!isset($_POST['counter'])
 			) {
 				die('Страница недоступна');
@@ -168,14 +196,8 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			$sth->execute([
 				'id'  => 'web',
 				'val' => json_encode([
-					'name' => $_POST['name'],
 					'counter' => $_POST['counter'],
 				]),
-			]);
-
-			reload([
-				'allsky' => false,
-				'process' => true
 			]);
 
 			header('Location: /settings.php?tab=web&time='. time());
@@ -523,7 +545,7 @@ if (
 		<meta name="description" content="">
 		<meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
 		<meta name="generator" content="Jekyll v3.8.5">
-		<title>AllSky - <?php echo $config['web']['name']; ?></title>
+		<title>AllSky - <?php echo $config['observatory']['name']; ?></title>
 
 		<link rel="canonical" href="https://getbootstrap.com/docs/4.3/examples/dashboard/">
 
@@ -559,7 +581,7 @@ if (
 <body>
 	<?php echo $config['web']['counter'] ?? ''; ?>
 	<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">AllSky - <?php echo $config['web']['name']; ?></a>
+	<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">AllSky - <?php echo $config['observatory']['name']; ?></a>
 	<div class="d-block d-md-none">
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent15" aria-controls="navbarSupportedContent15" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
 	</div>
