@@ -58,6 +58,7 @@ def reload(ch, method, properties, body):
 
 def watchdog():
 	print(' [*] Start watchdog thread')
+	global web
 
 	minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
@@ -141,16 +142,11 @@ def watchdog():
 		'mp4': '/web/video/',
 	}
 
-	#web = {}
-	#cursor.execute('select id, val from config')
-	#for row in cursor.fetchall():
-	#	web[row[0]] = json.loads(row[1])
-
 	while running:
 
+		# every hour remove old sensor data from db
 		if (datetime.now().minute == 44):
 			print('Removing old sensors data: start')
-			# every hour remove old sensor data from db
 			cursor.execute('delete from sensor where date < '+ str(time.time() - 86400 * int(web['archive']['sensors'])))
 			print('Removing old sensors data: done')
 
