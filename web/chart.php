@@ -83,14 +83,16 @@ if (!isset($periods[ $period ])) {
 	$period = array_keys($periods)[0];
 }
 
-
 $labels = [];
 $data   = [];
 
-$sth = $dbh->prepare('select date, val from sensor where channel = :channel and type = :type and date > :date order by date asc');
+$fromTime = time() - $periodTime[$period];
+$frame = floor($periodTime[$period] / 200);
+
+$sth = $dbh->prepare("select tm * ". $frame ." as date, av as val from (select floor(date / ". $frame .") tm, avg(val) av from sensor where channel = :channel and type = :type and date > :date group by 1 order by date asc) z");
 
 $sth->execute([
-	'date'    => time() - $periodTime[$period],
+	'date'    => (int) $fromTime,
 	'type'    => $type,
 	'channel' => $channel,
 ]);
@@ -142,15 +144,6 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
 <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
 
-<?php if (in_array($type, ['ccd-exposure', 'ccd-average'])):?>
-	<div>
-		Клик на точку ведёт в архив на показ кадра, сделанного в это время.
-	</div>
-	<div>
-		Примечение: ... конечно же, если кадр есть в архиве. Размер архива (в днях) задаётся в <a href="https://github.com/oleg-milantiev/allsky.py/wiki/config-file">config.py</a>
-	</div>
-<?php endif;?>
-
 <script>
 
 /* globals Chart:false, feather:false */
@@ -160,11 +153,17 @@ var chart = {
 	data: {
 		labels: <?php echo json_encode($labels); ?>,
 		datasets: [{
+			label: '<?php echo $typeChannel[ $type ][ $channel ]; ?>',
 			data: <?php echo json_encode($data); ?>,
 			backgroundColor: 'transparent',
 			borderColor: '#007bff',
 			borderWidth: 4,
-			pointBackgroundColor: '#007bff'
+			pointBackgroundColor: '#007bff',
+			trendlineLinear: {
+				style: "rgb(43 ,66 ,255, 0.3)",
+				lineStyle: "dotted|solid",
+				width: 1
+			}
 		}]
 	},
 	options: {
@@ -176,6 +175,7 @@ var chart = {
 //				}
 //			}
 //		},
+
 		scales: {
 			yAxes: [{
 				ticks: {
