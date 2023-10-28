@@ -14,10 +14,6 @@ import pika
 
 import signal
 
-#todo rebuild container with sync=false
-os.system("echo 'sync: false' >> /root/.config/Ultralytics/settings.yaml")
-
-
 def terminate(signal,frame):
 	print("Start Terminating: %s" % datetime.now())
 	sys.exit(0)
