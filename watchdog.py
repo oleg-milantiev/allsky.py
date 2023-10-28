@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from astropy.io import fits
 import config
 from datetime import datetime, timedelta
 import json
@@ -144,8 +145,14 @@ def watchdog():
 
 	while running:
 
+		# every day (at 12:00) scan fits for last 24h
+		# try to find hot pixels map
+#		if datetime.now().hour == 12 and datetime.now().minute == 0:
+#			# TBD
+
+
 		# every hour remove old sensor data from db
-		if (datetime.now().minute == 44):
+		if datetime.now().minute == 44:
 			print('Removing old sensors data: start')
 			cursor.execute('delete from sensor where date < '+ str(time.time() - 86400 * int(web['archive']['sensors'])))
 			print('Removing old sensors data: done')
