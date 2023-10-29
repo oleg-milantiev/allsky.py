@@ -1,4 +1,0 @@
-# добавить к /etc/crontab
-
-01 12 * * * root /opt/allsky.py/day.sh
-* * * * * root /opt/allsky.py/sensors.sh
