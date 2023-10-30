@@ -4,4 +4,4 @@
 # 100 - epochs count
 # 1 - version number
 
-docker exec -it allsky-yolo /yolo/train.py n 20 1
+docker exec -it allsky-yolo /yolo/train.py m 20 1

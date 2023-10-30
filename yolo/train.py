@@ -77,7 +77,6 @@ Prepare version:
 version = sys.argv[3]
 
 '''
-
 for dayPart in ['day', 'evening', 'morning', 'night', 'night/moon']:
 
 	for cond in ['clear', 'cloud']:
@@ -124,11 +123,11 @@ for dayPart in ['day', 'evening', 'morning', 'night', 'night/moon']:
 
 			img = imageio.v2.imread(src +'/'+ file)
 			images = np.array(
-				[img for _ in range(4)], dtype=np.uint8)
+				[img for _ in range(8)], dtype=np.uint8)
 
 			seq = iaa.Sequential(
 				[
-					iaa.Sometimes(0.5, iaa.MedianBlur(3)),
+					iaa.Sometimes(0.2, iaa.MedianBlur(3)),
 					iaa.Sometimes(0.5, iaa.GammaContrast((0.5, 2.0))),
 					iaa.Sometimes(0.5, iaa.AddToBrightness((-30, 30)))
 				],
@@ -136,15 +135,14 @@ for dayPart in ['day', 'evening', 'morning', 'night', 'night/moon']:
 
 			images_aug = seq.augment_images(images)
 
-			for i in range(4):
+			for i in range(8):
 				imageio.imwrite(dst +'/'+ set +'/'+ cond +'/'+ str(i) +'-'+ file, images_aug[i])
 '''
 
 ##### Train
 model = YOLO('yolov8'+ sys.argv[1] +'-cls.pt')
 
-#for folder in ['day', 'evening', 'morning', 'night', 'night/moon']:
-for folder in ['night/moon']:
+for folder in ['day', 'evening', 'morning', 'night', 'night/moon']:
 
 	os.chdir('/yolo/'+ folder)
 	model.train(data='version-'+ version, epochs=int(sys.argv[2]), device=0, batch=150, imgsz=224, augment=False)

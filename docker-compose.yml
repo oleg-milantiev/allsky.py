@@ -51,9 +51,9 @@ services:
   yolo:
     profiles:
       - yolo
-#      - sx
+      - sx
 #      - qhy
-    image: olegmilantiev/allsky-yolo
+    image: olegmilantiev/allsky-yolo-${ARCH}
     container_name: allsky-yolo
     logging:
       options:
@@ -74,7 +74,7 @@ services:
           - daemon
 
   watchdog:
-    image: olegmilantiev/allsky-indi
+    image: olegmilantiev/allsky-indi-${ARCH}
     container_name: allsky-watchdog
     logging:
       options:
@@ -102,7 +102,7 @@ services:
           - daemon
 
   allsky:
-    image: olegmilantiev/allsky-indi
+    image: olegmilantiev/allsky-indi-${ARCH}
     container_name: allsky-allsky
     logging:
       options:
@@ -125,7 +125,7 @@ services:
           - daemon
 
   process:
-    image: olegmilantiev/allsky-indi
+    image: olegmilantiev/allsky-indi-${ARCH}
     container_name: allsky-process
     logging:
       options:
@@ -151,7 +151,7 @@ services:
 
   # Starlight Xpress (base on INDI)
   camera-sx:
-    image: olegmilantiev/allsky-indi
+    image: olegmilantiev/allsky-indi-${ARCH}
     profiles:
       - sx
     container_name: allsky-camera
@@ -180,7 +180,7 @@ services:
           - camera
 
   indi:
-    image: olegmilantiev/allsky-indi
+    image: olegmilantiev/allsky-indi-${ARCH}
     profiles:
       - sx
     container_name: allsky-indi
@@ -205,7 +205,7 @@ services:
           - indi
 
   camera-qhy:
-    image: olegmilantiev/allsky-indi
+    image: olegmilantiev/allsky-indi-${ARCH}
     container_name: allsky-camera
     profiles:
       - qhy
@@ -234,7 +234,7 @@ services:
           - camera
 
   camera-zwo:
-    image: olegmilantiev/allsky-indi
+    image: olegmilantiev/allsky-indi-${ARCH}
     container_name: allsky-camera
     profiles:
       - zwo
@@ -319,7 +319,7 @@ services:
           - nginx
 
   php:
-    image: olegmilantiev/allsky-php:latest
+    image: olegmilantiev/allsky-php-${ARCH}
     container_name: allsky-php
     logging:
       options:
