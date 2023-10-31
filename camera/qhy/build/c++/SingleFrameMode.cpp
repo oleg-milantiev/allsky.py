@@ -8,8 +8,6 @@
 #include <cstdlib>
 #include <cstdlib>
 
-
-// 
 int main(int argc, char *argv[])
 {
 	if (argc != 6) {
@@ -244,7 +242,6 @@ int main(int argc, char *argv[])
 		else
 		{
 			printf("SetQHYCCDParam CONTROL_USBTRAFFIC failure, error: %d\n", retVal);
-			getchar();
 			return 1;
 		}
 	}
@@ -261,7 +258,6 @@ int main(int argc, char *argv[])
 		else
 		{
 			printf("SetQHYCCDParam CONTROL_GAIN failure, error: %d\n", retVal);
-			getchar();
 			return 1;
 		}
 	}
@@ -273,12 +269,11 @@ int main(int argc, char *argv[])
 		retVal = SetQHYCCDParam(pCamHandle, CONTROL_OFFSET, CHIP_OFFSET);
 		if (QHYCCD_SUCCESS == retVal)
 		{
-			printf("SetQHYCCDParam CONTROL_GAIN set to: %d, success.\n", CHIP_OFFSET);
+			printf("SetQHYCCDParam CONTROL_OFFSET set to: %d, success.\n", CHIP_OFFSET);
 		}
 		else
 		{
-			printf("SetQHYCCDParam CONTROL_GAIN failed.\n");
-			getchar();
+			printf("SetQHYCCDParam CONTROL_OFFSET failed.\n");
 			return 1;
 		}
 	}
@@ -291,7 +286,6 @@ int main(int argc, char *argv[])
 	else
 	{
 		printf("SetQHYCCDParam CONTROL_EXPOSURE failure, error: %d\n", retVal);
-		getchar();
 		return 1;
 	}
 
@@ -332,7 +326,6 @@ int main(int argc, char *argv[])
 		else
 		{
 			printf("SetQHYCCDParam CONTROL_GAIN failure, error: %d\n", retVal);
-			getchar();
 			return 1;
 		}
 	}
@@ -381,7 +374,6 @@ int main(int argc, char *argv[])
 		fitsfile *fptr;
 		int status = 0;
 		long naxes[2] = {roiSizeX, roiSizeY};
-		long curUnixTime = time(0);
 
 		const char *fitsfilename = "/fits/current.fit";
 
@@ -394,12 +386,21 @@ int main(int argc, char *argv[])
 
 		// Headers Information
 		EXPOSURE_TIME_DOUBLE = EXPOSURE_TIME / 1000000.;
-		fits_update_key(fptr, TDOUBLE, "EXPTIME", &EXPOSURE_TIME_DOUBLE, "Exposure time in microseconds", &status);
+		fits_update_key(fptr, TDOUBLE, "EXPTIME", &EXPOSURE_TIME_DOUBLE, "Exposure time in seconds", &status);
 		fits_update_key(fptr, TINT, "OFFSET", &CHIP_OFFSET, "Offset Setting", &status);
 		fits_update_key(fptr, TINT, "GAIN", &CHIP_GAIN, "Gain Setting", &status);
 		fits_update_key(fptr, TINT, "XBINNING", &camBinX, "Binning Setting", &status);
 		fits_update_key(fptr, TINT, "YBINNING", &camBinY, "Binning Setting", &status);
-		fits_update_key(fptr, TLONG, "TIME", &curUnixTime, "UNIX Time", &status);
+
+		time_t rawtime;
+		struct tm * timeinfo;
+		char buffer[80];
+		time (&rawtime);
+		timeinfo = localtime(&rawtime);
+
+		strftime(buffer,sizeof(buffer),"%Y-%m-%dT%H:%M:%S",timeinfo);
+
+		fits_update_key(fptr, TSTRING, "DATE-OBS", &buffer, "Datetime image taken", &status);
 
 		// Write to File
 		fits_write_img(fptr, TUSHORT, 1, roiSizeX * roiSizeY, pImgData, &status);

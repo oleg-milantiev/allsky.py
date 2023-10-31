@@ -44,8 +44,8 @@ COMP_INC1 = /usr/include/
 COMP_INC2 = /usr/local/include/
 COMP_INC3 = ./include/
 
-COMP_LIB = ../../x64/
-QHY_LIB  = ../../x64/libqhyccd.so
+COMP_LIB = ../../arm64/
+QHY_LIB  = ../../arm64/libqhyccd.so
 
 CXX = g++
 
