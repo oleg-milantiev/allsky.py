@@ -30,7 +30,7 @@ observatory = ephem.Observer()
 observatory.lat, observatory.lon = '44.791395', '38.583824'
 s = ephem.Sun()
 
-version = '7'
+version = '8'
 model = {}
 
 for time in ['day', 'morning', 'evening', 'night', 'night/moon']:
