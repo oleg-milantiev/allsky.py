@@ -1,0 +1,16 @@
+settings_version: 0.0.4
+datasets_dir: /yolo/datasets
+weights_dir: weights
+runs_dir: runs
+uuid: 001a7ebe1b150b6fe0079163ea6183b158c7cc802ed369ae9072d24cc782467f
+api_key: ''
+clearml: true
+comet: true
+dvc: true
+hub: false
+mlflow: true
+neptune: true
+raytune: true
+tensorboard: true
+wandb: true
+sync: false
