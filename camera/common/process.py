@@ -178,42 +178,49 @@ def callback(ch, method, properties, body):
 	ts = int(dateObs.timestamp())
 	channel = 0  # мультикамеры
 
+	# try to break "Lock wait timeout exceeded; try restarting transaction" db hang by new connection
+	db2 = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+		 database=config.db['database'], charset='utf8')
+	cursor2 = db2.cursor()
+
 	if 'EXPTIME' in hdu.header:
-		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": hdu.header['EXPTIME']})
 
 	if 'AVG' in hdu.header:
-		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['AVG']})
 
 	if 'GAIN' in hdu.header:
-		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": hdu.header['GAIN']})
 
 	if 'XBINNING' in hdu.header:
-		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
 
 	if 'AI-CLEAR' in hdu.header:
-		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ai-clear', "val": hdu.header['AI-CLEAR']})
 
 	if 'AI-CLOUD' in hdu.header:
-		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ai-cloud', "val": hdu.header['AI-CLOUD']})
 
 	if stars is not None:
-		cursor.execute("""INSERT INTO sensor(date, channel, type, val)
+		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'stars-count', "val": len(stars)})
 
-	db.commit()
+	db2.commit()
+	cursor2.close()
+	db2.close()
 
 	if os.path.islink('/snap/current.jpg'):
 		os.remove('/snap/current.jpg')
