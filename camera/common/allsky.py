@@ -298,12 +298,12 @@ while True:
 			hdu = None
 			logging.error('Не получил fit от контейнера камеры')
 
-		if hdu is not None and round(hdu.header['EXPTIME'], 2) == round(exposure, 2):
+		if hdu is not None and round(hdu.header['EXPTIME'], 2) == round(exposure, 2) and round(hdu.header['GAIN'], 2) == round(gain, 2) and int(hdu.header['XBINNING']) == bin:
 			break;
 
 		if hdu is not None:
 			# старый кадр. Ждём запрошенного
-			logging.info('Выдержка полученного кадра не соответствует запрошенной '+ str(exposure) +' != '+ str(hdu.header['EXPTIME']))
+			logging.info('Выдержка / gain / bin полученного кадра не соответствует запрошенной '+ str(exposure) +'/'+ str(gain) +'/'+ str(bin) +' != '+ str(hdu.header['EXPTIME']) +'/'+ str(hdu.header['GAIN']) +'/'+ str(hdu.header['XBINNING']))
 
 	# Подсчёт среднего по центру кадра
 	center = 50
@@ -331,7 +331,7 @@ while True:
 		or (attempt == 10)										# или кол-во попыток максимально
 		or (attempt > 6 and avg < web['ccd']['avgMax'])			# или после шестой попытки изображение не горелое (компромисс)
 																# или максимум выдержки, gain и bin, но avg мало
-		or (exposure == web['ccd']['expMax'] and gain == web['ccd']['gainMax'] and bin == 2 and avg < web['ccd']['avgMin'])
+		or (exposure == web['ccd']['expMax'] and gain == web['ccd']['gainMax'] and bin == web['ccd']['binning'] and avg < web['ccd']['avgMin'])
 																# или минимум выдержки, gain и bin, но avg много
 		or (exposure == web['ccd']['expMin'] and gain == web['ccd']['gainMin'] and bin == 1 and avg > web['ccd']['avgMax'])):
 
