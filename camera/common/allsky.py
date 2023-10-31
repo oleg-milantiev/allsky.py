@@ -201,7 +201,7 @@ def findExpo():
 
 			logging.debug('Gain ещё есть куда поднимать. Поднял до {}'.format(gain))
 		else:
-			if bin != 2:
+			if bin != 2 and web['ccd']['binning'] == 2:
 				logging.debug('Gain уже максиамльный. Поднял бин до 2')
 
 				bin = 2

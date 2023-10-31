@@ -174,7 +174,7 @@ $tab = $_GET['tab'] ?? 'users';
 			<input type="hidden" name="action" value="settings-ccd">
 
 			<div class="form-group">
-				<label>Биннинг:</label>
+				<label>Максимальный биннинг:</label>
 				<div>
 					<label>
 						<input type="radio" name="binning" value="1"<?php echo (!isset($config['ccd']['binning']) or (isset($config['ccd']['binning']) and ($config['ccd']['binning'] === 1))) ? ' checked' : ''; ?>> 1
@@ -234,7 +234,7 @@ $tab = $_GET['tab'] ?? 'users';
 					</div>
 					<div class="form-group">
 						<label>Максимальный gain:</label>
-						<input class="form-control" type="number" min="1" max="100" name="gainMax" value="<?php echo $config['ccd']['gainMax'] ?? '100'; ?>">
+						<input class="form-control" type="number" min="1" max="255" name="gainMax" value="<?php echo $config['ccd']['gainMax'] ?? '100'; ?>">
 					</div>
 					<div class="form-group">
 						<label>Шаг подбора gain:</label>
