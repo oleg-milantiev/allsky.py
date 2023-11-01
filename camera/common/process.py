@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import lib
+
 import config
 import os
 import pika
@@ -27,20 +29,11 @@ def terminate(signal,frame):
 
 signal.signal(signal.SIGTERM, terminate)
 
-
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 logging.info('[+] Start')
 
-db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
-	 database=config.db['database'], charset='utf8')
-
-cursor = db.cursor()
-
-web = {}
-cursor.execute('select id, val from config')
-for row in cursor.fetchall():
-	web[row[0]] = json.loads(row[1])
+web = lib.getWebConfig()
 
 connection = pika.BlockingConnection(
 	pika.ConnectionParameters(
@@ -74,6 +67,7 @@ def callback(ch, method, properties, body):
 		return
 
 	stars = None
+	dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
 
 	if 'sd' in web['processing'] and 'enable' in web['processing']['sd'] and web['processing']['sd']['enable']:
 		logging.info('Считаю звёзды')
@@ -82,7 +76,8 @@ def callback(ch, method, properties, body):
 		hdu.header.set('MEDIAN', median, 'Median by whole image')
 		hdu.header.set('STD-DEV', std, 'Std.dev by whole image')
 
-		if float(hdu.header['EXPTIME']) > float(float(web['ccd']['expMin']) + (float(web['ccd']['expMax']) - float(web['ccd']['expMin'])) * 0.75):
+		if lib.getDayPart(dateObs) in ['night', 'night/moon']:
+			logging.debug('Ночь. Буду считать звёзды!')
 			daofind = DAOStarFinder(fwhm=float(web['processing']['sd']['fwhm']), threshold=float(web['processing']['sd']['threshold'])*std)
 			stars = daofind(hdu.data - median)
 			if stars is not None:
@@ -138,8 +133,6 @@ def callback(ch, method, properties, body):
 		watermark = Image.open(config['path']['jpg'] +'/'+ web['processing']['logo']['file'])
 
 		img.paste(watermark, (int(web['processing']['logo']['x'] / bin), int(web['processing']['logo']['y'] / bin)))
-
-	dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
 
 	if 'annotation' in web['processing'] and isinstance(web['processing']['annotation'], Iterable) and len(web['processing']['annotation']) > 0:
 		logging.info('Добавляю аннотации')
