@@ -7,6 +7,7 @@ Exists in all containers root as readonly /lib.py
 
 import config
 from functools import cache
+import ephem
 
 @cache
 def getWebConfig():
@@ -37,8 +38,6 @@ def getObservatory():
 
 	if not isConfigExistsGPS():
 		return None
-
-	import ephem
 
 	observatory = ephem.Observer()
 	observatory.lat, observatory.lon = web['observatory']['lat'], web['observatory']['lon']

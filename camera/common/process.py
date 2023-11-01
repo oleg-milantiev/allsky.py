@@ -76,12 +76,14 @@ def callback(ch, method, properties, body):
 		hdu.header.set('MEDIAN', median, 'Median by whole image')
 		hdu.header.set('STD-DEV', std, 'Std.dev by whole image')
 
+		logging.debug('Sigma-clipped статистика: mean={}, median={}, std={}'.format(mean, median, std))
+
 		if lib.getDayPart(dateObs) in ['night', 'night/moon']:
-			logging.debug('Ночь. Буду считать звёзды!')
+			logging.debug('Ночь. Буду искать звёзды!')
 			daofind = DAOStarFinder(fwhm=float(web['processing']['sd']['fwhm']), threshold=float(web['processing']['sd']['threshold'])*std)
 			stars = daofind(hdu.data - median)
 			if stars is not None:
-				logging.debug('Посчитал звёзды: mean={}, median={}, std={}, stars={}'.format(mean, median, std, len(stars)))
+				logging.debug('Нашёл звёзд: {}'.format(len(stars)))
 				hdu.header.set('STAR-CNT', len(stars), 'Stars count by whole image using DAOStarFinder')
 
 	if 'cfa' in web['ccd']:
