@@ -66,6 +66,21 @@ def callback(ch, method, properties, body):
 		ch.basic_ack(delivery_tag=method.delivery_tag)
 		return
 
+	# Hot pixels remove
+	hotFilename = '/camera/hot-{}.png'.format(hdu.header['XBINNING'])
+	if os.path.isfile(hotFilename):
+		logging.info('Удаляю горячие пиксели')
+		hotCount = 0
+		hot = Image.open(hotFilename)
+
+		for y in range(1, hdu.data.shape[0] - 1):
+			for x in range(1, hdu.data.shape[1] - 1):
+				if hot.getpixel((x, y)) == 255:
+					hotCount += 1
+					hdu.data[y, x] = round((float(hdu.data[y-1, x-1]) + float(hdu.data[y-1, x]) + float(hdu.data[y-1, x+1]) + float(hdu.data[y, x-1]) + float(hdu.data[y, x+1]) + float(hdu.data[y+1, x-1]) + float(hdu.data[y+1, x]) + float(hdu.data[y+1, x+1])) / 8)
+
+		logging.debug('Удалено горячих пикселей: {}'.format(hotCount))
+
 	stars = None
 	dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
 	if 'timezone' not in web['observatory'] or web['observatory']['timezone'] == '':

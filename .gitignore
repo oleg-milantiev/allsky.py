@@ -1,4 +1,6 @@
 camera/common/__pycache__/*
+camera/common/hot/*
+camera/common/hot-?.png
 __pycache__/*
 web/fits/*
 web/snap/*
