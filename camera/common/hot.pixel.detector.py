@@ -78,5 +78,5 @@ for f in os.listdir('./hot'):
 	print('Found hot pixels: '+ str(count))
 
 img = Image.fromarray(np.where(avg >= avg.max() * 0.1, 255, 0).astype('uint8'))
-#img.save('/snap/avg.png')
-img.save('/opt/allsky.py/camera/common/hot-{}.png'.format(bin))
+img.save('/snap/hot-{}.png'.format(bin))
+#img.save('/opt/allsky.py/camera/common/hot-{}.png'.format(bin))
