@@ -10,13 +10,33 @@ include '../base.php';
 
 $ret = [];
 
-$sth = $dbh->prepare(($_GET['key'] === 'ccd-date') ? 'select date as ret from sensor where channel = 0 order by id desc limit 1' : 'select val as ret from sensor where type = "'. $_GET['key'] .'" and channel = 0 order by id desc limit 1');
+$sth = $dbh->prepare('select date as ret from sensor where channel = 0 order by id desc limit 1');
 $sth->execute();
+$date = ($row = $sth->fetch(PDO::FETCH_ASSOC)) ? $row['ret'] : null;
 
-if ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-	echo $row['ret'];
+if ($_GET['key'] === 'ccd-date') {
+	if ($date) {
+		echo $date;
+	}
+	else {
+		header('HTTP/1.1 404 Key not found');
+	}
+
 	exit;
 }
 
-header('HTTP/1.1 404 Key not found');
-exit;
+$sth = $dbh->prepare('select date, val from sensor where type = "'. $_GET['key'] .'" and channel = 0 order by id desc limit 1');
+$sth->execute();
+
+if (!($row = $sth->fetch(PDO::FETCH_ASSOC))) {
+	header('HTTP/1.1 404 Key not found');
+	exit;
+}
+
+# Надо выдавать данные датчиков с поправкой на date. Т.к. старый датчик не актуален. А сейчас в заббиксе всё ещё пишет stars-count = 1. Но датчику уже несколько часов отроду
+# добавил проверку на актуальность 10 минут
+# если старше, то датчик выдаёт 0
+
+echo (($row['date'] + 600) > time())
+	? (substr($_GET['key'], 0, 3) === 'ai-') ? $row['val'] * 100 : $row['val']
+	: 0;
