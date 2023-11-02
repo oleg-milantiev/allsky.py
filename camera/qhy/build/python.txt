@@ -1,0 +1,16 @@
+# ставим libqhy без opencv
+
+cd /root/install
+git clone --depth=1 https://github.com/indilib/indi-3rdparty
+mkdir build
+cd build
+mkdir libqhy
+cd libqhy
+
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Debug /root/install/indi-3rdparty/libqhy
+make -j2
+make install
+
+# ставим qhyccd.py
+cd /root/install
+git clone https://github.com/JiangXL/qhyccd-python.git

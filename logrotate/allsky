@@ -1,7 +1,0 @@
-/var/log/allsky.log {
-  rotate 4
-  weekly
-  compress
-  missingok
-  notifempty
-}

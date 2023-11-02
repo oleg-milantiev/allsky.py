@@ -1,0 +1,12 @@
+apt install libusb-1.0-0-dev libcfitsio-dev
+
+copy lib to /usr/local/lib
+ldconfig
+
+copy headers to /usr/local/include
+apt install make gcc
+
+make
+
+
+

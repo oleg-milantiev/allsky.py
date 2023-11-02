@@ -1,0 +1,352 @@
+# test image: olegmilantiev/allsky-indi
+# armv7:
+# - cpp:
+#   - ASI: need to be testsed
+#   - QHY: need to be testsed
+# - pyqhy:
+#   - ASI: need to be testsed
+#   + QHY: work fine (8 bit only)
+# - indi
+#   - ASI: need to be testsed
+#   - QHY: need to be testsed
+#   - SX (only INDI): need to be testsed
+# arm64
+# - cpp: need to be testsed
+#   - ASI: need to be testsed
+#   - QHY: need to be testsed
+# - pyqhy: need to be testsed
+#   - ASI: need to be testsed
+#   - QHY: need to be testsed
+# - indi: need to be testsed
+#   - ASI: need to be testsed
+#   - QHY: need to be testsed
+#   - SX (only INDI): need to be testsed
+# amd64
+# - cpp: need to be testsed
+#   - ASI: need to be testsed
+#   - QHY: need to be testsed
+# - pyqhy: need to be testsed
+#   - ASI: need to be testsed
+#   - QHY: need to be testsed
+# - indi:
+#   - ASI: need to be testsed
+#   - QHY: need to be testsed
+#   + SX (only INDI): work fine with Oculus
+
+# test image: olegmilantiev/allsky-yolo
+# - armv7: no image yet :(
+# - arm64:
+#   - train: need to be tested
+#   - inference: need to be tested
+# - amd64:
+#   - train: need to be tested
+#   - inference: work fine!
+
+
+# start with camera name in profile, like:
+# docker-compose --profile qhy up -d
+version: "3.3"
+
+services:
+  yolo:
+    profiles:
+      - yolo
+      - sx
+#      - qhy
+    image: olegmilantiev/allsky-yolo
+    container_name: allsky-yolo
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - rabbit
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./yolo:/yolo
+      - ./web/fits:/fits
+    command: python3 /yolo/worker.py
+    networks:
+      appnet:
+        aliases:
+          - daemon
+
+  watchdog:
+    image: olegmilantiev/allsky-indi
+    container_name: allsky-watchdog
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - allsky
+      - process
+#      - camera
+      - db
+      - rabbit
+      - nginx
+      - php
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./watchdog.py:/watchdog.py:ro
+      - ./camera/common/config.py:/config.py:ro
+      - ./web:/web
+    command: python3 /watchdog.py
+    networks:
+      appnet:
+        aliases:
+          - daemon
+
+  allsky:
+    image: olegmilantiev/allsky-indi
+    container_name: allsky-allsky
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - rabbit
+#      - camera
+      - db
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./camera/common:/camera:ro
+      - ./web/fits:/fits
+    command: python3 /camera/allsky.py
+    networks:
+      appnet:
+        aliases:
+          - daemon
+
+  process:
+    image: olegmilantiev/allsky-indi
+    container_name: allsky-process
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - allsky
+      - rabbit
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./camera/common:/camera:ro
+      - ./yolo:/yolo:ro
+      - ./web/fits:/fits
+      - ./web/snap:/snap
+      - ./web/keogram:/keogram
+    command: python3 /camera/process.py
+    networks:
+      appnet:
+        aliases:
+          - daemon
+
+  # Starlight Xpress (base on INDI)
+  camera-sx:
+    image: olegmilantiev/allsky-indi
+    profiles:
+      - sx
+    container_name: allsky-camera
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - rabbit
+      - indi
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python3 /camera/worker.py
+    privileged: true
+    volumes:
+      - ./camera/sx:/camera:ro
+
+      - ./camera/common:/common:ro
+      - ./web/fits:/fits
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    networks:
+      appnet:
+        aliases:
+          - camera
+
+  indi:
+    image: olegmilantiev/allsky-indi
+    profiles:
+      - qhyz
+    container_name: allsky-indi
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: /run.sh
+    volumes:
+      - ./camera/indi/run.sh:/run.sh:ro
+    expose:
+      - 7624
+    privileged: true
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    networks:
+      appnet:
+        aliases:
+          - indi
+
+  camera-qhy:
+    image: olegmilantiev/allsky-indi
+    container_name: allsky-camera
+    profiles:
+      - qhy
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - rabbit
+    env_file:
+      - .env
+    restart: unless-stopped
+#    command: sleep 99999999
+    command: python3 /camera/worker-cpp.py
+#    command: python3 /camera/worker-pyqhy.py
+    privileged: true
+    volumes:
+      - ./camera/qhy:/camera:ro
+      - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
+      - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
+      - ./camera/common:/common:ro
+      - ./web/fits:/fits
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    networks:
+      appnet:
+        aliases:
+          - camera
+
+  camera-zwo:
+    image: olegmilantiev/allsky-indi
+    container_name: allsky-camera
+    profiles:
+      - zwo
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - rabbit
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python3 /camera/worker.py
+    privileged: true
+    volumes:
+      - ./camera/zwo:/camera:ro
+      - ./camera/common:/common:ro
+      - ./web/fits:/fits
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    networks:
+      appnet:
+        aliases:
+          - camera
+
+  db:
+    image: tobi312/rpi-mariadb:10.6-alpine
+    container_name: allsky-db
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: 'allsky'
+      MYSQL_ROOT_PASSWORD: 'master'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: ''
+    expose:
+      - 3306
+    volumes:
+      - my-db:/var/lib/mysql
+      - ./db/:/docker-entrypoint-initdb.d/:ro
+    networks:
+      appnet:
+        aliases:
+          - db
+
+  rabbit:
+    image: rabbitmq:3.11
+    container_name: allsky-rabbit
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - 5672
+    networks:
+      appnet:
+        aliases:
+          - rabbit
+
+  nginx:
+    image: nginx:latest
+    container_name: allsky-nginx
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    ports:
+      - 81:80
+    volumes:
+      - ./nginx/allsky.conf:/etc/nginx/conf.d/allsky.conf:ro
+      - ./web:/var/www/html
+    networks:
+      appnet:
+        aliases:
+          - nginx
+
+  php:
+    image: olegmilantiev/allsky-php
+    container_name: allsky-php
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - rabbit
+      - nginx
+    expose:
+      - 9000
+    networks:
+      appnet:
+        aliases:
+          - php
+    volumes:
+      - ./web:/var/www/html:ro
+      - .:/opt/allsky.py:ro
+
+volumes:
+  my-db:
+
+networks:
+  appnet:
+    driver: bridge

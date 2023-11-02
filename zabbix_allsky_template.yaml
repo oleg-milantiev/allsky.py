@@ -1,0 +1,160 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 69b62daae8ee4542b0ba3cb568bc5f1d
+      template: AllSky
+      name: AllSky
+      description: |
+        ## Overview
+        
+        This template integrates AllSky.py instance with Zabbix.
+        
+        
+        The template adds monitoring of:
+        
+        
+        * Last image taken, seconds ago
+        * CCD Exposure
+        * CCD Gain
+        * CCD Binning
+        * Mean ADU
+        * Median ADU
+        * Std deviation
+        * AI Clear probability
+        * AI Cloud probability
+        * Stars count
+        * Fits count
+        * Jpg count
+        * MP4 count
+        
+        The following agent parameters can be used to add the metrics into Zabbix.
+        
+        UserParameter=allsky.ccd.date,/opt/allsky.py/get.py ccd.date
+        UserParameter=allsky.ccd.exposure,/opt/allsky.py/get.py ccd.exposure
+        UserParameter=allsky.ccd.gain,/opt/allsky.py/get.py ccd.gain
+        UserParameter=allsky.ccd.bin,/opt/allsky.py/get.py ccd.bin
+        UserParameter=allsky.sigma.mean,/opt/allsky.py/get.py sigma.mean
+        UserParameter=allsky.sigma.median,/opt/allsky.py/get.py sigma.median
+        UserParameter=allsky.sigma.std,/opt/allsky.py/get.py sigma.std
+        UserParameter=allsky.ai.clear,/opt/allsky.py/get.py ai.clear
+        UserParameter=allsky.ai.cloud,/opt/allsky.py/get.py ai.cloud
+        UserParameter=allsky.dao.stars.count,/opt/allsky.py/get.py dao.stars.count
+        UserParameter=allsky.archive.fits.count,/opt/allsky.py/get.py archive.fits.count
+        UserParameter=allsky.archive.jpg.count,/opt/allsky.py/get.py archive.jpg.count
+        UserParameter=allsky.archive.mp4.count,/opt/allsky.py/get.py archive.mp4.count
+        
+        
+        ## Author
+        
+        Oleg Milantiev
+      groups:
+        - name: Templates
+      items:
+        - uuid: cc7538d4f3c04ce8ae8ddd734f960851
+          name: 'AllSky: AI Clear'
+          type: HTTP_AGENT
+          key: allsky.ai.clear
+          value_type: FLOAT
+          units: '%'
+          url: 'http://{HOST.DNS}/REST/zabbix/'
+          query_fields:
+            - name: key
+              value: ai-clear
+          tags:
+            - tag: Application
+              value: AllSky
+        - uuid: 16015aebe77b40a2984047ffba0b0aaa
+          name: 'AllSky: AI Cloud'
+          type: HTTP_AGENT
+          key: allsky.ai.cloud
+          value_type: FLOAT
+          units: '%'
+          url: 'http://{HOST.DNS}/REST/zabbix/'
+          query_fields:
+            - name: key
+              value: ai-cloud
+          tags:
+            - tag: Application
+              value: AllSky
+        - uuid: 9603c114bd3b47f4a7593d971cbba682
+          name: 'AllSky: CCD Average ADU'
+          type: HTTP_AGENT
+          key: allsky.ccd.average
+          value_type: FLOAT
+          url: 'http://{HOST.DNS}/REST/zabbix/'
+          query_fields:
+            - name: key
+              value: ccd-average
+          tags:
+            - tag: Application
+              value: AllSky
+        - uuid: b32b538885994903b0b5f2df75fe6b81
+          name: 'AllSky: CCD Bin'
+          type: HTTP_AGENT
+          key: allsky.ccd.bin
+          url: 'http://{HOST.DNS}/REST/zabbix/'
+          query_fields:
+            - name: key
+              value: ccd-bin
+          tags:
+            - tag: Application
+              value: AllSky
+        - uuid: 3405506d818d47ad80e82ed584e5c5eb
+          name: 'AllSky: Last image time'
+          type: HTTP_AGENT
+          key: allsky.ccd.date
+          units: unixtime
+          inventory_link: TYPE
+          url: 'http://{HOST.DNS}/REST/zabbix/'
+          query_fields:
+            - name: key
+              value: ccd-date
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: ae5b7472eae24417a67d11279e311437
+              expression: 'fuzzytime(/AllSky/allsky.ccd.date,{$LAST_IMAGE_MAX_LAG})=0'
+              name: 'AllSky: Last image taken to much ago'
+              priority: AVERAGE
+        - uuid: 52449bfca1e847bd9620ae305c5f09a8
+          name: 'AllSky: CCD Exposure'
+          type: HTTP_AGENT
+          key: allsky.ccd.exposure
+          value_type: FLOAT
+          units: s
+          url: 'http://{HOST.DNS}/REST/zabbix/'
+          query_fields:
+            - name: key
+              value: ccd-exposure
+          tags:
+            - tag: Application
+              value: AllSky
+        - uuid: ce318d83465344eb9fb51f153b577e0c
+          name: 'AllSky: CCD Gain'
+          type: HTTP_AGENT
+          key: allsky.ccd.gain
+          url: 'http://{HOST.DNS}/REST/zabbix/'
+          query_fields:
+            - name: key
+              value: ccd-gain
+          tags:
+            - tag: Application
+              value: AllSky
+        - uuid: b0815df859bf47fcbe69db919683afdc
+          name: 'AllSky: Stars Count'
+          type: HTTP_AGENT
+          key: allsky.stars.count
+          url: 'http://{HOST.DNS}/REST/zabbix/'
+          query_fields:
+            - name: key
+              value: stars-count
+          tags:
+            - tag: Application
+              value: AllSky
+      macros:
+        - macro: '{$LAST_IMAGE_MAX_LAG}'
+          value: 30s

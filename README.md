@@ -1,3 +1,9 @@
+https://github.com/liponan/sxccd-python
+  https://www.sxccd.com/support/software-development/
+https://github.com/python-zwoasi/python-zwoasi
+https://github.com/emaadparacha/SingleFrame-QHYCCD
+  https://www.qhyccd.com/html/prepub/log_en.html
+
 # allsky.py
 
 Питон+PHP скрипты для AllSky камеры из Raspberry/Orange Pi + ZWO / QHY / Starlight / .... любой INDI.
