@@ -15,7 +15,7 @@ zabbix_export:
         
         The template adds monitoring of:
         
-	TBD        
+        
         * Last image taken, seconds ago
         * CCD Exposure
         * CCD Gain
@@ -29,6 +29,23 @@ zabbix_export:
         * Fits count
         * Jpg count
         * MP4 count
+        
+        The following agent parameters can be used to add the metrics into Zabbix.
+        
+        UserParameter=allsky.ccd.date,/opt/allsky.py/get.py ccd.date
+        UserParameter=allsky.ccd.exposure,/opt/allsky.py/get.py ccd.exposure
+        UserParameter=allsky.ccd.gain,/opt/allsky.py/get.py ccd.gain
+        UserParameter=allsky.ccd.bin,/opt/allsky.py/get.py ccd.bin
+        UserParameter=allsky.sigma.mean,/opt/allsky.py/get.py sigma.mean
+        UserParameter=allsky.sigma.median,/opt/allsky.py/get.py sigma.median
+        UserParameter=allsky.sigma.std,/opt/allsky.py/get.py sigma.std
+        UserParameter=allsky.ai.clear,/opt/allsky.py/get.py ai.clear
+        UserParameter=allsky.ai.cloud,/opt/allsky.py/get.py ai.cloud
+        UserParameter=allsky.dao.stars.count,/opt/allsky.py/get.py dao.stars.count
+        UserParameter=allsky.archive.fits.count,/opt/allsky.py/get.py archive.fits.count
+        UserParameter=allsky.archive.jpg.count,/opt/allsky.py/get.py archive.jpg.count
+        UserParameter=allsky.archive.mp4.count,/opt/allsky.py/get.py archive.mp4.count
+        
         
         ## Author
         
@@ -98,6 +115,11 @@ zabbix_export:
           tags:
             - tag: Application
               value: AllSky
+          triggers:
+            - uuid: ae5b7472eae24417a67d11279e311437
+              expression: 'fuzzytime(/AllSky/allsky.ccd.date,{$LAST_IMAGE_MAX_LAG})=0'
+              name: 'AllSky: Last image taken to much ago'
+              priority: AVERAGE
         - uuid: 52449bfca1e847bd9620ae305c5f09a8
           name: 'AllSky: CCD Exposure'
           type: HTTP_AGENT
@@ -133,3 +155,6 @@ zabbix_export:
           tags:
             - tag: Application
               value: AllSky
+      macros:
+        - macro: '{$LAST_IMAGE_MAX_LAG}'
+          value: 30s
