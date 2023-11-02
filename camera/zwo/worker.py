@@ -77,7 +77,7 @@ def callback(ch, method, props, body):
     hdr['INSTRUME'] = cameras_found[0] #.decode("utf-8")
     hdr['GAIN'] = gain
     hdr['EXPTIME'] = exposure
-    hdr['DATE-OBS'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    hdr['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
     hdu = fits.PrimaryHDU(camera.capture(), header=hdr)
     hdul = fits.HDUList([hdu])
     hdul.writeto('/fits/current.fit', overwrite=True)

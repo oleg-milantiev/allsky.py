@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
 		struct tm * timeinfo;
 		char buffer[80];
 		time (&rawtime);
-		timeinfo = localtime(&rawtime);
+		timeinfo = gmtime(&rawtime);
 
 		strftime(buffer,sizeof(buffer),"%Y-%m-%dT%H:%M:%S",timeinfo);
 

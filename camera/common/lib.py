@@ -44,6 +44,7 @@ def getObservatory():
 
 	return observatory
 
+# d must be in UTC!
 # Return None|string dayPart by given datetime
 # ['day'|'morning'|'evening'|'night'|'night/moon']
 @cache
@@ -53,9 +54,6 @@ def getDayPart(d):
 	if not observatory:
 		return None
 
-	# convert time to GMT
-	# ex. up usage
-	# d = datetime.strptime(f[:-4], '%Y-%m-%d_%H-%M') - timedelta(hours=3)
 	observatory.date = d.strftime('%Y-%m-%d %H:%M') 
 
 	s = ephem.Sun()

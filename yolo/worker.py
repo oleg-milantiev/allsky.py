@@ -30,7 +30,7 @@ observatory = ephem.Observer()
 observatory.lat, observatory.lon = '44.791395', '38.583824'
 s = ephem.Sun()
 
-version = '8'
+version = '2'
 model = {}
 
 for time in ['day', 'morning', 'evening', 'night', 'night/moon']:
@@ -70,7 +70,7 @@ def callback(ch, method, properties, body):
 		return
 
 	# fits header datetime prefered
-	d = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S') - timedelta(hours=3)
+	d = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
 	observatory.date = d.strftime('%Y-%m-%d %H:%M')
 	s.compute(observatory)
 

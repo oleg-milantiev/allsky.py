@@ -66,7 +66,7 @@ def callback(ch, method, props, body):
 	hdr['XBINNING'] = bin
 	hdr['YBINNING'] = bin
 	hdr['EXPTIME'] = exposure
-	hdr['DATE-OBS'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+	hdr['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
 	hdu = fits.PrimaryHDU(qc.GetSingleFrame(), header=hdr)
 	hdul = fits.HDUList([hdu])
 	hdul.writeto('/fits/current.fit', overwrite=True)

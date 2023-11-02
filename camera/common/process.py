@@ -19,7 +19,7 @@ import logging
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from astropy.io import fits
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections.abc import Iterable
 
 
@@ -68,6 +68,8 @@ def callback(ch, method, properties, body):
 
 	stars = None
 	dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
+	if 'timezone' not in web['observatory'] or web['observatory']['timezone'] == '':
+		web['observatory']['timezone'] = 0
 
 	if 'sd' in web['processing'] and 'enable' in web['processing']['sd'] and web['processing']['sd']['enable']:
 		logging.info('Считаю звёзды')
@@ -150,7 +152,7 @@ def callback(ch, method, properties, body):
 				case 'yolo-clear': text = annotation['format'].format('%0.2f' % (float(hdu.header['AI-CLEAR']) * 100) if 'AI-CLEAR' in hdu.header else 'n/a')
 				case 'yolo-cloud': text = annotation['format'].format('%0.2f' % (float(hdu.header['AI-CLOUD']) * 100) if 'AI-CLOUD' in hdu.header else 'n/a')
 				case 'text': text = annotation['format']
-				case 'datetime': text = dateObs.strftime(annotation['format'])
+				case 'datetime': text = (dateObs + timedelta(hours=int(web['observatory']['timezone']))).strftime(annotation['format'])
 				case 'avg' | 'average':  text = annotation['format'].format(avg)
 				case 'exposure':  text = annotation['format'].format(exposure)
 				case _: text = ''
@@ -170,7 +172,7 @@ def callback(ch, method, properties, body):
 	img.save('/snap/'+ body.decode()  +'.jpg')
 	logging.info('Файл ' + body.decode() + '.jpg записан.')
 
-	ts = int(dateObs.timestamp())
+	ts = int((dateObs + timedelta(hours=int(web['observatory']['timezone']))).timestamp() )
 	channel = 0  # мультикамеры
 
 	# try to break "Lock wait timeout exceeded; try restarting transaction" db hang by new connection

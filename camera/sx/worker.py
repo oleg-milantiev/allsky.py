@@ -46,7 +46,7 @@ class IndiClient(PyIndi.BaseClient):
 		hdu.header['INSTRUME'] = cameraName
 		hdu.header['GAIN'] = gain
 		hdu.header['EXPTIME'] = exposure
-		hdu.header['DATE-OBS'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+		hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
 		hdu.writeto('/fits/current.fit', overwrite=True)
 
 		print(" [x] Done")
@@ -211,7 +211,7 @@ def callback(ch, method, props, body):
 		hdu.header['INSTRUME'] = cameraName
 		hdu.header['GAIN'] = gain
 		hdu.header['EXPTIME'] = exposure
-		hdu.header['DATE-OBS'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+		hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
 		hdu.writeto('/fits/current.fit', overwrite=True)
 
 	print(" [+] End exposure")
