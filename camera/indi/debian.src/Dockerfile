@@ -15,7 +15,8 @@ RUN apt-get update && \
     libusb-1.0-0-dev libdc1394-dev libboost-regex-dev libcurl4-gnutls-dev \
     libtheora-dev python3-dev swig libnova-dev \
     python3-astropy python3-pika python3-pillow python3-mysqldb \
-    python3-requests python3-ephem usbutils && \
+    python3-requests python3-pip python3-ephem usbutils && \
+    python3 -m pip install --break-system-packages Adafruit-PureIO && \
      env GIT_SSL_NO_VERIFY=true git clone --depth 1 https://github.com/indilib/indi.git && \
     git clone --depth 1 https://github.com/indilib/pyindi-client.git && \
     git clone --depth 1 https://github.com/indilib/indi-3rdparty && \
@@ -54,7 +55,7 @@ RUN apt-get update && \
     make install && \
     rm -Rf /tmp/indi && \
      apt-get remove -y \
-    python3-setuptools swig \
+    python3-setuptools swig python3-pip \
     git cdbs dkms cmake build-essential \
     libev-dev libgps-dev libgsl-dev libraw-dev libusb-dev zlib1g-dev \
     libftdi-dev libgsl0-dev libjpeg-dev libkrb5-dev libnova-dev libtiff-dev \
@@ -64,7 +65,7 @@ RUN apt-get update && \
     apt autoremove -y && \
      apt-get install -y --no-install-recommends \
     python3-scipy python3-photutils python3-astropy python3-pika python3-pillow \
-    python3-mysqldb python3-requests python3-ephem usbutils libcfitsio10 && \
+    python3-mysqldb python3-requests python3-ephem usbutils libcfitsio10 python3-smbus2 && \
     apt-get clean && \
     rm -Rf /tmp/*
 
