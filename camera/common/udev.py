@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import lib
+
 import os
 import re
 import sys
@@ -38,8 +40,8 @@ while True:
   if result:
     for dev in devs:
       if dev['vendor'] == result.group(1) and dev['product'] == result.group(2):
-        print('/camera/'+ os.getenv('ARCH') +'/fxload '+ result.group(3).replace('$env{DEVNAME}', dev['path']))
-        os.system('/camera/'+ os.getenv('ARCH') +'/fxload '+ result.group(3).replace('$env{DEVNAME}', dev['path']))
+        print('/camera/'+ lib.getArch() +'/fxload '+ result.group(3).replace('$env{DEVNAME}', dev['path']))
+        os.system('/camera/'+ lib.getArch() +'/fxload '+ result.group(3).replace('$env{DEVNAME}', dev['path']))
 
         break
 

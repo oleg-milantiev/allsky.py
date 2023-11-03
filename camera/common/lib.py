@@ -10,6 +10,12 @@ from functools import cache
 import ephem
 
 @cache
+def getArch():
+	import os
+
+	return os.popen('uname -m').read().strip()
+
+@cache
 def getWebConfig():
 	import json
 	import MySQLdb
