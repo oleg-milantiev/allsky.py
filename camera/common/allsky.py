@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import lib
+
 from astropy.io import fits
 import config
 from datetime import datetime
@@ -254,18 +256,8 @@ def findExpo():
 	return
 
 
-# Чтение конфига
-db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
-	 database=config.db['database'], charset='utf8')
+web = lib.getWebConfig()
 
-cursor = db.cursor()
-
-web = {}
-cursor.execute('select id, val from config')
-for row in cursor.fetchall():
-	web[row[0]] = json.loads(row[1])
-
-# Старт
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 logging.info('[+] Start')
