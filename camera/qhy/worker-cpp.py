@@ -10,10 +10,9 @@ import signal
 import time
 
 os.system('python3 /common/udev.py')
+
 sys.path.insert(0, '/common')
-
 import lib
-
 
 def terminate(signal,frame):
 	print("Start Terminating: %s" % datetime.now())

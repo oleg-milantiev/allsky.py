@@ -30,6 +30,9 @@ def getWebConfig():
 	for row in cursor.fetchall():
 		web[row[0]] = json.loads(row[1])
 
+	cursor.close()
+	db.close()
+
 	return web
 
 @cache
