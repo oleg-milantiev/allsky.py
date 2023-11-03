@@ -1,17 +1,19 @@
 #!/usr/bin/python3
 
-import os
-
-os.system('python3 /common/udev.py')
-
-import pika
-import signal
-import sys
-import time
-import json
-
 from astropy.io import fits
 from datetime import datetime
+import json
+import os
+import pika
+import sys
+import signal
+import time
+
+os.system('python3 /common/udev.py')
+sys.path.insert(0, '/common')
+
+import lib
+
 
 def terminate(signal,frame):
 	print("Start Terminating: %s" % datetime.now())
@@ -20,7 +22,7 @@ def terminate(signal,frame):
 signal.signal(signal.SIGTERM, terminate)
 
 
-os.environ['LD_LIBRARY_PATH'] = '/camera/'+ os.getenv('ARCH')
+os.environ['LD_LIBRARY_PATH'] = '/camera/'+ lib.getArch()
 
 print(' [*] Start')
 
@@ -57,7 +59,7 @@ def callback(ch, method, props, body):
 	if payload['exposure'] != exposure:
 		exposure = payload['exposure']
 
-	os.system('/camera/'+ os.getenv('ARCH') +'/SingleFrameMode 10 '+ str(gain) +' 140 '+ str(round(exposure * 1000000)) +' '+ str(bin))
+	os.system('/camera/'+ lib.getArch() +'/SingleFrameMode 10 '+ str(gain) +' 140 '+ str(round(exposure * 1000000)) +' '+ str(bin))
 
 	print(" [x] Done")
 
