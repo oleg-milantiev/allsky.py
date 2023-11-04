@@ -21,11 +21,11 @@ if dialog --stdout --title "Need to install latest DOCKER?" \
           --yesno "If you have clear Debian and dont know anything about 'docker', just answer Yes" 7 60; then
 
 	# remove old docker if exists
-	apt-get remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
+	apt-get remove -y docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
 
 	# install docker-ce + docker-compose
 	apt-get update
-	apt-get install ca-certificates curl gnupg
+	apt-get install -y ca-certificates curl gnupg
 	install -m 0755 -d /etc/apt/keyrings
 	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 	chmod a+r /etc/apt/keyrings/docker.gpg
@@ -36,7 +36,7 @@ if dialog --stdout --title "Need to install latest DOCKER?" \
 	  tee /etc/apt/sources.list.d/docker.list > /dev/null
 	apt-get update
 
-	apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+	apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 fi
 
 if ! [ -f /opt/allsky.py/install.sh ] ; then
