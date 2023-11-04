@@ -44,8 +44,6 @@ if ! [ -f /opt/allsky.py/install.sh ] ; then
 	git clone https://github.com/oleg-milantiev/allsky.py.git
 fi
 
-exit
-
 if [ "$INSTALL_GIT_CODE" = "yes" ]; then
 	clear
 	echo "***************************************************************"
