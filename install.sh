@@ -10,10 +10,10 @@ echo "*                   ... please wait                           *"
 echo "*                                                             *"
 echo "***************************************************************"
 
-#sleep 2
+sleep 2
 
-#apt-get update
-#apt-get install -y dialog git
+apt-get update
+apt-get install -y dialog git
 
 # todo check is current docker-ce installed?
 if dialog --stdout --title "Need to install latest DOCKER?" \
