@@ -44,9 +44,8 @@ for f in os.listdir('./hot'):
 		logging.error('[!] Не соответствует binning')
 		continue
 
-	mean, median, std = sigma_clipped_stats(hdu.data, sigma=3.0)
-
-	print('Sigma-clipped stat: mean={}, median={}, std={}'.format(mean, median, std))
+#	mean, median, std = sigma_clipped_stats(hdu.data, sigma=3.0)
+#	print('Sigma-clipped stat: mean={}, median={}, std={}'.format(mean, median, std))
 
 	'''
 	mask = np.where(hdu.data >= median + std, hdu.data, 0)
@@ -65,13 +64,12 @@ for f in os.listdir('./hot'):
 	sys.exit()
 	'''
 
-	min = median + std/2
-
 	count = 0
 
 	for y in range(1, hdu.data.shape[0] - 1):
 		for x in range(1, hdu.data.shape[1] - 1):
-			if hdu.data[y, x] > (median + std) and hdu.data[y-1, x-1] < min and hdu.data[y-1, x] < min and hdu.data[y-1, x+1] < min and hdu.data[y, x-1] < min and hdu.data[y, x+1] < min and hdu.data[y+1, x-1] < min and hdu.data[y+1, x] < min and hdu.data[y+1, x+1] < min:
+			min = hdu.data[y, x] * 0.5 # чем выше (<1), тем больше битья
+			if hdu.data[y-1, x-1] < min and hdu.data[y-1, x] < min and hdu.data[y-1, x+1] < min and hdu.data[y, x-1] < min and hdu.data[y, x+1] < min and hdu.data[y+1, x-1] < min and hdu.data[y+1, x] < min and hdu.data[y+1, x+1] < min:
 				count += 1
 				avg[y, x] += 1
 
