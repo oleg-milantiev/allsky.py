@@ -735,7 +735,7 @@ $tab = $_GET['tab'] ?? 'users';
 
 	<div class="tab-pane fade<?php echo $tab === 'sensors' ? ' show active' : ''; ?>" id="sensors">
 		<br>
-		<h5 class="card-title">Настройки дачтиков</h5>
+		<h5 class="card-title">Настройки датчиков</h5>
 
 		<form method="POST">
 
