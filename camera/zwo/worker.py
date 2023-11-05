@@ -60,7 +60,7 @@ gain = None
 bin = None
 
 def callback(ch, method, props, body):
-	global camera, gain, exposure, cameras_found
+	global camera, gain, exposure, cameras_found, bin
 
 	payload = json.loads(body.decode())
 	print(" [x] Received %r" % body.decode())
