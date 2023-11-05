@@ -71,7 +71,7 @@ def callback(ch, method, props, body):
 
 	if payload['exposure'] != exposure:
 		exposure = payload['exposure']
-		camera.set_control_value(asi.ASI_EXPOSURE, round(exposure * 1000))
+		camera.set_control_value(asi.ASI_EXPOSURE, round(exposure * 1000000))
 
 	if payload['bin'] != bin:
 		bin = payload['bin']
