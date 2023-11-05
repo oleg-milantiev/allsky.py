@@ -75,7 +75,7 @@ def callback(ch, method, props, body):
 
 	if payload['bin'] != bin:
 		bin = payload['bin']
-		camera.set_roi(bins=b)
+		camera.set_roi(bins=bin)
 
 	hdr = fits.Header()
 	hdr['TELESCOP'] = 'AllSky'
