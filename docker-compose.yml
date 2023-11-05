@@ -94,6 +94,7 @@ services:
     volumes:
       - ./watchdog.py:/watchdog.py:ro
       - ./camera/common/config.py:/config.py:ro
+      - ./camera/common/lib.py:/lib.py:ro
       - ./web:/web
     command: python3 /watchdog.py
     networks:
