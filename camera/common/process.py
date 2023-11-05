@@ -168,8 +168,8 @@ def callback(ch, method, properties, body):
 				case 'yolo-cloud': text = annotation['format'].format('%0.2f' % (float(hdu.header['AI-CLOUD']) * 100) if 'AI-CLOUD' in hdu.header else 'n/a')
 				case 'text': text = annotation['format']
 				case 'datetime': text = (dateObs + timedelta(hours=int(web['observatory']['timezone']))).strftime(annotation['format'])
-				case 'avg' | 'average':  text = annotation['format'].format(avg)
-				case 'exposure':  text = annotation['format'].format(exposure)
+				case 'avg' | 'average':  text = annotation['format'].format(hdu.header['AVG'])
+				case 'exposure':  text = annotation['format'].format(hdu.header['EXPTIME'])
 				case _: text = ''
 
 			d.text(
