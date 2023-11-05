@@ -17,6 +17,7 @@ RUN apt-get update && \
     python3-astropy python3-pika python3-pillow python3-mysqldb \
     python3-requests python3-pip python3-ephem usbutils && \
     python3 -m pip install --break-system-packages Adafruit-PureIO && \
+    python3 -m pip install --break-system-packages zwoasi && \
      env GIT_SSL_NO_VERIFY=true git clone --depth 1 https://github.com/indilib/indi.git && \
     git clone --depth 1 https://github.com/indilib/pyindi-client.git && \
     git clone --depth 1 https://github.com/indilib/indi-3rdparty && \
