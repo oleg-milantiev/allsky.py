@@ -10,10 +10,10 @@ echo "*                   ... please wait                           *"
 echo "*                                                             *"
 echo "***************************************************************"
 
-#sleep 2
+sleep 2
 
-#apt-get update
-#apt-get install -y dialog git
+apt-get update
+apt-get install -y dialog git
 
 # todo check is current docker-ce installed?
 if dialog --stdout --title "Need to install latest DOCKER?" \
@@ -21,30 +21,28 @@ if dialog --stdout --title "Need to install latest DOCKER?" \
           --yesno "If you have clear Debian and dont know anything about 'docker', just answer Yes" 7 60; then
 
 	# remove old docker if exists
-	apt-get remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
+	apt-get remove -y docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
 
 	# install docker-ce + docker-compose
 	apt-get update
-	apt-get install ca-certificates curl gnupg
+	apt-get install -y ca-certificates curl gnupg
 	install -m 0755 -d /etc/apt/keyrings
-	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 	chmod a+r /etc/apt/keyrings/docker.gpg
 
 	echo \
-	  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+	  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
 	  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
 	  tee /etc/apt/sources.list.d/docker.list > /dev/null
 	apt-get update
 
-	apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+	apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 fi
 
 if ! [ -f /opt/allsky.py/install.sh ] ; then
 	cd /opt
 	git clone https://github.com/oleg-milantiev/allsky.py.git
 fi
-
-exit
 
 if [ "$INSTALL_GIT_CODE" = "yes" ]; then
 	clear
