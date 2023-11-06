@@ -5,7 +5,7 @@
 import board
 import busio
 import digitalio
-import adafruit_bme280
+import bme280
 
 import time
 
