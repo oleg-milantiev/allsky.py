@@ -49,7 +49,7 @@ def getObservatory():
 		return None
 
 	observatory = ephem.Observer()
-	observatory.lat, observatory.lon = web['observatory']['lat'], web['observatory']['lon']
+	observatory.lat, observatory.lon = str(web['observatory']['lat']), str(web['observatory']['lon'])
 
 	return observatory
 
