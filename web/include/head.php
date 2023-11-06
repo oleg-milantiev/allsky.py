@@ -79,6 +79,8 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 	}
 }
 
+date_default_timezone_set('Etc/GMT'. -$config['observatory']['timezone'] ?? '');
+
 if (isset($_GET['action'])) {
 	switch ($_GET['action']) {
 		case 'logout':
