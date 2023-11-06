@@ -59,6 +59,11 @@ if (not(indiclient.connectServer())):
 
 time.sleep(2)
 
+dl=indiclient.getDevices()
+for dev in dl:
+    print(dev.getDeviceName())
+
 #while True:
 #	time.sleep(1)
 
+indiclient.disconnectServer()
