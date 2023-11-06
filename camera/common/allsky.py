@@ -290,7 +290,7 @@ while True:
 			hdu = None
 			logging.error('Не получил fit от контейнера камеры')
 
-		if hdu is not None and round(hdu.header['EXPTIME'], 2) == round(exposure, 2) and round(hdu.header['GAIN'], 2) == round(gain, 2) and int(hdu.header['XBINNING']) == bin:
+		if hdu is not None and round(hdu.header['EXPTIME'], 2) == round(exposure, 2) and (hdu.header['GAIN'] is None or (round(hdu.header['GAIN'], 2) == round(gain, 2))) and int(hdu.header['XBINNING']) == bin:
 			break;
 
 		if hdu is not None:

@@ -51,8 +51,6 @@ services:
   yolo:
     profiles:
       - yolo
-      - sx
-#      - qhy
     image: olegmilantiev/allsky-yolo
     container_name: allsky-yolo
     logging:
@@ -71,7 +69,7 @@ services:
     networks:
       appnet:
         aliases:
-          - daemon
+          - yolo
 
   watchdog:
     image: olegmilantiev/allsky-indi
@@ -83,7 +81,7 @@ services:
     depends_on:
       - allsky
       - process
-#      - camera
+      - camera
       - db
       - rabbit
       - nginx
@@ -111,7 +109,7 @@ services:
         max-file: "3"
     depends_on:
       - rabbit
-#      - camera
+      - camera
       - db
     env_file:
       - .env
@@ -150,11 +148,9 @@ services:
         aliases:
           - daemon
 
-  # Starlight Xpress (base on INDI)
-  camera-sx:
+  # INDI client camera
+  camera:
     image: olegmilantiev/allsky-indi
-    profiles:
-      - sx
     container_name: allsky-camera
     logging:
       options:
@@ -169,7 +165,7 @@ services:
     command: python3 /camera/worker.py
     privileged: true
     volumes:
-      - ./camera/sx:/camera:ro
+      - ./camera/indi:/camera:ro
 
       - ./camera/common:/common:ro
       - ./web/fits:/fits
@@ -180,10 +176,9 @@ services:
         aliases:
           - camera
 
+  # INDI server
   indi:
     image: olegmilantiev/allsky-indi
-    profiles:
-      - qhyz
     container_name: allsky-indi
     logging:
       options:
@@ -205,6 +200,7 @@ services:
         aliases:
           - indi
 
+  # CPP or Python QHY camera client (if not like INDI client)
   camera-qhy:
     image: olegmilantiev/allsky-indi
     container_name: allsky-camera
@@ -219,7 +215,6 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-#    command: sleep 99999999
     command: python3 /camera/worker-cpp.py
 #    command: python3 /camera/worker-pyqhy.py
     privileged: true
@@ -236,6 +231,7 @@ services:
         aliases:
           - camera
 
+  # Python ZWO camera client (if not like INDI client)
   camera-zwo:
     image: olegmilantiev/allsky-indi
     container_name: allsky-camera

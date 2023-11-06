@@ -65,6 +65,7 @@ RUN apt-get update && \
     libtheora-dev python3-dev swig libnova-dev gcc make && \
     apt autoremove -y && \
      apt-get install -y --no-install-recommends \
+    libev4 libnova-0.16-0 libfftw3-double3 libtheora0 \
     python3-scipy python3-photutils python3-astropy python3-pika python3-pillow \
     python3-mysqldb python3-requests python3-ephem usbutils libcfitsio10 python3-smbus2 && \
     apt-get clean && \
