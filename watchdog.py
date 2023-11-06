@@ -55,11 +55,6 @@ def watchdog():
 
 	minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
-	db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
-		 database=config.db['database'], charset='utf8')
-
-	cursor = db.cursor()
-
 	# Задачи watchdog
 	# + сбор мусора (архив фото, видео, фитов)
 	# - есть ли место?
@@ -142,12 +137,19 @@ def watchdog():
 #		if datetime.now().hour == 12 and datetime.now().minute == 0:
 #			# TBD
 
-
 		# every hour remove old sensor data from db
 		if datetime.now().minute == 44:
+			db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+				 database=config.db['database'], charset='utf8')
+
+			cursor = db.cursor()
+
 			print('Removing old sensors data: start')
 			cursor.execute('delete from sensor where date < '+ str(time.time() - 86400 * int(web['archive']['sensors'])))
 			print('Removing old sensors data: done')
+
+			cursor.close()
+			db.close()
 
 		# remove old jpg, fit, mp4
 		for ext in folders:
@@ -175,10 +177,6 @@ def watchdog():
 			time.sleep(1)
 
 		minute = now
-
-	cursor.close()
-	db.close()
-
 
 running = True
 thread = Thread(target = watchdog)
