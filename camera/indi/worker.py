@@ -46,12 +46,14 @@ class IndiClient(PyIndi.BaseClient):
 		fit = fits.open(io.BytesIO(bp.getblobdata()))
 		hdu = fit[0]
 		hdu.header['TELESCOP'] = 'AllSky'
-		hdu.header['INSTRUME'] = cameraName
-		hdu.header['GAIN'] = gain
-		hdu.header['XBINNING'] = bin
-		hdu.header['YBINNING'] = bin
-		hdu.header['EXPTIME'] = exposure
-		hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
+#		hdu.header['INSTRUME'] = cameraName
+#		if hasGain:
+#			hdu.header['GAIN'] = gain
+#		if hasBinning:
+#			hdu.header['XBINNING'] = bin
+#			hdu.header['YBINNING'] = bin
+#		hdu.header['EXPTIME'] = exposure
+#		hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
 		hdu.writeto('/fits/current.fit', overwrite=True)
 
 		print(" [x] Done")
@@ -238,18 +240,27 @@ def callback(ch, method, props, body):
 	# @todo thread.lock and timeout
 	time.sleep(exposure + 2)
 
+	fit = None
 	for blob in ccd_ccd1:
 		print(" [+] Have BLOB: ", blob.name," size: ", blob.size," format: ", blob.format)
-		fit = fits.open(io.BytesIO(blob.getblobdata()))
-		hdu = fit[0]
-		hdu.header['TELESCOP'] = 'AllSky'
-		hdu.header['INSTRUME'] = cameraName
-		hdu.header['GAIN'] = gain
-		hdu.header['XBINNING'] = bin
-		hdu.header['YBINNING'] = bin
-		hdu.header['EXPTIME'] = exposure
-		hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
-		hdu.writeto('/fits/current.fit', overwrite=True)
+		if blob.size > 0:
+			fit = fits.open(io.BytesIO(blob.getblobdata()))
+			hdu = fit[0]
+#			print(hdu.header)
+#			sys.exit()
+			hdu.header['TELESCOP'] = 'AllSky'
+#			hdu.header['INSTRUME'] = cameraName
+#			if hasGain:
+#				hdu.header['GAIN'] = gain
+#			if hasBinning:
+#				hdu.header['XBINNING'] = bin
+#				hdu.header['YBINNING'] = bin
+#			hdu.header['EXPTIME'] = exposure
+#			hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
+			hdu.writeto('/fits/current.fit', overwrite=True)
+
+	if fit is None:
+		print(' [!] Cant get image')
 
 	print(" [+] End exposure")
 

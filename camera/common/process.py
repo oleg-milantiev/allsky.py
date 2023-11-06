@@ -82,7 +82,7 @@ def callback(ch, method, properties, body):
 		logging.debug('Удалено горячих пикселей: {}'.format(hotCount))
 
 	stars = None
-	dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
+	dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S.%f')
 	if 'timezone' not in web['observatory'] or web['observatory']['timezone'] == '':
 		web['observatory']['timezone'] = 0
 
@@ -195,32 +195,32 @@ def callback(ch, method, properties, body):
 		 database=config.db['database'], charset='utf8')
 	cursor2 = db2.cursor()
 
-	if 'EXPTIME' in hdu.header:
+	if 'EXPTIME' in hdu.header and hdu.header['EXPTIME'] is not None:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": hdu.header['EXPTIME']})
 
-	if 'AVG' in hdu.header:
+	if 'AVG' in hdu.header and hdu.header['AVG'] is not None:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['AVG']})
 
-	if 'GAIN' in hdu.header:
+	if 'GAIN' in hdu.header and hdu.header['GAIN'] is not None:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": hdu.header['GAIN']})
 
-	if 'XBINNING' in hdu.header:
+	if 'XBINNING' in hdu.header and hdu.header['XBINNING'] is not None:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
 
-	if 'AI-CLEAR' in hdu.header:
+	if 'AI-CLEAR' in hdu.header and hdu.header['AI-CLEAN'] is not None:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ai-clear', "val": hdu.header['AI-CLEAR']})
 
-	if 'AI-CLOUD' in hdu.header:
+	if 'AI-CLOUD' in hdu.header and hdu.header['AI-CLOUD'] is not None:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ai-cloud', "val": hdu.header['AI-CLOUD']})
