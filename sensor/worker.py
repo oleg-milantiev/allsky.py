@@ -10,10 +10,19 @@ import os
 #import re
 import signal
 import sys
+
+# I2C BME280
 import smbus2
 import bme280
 #import time
 #from threading import Thread
+
+# SPI BME280
+import board
+import busio
+import digitalio
+import adafruit_bme280
+
 
 sys.path.insert(0, '/camera')
 import config
@@ -50,6 +59,17 @@ for f in os.listdir('/dev'):
 			channels.append({'sensor': 'bme280', 'bus': 'i2c', 'port': port})
 		except:
 			print('[-] No BME280 on /dev/'+ f)
+
+try:
+	spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+	cs = digitalio.DigitalInOut(board.D22)
+	data = adafruit_bme280.Adafruit_BME280_SPI(spi, cs)
+
+	print('[+] Found BME280(SPI)')
+	channels.append({'sensor': 'bme280', 'bus': 'spi'})
+except:
+	print('[-] No BME280 on SPI')
+
 
 print(channels)
 
