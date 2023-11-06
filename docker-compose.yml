@@ -312,7 +312,7 @@ services:
         max-file: "3"
     restart: unless-stopped
     ports:
-      - 81:80
+      - 80:80
     volumes:
       - ./nginx/allsky.conf:/etc/nginx/conf.d/allsky.conf:ro
       - ./web:/var/www/html
