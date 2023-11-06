@@ -47,13 +47,13 @@ class IndiClient(PyIndi.BaseClient):
 		hdu = fit[0]
 		hdu.header['TELESCOP'] = 'AllSky'
 #		hdu.header['INSTRUME'] = cameraName
-#		if hasGain:
+#		if not 'GAIN' in hdu.header:
 #			hdu.header['GAIN'] = gain
 #		if hasBinning:
 #			hdu.header['XBINNING'] = bin
 #			hdu.header['YBINNING'] = bin
 #		hdu.header['EXPTIME'] = exposure
-#		hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
+		hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
 		hdu.writeto('/fits/current.fit', overwrite=True)
 
 		print(" [x] Done")
@@ -250,13 +250,13 @@ def callback(ch, method, props, body):
 #			sys.exit()
 			hdu.header['TELESCOP'] = 'AllSky'
 #			hdu.header['INSTRUME'] = cameraName
-#			if hasGain:
+#			if not 'GAIN' in hdu.header:
 #				hdu.header['GAIN'] = gain
 #			if hasBinning:
 #				hdu.header['XBINNING'] = bin
 #				hdu.header['YBINNING'] = bin
 #			hdu.header['EXPTIME'] = exposure
-#			hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
+			hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
 			hdu.writeto('/fits/current.fit', overwrite=True)
 
 	if fit is None:

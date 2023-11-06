@@ -81,9 +81,18 @@ def callback(ch, method, properties, body):
 
 		logging.debug('Удалено горячих пикселей: {}'.format(hotCount))
 
+	if 'lat' in web['observatory'] and web['observatory']['lat'] != '':
+		hdu.header.set('LAT', web['observatory']['lat'], 'Observatory latitude')
+	if 'lon' in web['observatory'] and web['observatory']['lon'] != '':
+		hdu.header.set('LON', web['observatory']['lon'], 'Observatory longitude')
+
 	stars = None
-	dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S.%f')
-	if 'timezone' not in web['observatory'] or web['observatory']['timezone'] == '':
+	#dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S.%f')
+	dateObs = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S')
+
+	if 'timezone' in web['observatory'] and web['observatory']['timezone'] != '':
+		hdu.header.set('TIMEZONE', web['observatory']['timezone'], 'Observatory timezone')
+	else:
 		web['observatory']['timezone'] = 0
 
 	if 'sd' in web['processing'] and 'enable' in web['processing']['sd'] and web['processing']['sd']['enable']:
