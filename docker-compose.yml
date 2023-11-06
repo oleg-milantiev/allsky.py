@@ -99,6 +99,32 @@ services:
       appnet:
         aliases:
           - daemon
+          
+  sensor:
+    image: olegmilantiev/allsky-indi
+    container_name: allsky-sensor
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - db
+      - rabbit
+    env_file:
+      - .env
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - ./sensor:/sensor:ro
+      - ./camera/common:/camera:ro
+    devices:
+      - /dev:/dev
+    command: sleep 99999999
+#    command: python3 /sensor/worker.py
+    networks:
+      appnet:
+        aliases:
+          - sensor
 
   allsky:
     image: olegmilantiev/allsky-indi
