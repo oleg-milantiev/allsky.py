@@ -32,7 +32,7 @@ logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 logging.info('[+] Discovering sensors')
 
-channel = 0
+channels = []
 
 # try BME280 i2c 
 for f in os.listdir('/dev'):
@@ -45,9 +45,13 @@ for f in os.listdir('/dev'):
 			bus = smbus2.SMBus(port)
 			bme280.load_calibration_params(bus, address)
 			data = bme280.sample(bus, address)
+
+			print('[+] Found BME280(I2C) on /dev/'+ f)
+			channels.append({'sensor': 'bme280', 'bus': 'i2c', 'port': port})
 		except:
 			print('[-] No BME280 on /dev/'+ f)
 
+print(channels)
 
 sys.exit()
 
