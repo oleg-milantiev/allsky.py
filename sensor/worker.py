@@ -5,7 +5,7 @@ from datetime import datetime#, timedelta
 #import json
 import logging
 import MySQLdb
-#import os
+import os
 #import pika
 #import re
 import signal
@@ -26,17 +26,30 @@ def terminate(signal,frame):
 
 signal.signal(signal.SIGTERM, terminate)
 
-web = lib.getWebConfig()
+#web = lib.getWebConfig()
 
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 logging.info('[+] Discovering sensors')
+
 channel = 0
 
-# try BME280 i2c
-port = 0
-address = 0x76
-bus = smbus2.SMBus(port)
+# try BME280 i2c 
+for f in os.listdir('/dev'):
+	if f[0:4] == 'i2c-':
+		port = int(f[4:])
+
+		try:
+			print('[.] Search BME280 on /dev/'+ f)
+			address = 0x76
+			bus = smbus2.SMBus(port)
+			bme280.load_calibration_params(bus, address)
+			data = bme280.sample(bus, address)
+		except:
+			print('[-] No BME280 on /dev/'+ f)
+
+
+sys.exit()
 
 bme280.load_calibration_params(bus, address)
 data = bme280.sample(bus, address)
