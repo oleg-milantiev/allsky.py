@@ -85,14 +85,14 @@ while True:
 		for channel in range(len(channels)):
 			data = None
 
-			if channels[channel].sensor == 'bme280':
-				if channels[channel].bus == 'i2c':
+			if channels[channel]['sensor'] == 'bme280':
+				if channels[channel]['bus'] == 'i2c':
 					address = 0x76
-					bus = smbus2.SMBus(channels[channel].port)
+					bus = smbus2.SMBus(channels[channel]['port'])
 					bme280.load_calibration_params(bus, address)
 					data = bme280.sample(bus, address)
 
-				elif channels[channel].bus == 'spi':
+				elif channels[channel]['bus'] == 'spi':
 					spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 					cs = digitalio.DigitalInOut(board.D22)
 					data = adafruit_bme280.Adafruit_BME280_SPI(spi, cs)
