@@ -429,6 +429,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					'bme280' => [
 						0 => ['name' => $_POST['bme280'][0]['name'] ?? ''],
 						1 => ['name' => $_POST['bme280'][1]['name'] ?? ''],
+						'inside' => (int) ($_POST['bme280']['inside'] ?? 0),
 					],
 					'ads1115' => [
 						0 => [

@@ -752,6 +752,14 @@ $tab = $_GET['tab'] ?? 'users';
 						<label>Название второго датчика:</label>
 						<input class="form-control" type="text" name="bme280[1][name]" value="<?php echo $config['sensors']['bme280'][1]['name'] ?? ''; ?>">
 					</div>
+					<div class="form-group">
+						<label>Датчик под куполом камеры:</label>
+						<select class="form-control" name="bme280[inside]">
+							<option value="">- нет -</option>
+							<option value="1"<?php echo (isset($config['sensors']['bme280']['inside']) and $config['sensors']['bme280']['inside'] == 1) ? ' selected' : '' ;?>>1</option>
+							<option value="2"<?php echo (isset($config['sensors']['bme280']['inside']) and $config['sensors']['bme280']['inside'] == 2) ? ' selected' : '' ;?>>2</option>
+						</select>
+					</div>
 				</div>
 			</div>
 			<br>
