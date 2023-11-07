@@ -17,10 +17,10 @@ function reload($modules = [])
 	}
 
 	$connection = new AMQPStreamConnection(
-		$_ENV['RABBITMQ_HOST'], 
-		$_ENV['RABBITMQ_PORT'], 
-		$_ENV['RABBITMQ_DEFAULT_USER'], 
-		$_ENV['RABBITMQ_DEFAULT_PASS'], 
+		$_ENV['RABBITMQ_HOST'],
+		$_ENV['RABBITMQ_PORT'],
+		$_ENV['RABBITMQ_DEFAULT_USER'],
+		$_ENV['RABBITMQ_DEFAULT_PASS'],
 		'/');
 	$channel = $connection->channel();
 
@@ -87,7 +87,7 @@ if (isset($_GET['action'])) {
 			unset($_SESSION['user']);
 			break;
 	}
-	
+
 	header('Location: /?time='. time());
 }
 
@@ -103,24 +103,24 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			) {
 				die('Страница недоступна');
 			}
-			
+
 			foreach ($config['relay'] as $relay) {
 				if ($relay['gpio'] == $_POST['gpio']) {
 					$file = '/sys/class/gpio/gpio'. $relay['gpio'] .'/value';
-					
+
 					file_put_contents(
 						$file,
 						$_POST['state'] ? '1' : '0'
 					);
-					
+
 					$sth = $dbh->prepare('replace into relay (id, state, date) values (:id, :state, :date)');
-					
+
 					$sth->execute([
 						'id'    => $relay['name'],
 						'state' => $_POST['state'],
 						'date'  => time(),
 					]);
-					
+
 					echo json_encode([
 						'status' => 200,
 						'gpio'   => $_POST['gpio'],
@@ -129,7 +129,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					exit;
 				}
 			}
-			
+
 			die('Реле не найдено');
 
 		case 'settings-users':
@@ -478,18 +478,18 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 			}
 
 			$sth = $dbh->prepare('select * from user where email = :email and password = :password');
-			
+
 			$sth->execute([
 				'email'    => $_POST['email'],
 				'password' => $_POST['password'],
 			]);
-			
+
 			$user = $sth->fetch(PDO::FETCH_ASSOC);
-			
+
 			if (!isset($user['id'])) {
 				break;
 			}
-			
+
 			$_SESSION['user'] = $user;
 			break;
 	}
@@ -593,7 +593,7 @@ if (
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent15" aria-controls="navbarSupportedContent15" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
 	</div>
 	<!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
-	
+
 	<?php if (isset($_SESSION['user'])):?>
 		<span class="text-info">Добро пожаловать, <?php echo $_SESSION['user']['name']?></span>
 	<?php endif;?>
@@ -607,7 +607,7 @@ if (
 			<?php endif;?>
 		</li>
 	</ul>
-	
+
 	<div class="collapse p-0 navbar-collapse navbar navbar-dark bg-dark shadow" id="navbarSupportedContent15">
 		<ul class="navbar-nav mr-auto">
 			<li class="nav-item">
@@ -735,7 +735,7 @@ if (
 						<?php endforeach; ?>
 					</ul>
 				<?php endif; ?>
-				
+
 				<?php if (isset($_SESSION['user'])):?>
 					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
 						<span>Недавние события</span>
@@ -745,7 +745,7 @@ if (
 							<li class="nav-item">
 								<a class="nav-link" href="#">
 									<span data-feather="file-text"></span>
-									Реле <?php echo $item['id']?> 
+									Реле <?php echo $item['id']?>
 									<?php if ($item['state']): ?>
 										<span class="bg-success">включено</span>
 									<?php else:?>
@@ -757,7 +757,7 @@ if (
 						<?php endforeach; ?>
 					</ul>
 				<?php endif; ?>
-				
+
 			</div>
 		</nav>
 

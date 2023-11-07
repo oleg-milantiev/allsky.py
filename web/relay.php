@@ -29,8 +29,8 @@ if (isset($config['relay'])) {
 </p>
 
 <div class="row">
-	<?php if (isset($config['relay'])): ?>
-		<?php foreach ($config['relay'] as $relay): ?>
+	<?php if (isset($config['relays'])): ?>
+		<?php foreach ($config['relays'] as $relay): ?>
 			<div class="col-lg-2 text-center">
 				<a href="#" rel="<?php echo $relay['gpio']; ?>" class="btn btn-<?php echo $relays[ $relay['gpio'] ] ? 'success': 'danger'?> relay">
 					<span data-feather="power"></span>
@@ -44,7 +44,7 @@ if (isset($config['relay'])) {
 </div>
 
 <p style="padding-top: 50px">
-	Настройка реле в разделе "реле" настроек <a href="/settings.php" target="_blank">Настройки</a>.<br>
+	Настройка реле в разделе "реле" настроек <a href="/settings.php?tab=relays">Настройки</a>.<br>
 </p>
 
 
@@ -52,7 +52,7 @@ if (isset($config['relay'])) {
 	$(document).ready(function(){
 		$('a.relay').click(function(e){
 			e.preventDefault();
-			
+
 			if (confirm(
 				'Вы уверены, что хотите '+
 				($(this).hasClass('btn-success') ? 'ВЫКЛЮЧИТЬ' : 'ВКЛЮЧИТЬ' ) +
@@ -64,9 +64,9 @@ if (isset($config['relay'])) {
 					'gpio':   $(this).attr('rel'),
 					'state':  $(this).hasClass('btn-success') ? 0 : 1
 				}, function(data){
-					
+
 					document.location.reload();
-					
+
 				}, 'json');
 			}
 		});

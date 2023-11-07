@@ -119,8 +119,7 @@ services:
       - ./camera/common:/camera:ro
     devices:
       - /dev:/dev
-    command: sleep 99999999
-#    command: python3 /sensor/worker.py
+    command: python3 /sensor/worker.py
     networks:
       appnet:
         aliases:
@@ -366,6 +365,7 @@ services:
     volumes:
       - ./web:/var/www/html:ro
       - .:/opt/allsky.py:ro
+      - /sys/class/gpio:/sys/class/gpio
 
 volumes:
   my-db:
