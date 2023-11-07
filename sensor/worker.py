@@ -6,6 +6,7 @@ import MySQLdb
 import os
 import signal
 import sys
+import time
 
 # https://docs.circuitpython.org/projects/bme280/en/latest/examples.html
 import board
