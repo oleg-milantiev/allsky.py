@@ -530,7 +530,7 @@ if (
 			]);
 
 			if ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-				$sensors[ $typeNames[$row['type']] ][ $channelName ] = [
+				$sensors[ $typeNames[$row['type']] ][ $channelName['name'] ] = [
 					'date' => $row['date'],
 					'val'  => $row['val'],
 				];
