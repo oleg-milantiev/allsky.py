@@ -196,7 +196,7 @@ def callback(ch, method, properties, body):
 	img.save('/snap/'+ body.decode()  +'.jpg')
 	logging.info('Файл ' + body.decode() + '.jpg записан.')
 
-	ts = int((dateObs + timedelta(hours=int(web['observatory']['timezone']))).timestamp() )
+	ts = dateObs.timestamp()
 	channel = 0  # мультикамеры
 
 	# try to break "Lock wait timeout exceeded; try restarting transaction" db hang by new connection

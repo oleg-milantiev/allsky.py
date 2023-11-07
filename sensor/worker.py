@@ -23,6 +23,8 @@ def terminate(signal,frame):
 
 signal.signal(signal.SIGTERM, terminate)
 
+web = lib.getWebConfig()
+
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 
 logging.info('[+] Discovering sensors')
@@ -86,7 +88,9 @@ while True:
 
 		cursor = db.cursor()
 
-		ts = int(time.time())
+		ts = time.time()
+		if 'timezone' in web['observatory']:
+			ts += web['observatory']['timezone'] * 3600
 
 		# get sensors data
 		for channel in range(len(channels)):
@@ -112,7 +116,7 @@ while True:
 					#data = adafruit_bme280.Adafruit_BME280_SPI(spi, cs)
 
 			if data is not None:
-				print(data)
+				print('[+] Put sensor data into db')
 
 				# store sensors data
 				cursor.execute("""INSERT INTO sensor(date, channel, type, val)
