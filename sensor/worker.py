@@ -140,6 +140,7 @@ while True:
 					VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 					"""%{"time":ts, "channel":channel, "type": 'pressure', "val":data.pressure * 0.75 })
 
+		db.commit()
 		cursor.close()
 		db.close()
 
