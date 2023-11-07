@@ -21,7 +21,9 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 echo "Opening relays GPIO ports for output\n";
 
 foreach ($config['relays'] as $relay) {
-	file_put_contents('/sys/class/gpio/export', (int) $relay['gpio']);
+	if (!file_exists('/sys/class/gpio/gpio'. intval($relay['gpio']))) {
+		file_put_contents('/sys/class/gpio/export', (int) $relay['gpio']);
+	}
 }
 
 sleep(1);
@@ -44,5 +46,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 echo "Setting initial relays GPIO state\n";
 foreach ($config['relays'] as $relay) {
 	echo '+ set relay '. $relay['gpio'] .' to '. ($states[ (int) $relay['gpio'] ] ?? 0) ."\n";
-	file_put_contents('/sys/class/gpio/gpio'. intval($relay['gpio']) .'/value', $states[ (int) $relay['gpio'] ] ?? 0);
+	$file = '/sys/class/gpio/gpio'. intval($relay['gpio']) .'/value';
+	file_put_contents($file, $states[ (int) $relay['gpio'] ] ?? 0);
+	chown($file, 82);
 }
