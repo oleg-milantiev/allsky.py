@@ -523,6 +523,10 @@ if (
 	];
 
 	foreach ($config['sensors']['bme280'] as $channel => $channelName) {
+		if ($channel === 'inside') {
+			continue;
+		}
+
 		foreach (['temperature', 'humidity', 'pressure'] as $type) {
 			$sth = $dbh->prepare('select * from sensor where channel = :channel and type = :type order by date desc limit 1');
 			$sth->execute([
