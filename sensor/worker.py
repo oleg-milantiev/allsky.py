@@ -51,7 +51,7 @@ for f in os.listdir('/dev'):
 '''
 try:
 	i2c = board.I2C()  # uses board.SCL and board.SDA
-	bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+	bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
 
 	logging.info('[+] Found BME280(I2C)')
 	channels.append({'sensor': 'bme280', 'bus': 'i2c'})
@@ -95,7 +95,7 @@ while True:
 			if channels[channel]['sensor'] == 'bme280':
 				if channels[channel]['bus'] == 'i2c':
 					i2c = board.I2C()  # uses board.SCL and board.SDA
-					data = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+					data = adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
 
 					#address = 0x76
 					#bus = smbus2.SMBus(channels[channel]['port'])
