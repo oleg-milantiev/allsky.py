@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+#- pip3 install Adafruit_ADS1x15 Adafruit_Python_PureIO.git Adafruit_Python_GPIO.git. Но иногда может не прокатить. Поэтому я добавил эти три библиотеки в /opt/allsky.py/ads1115
+
+
 import time
 import Adafruit_ADS1x15
 import mysql.connector

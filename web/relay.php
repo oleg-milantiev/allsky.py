@@ -12,8 +12,8 @@ if (!isset($_SESSION['user'])) {
 
 $relays = [];
 
-if (isset($config['relay'])) {
-	foreach ($config['relay'] as $relay) {
+if (isset($config['relays'])) {
+	foreach ($config['relays'] as $relay) {
 		$relays[ $relay['gpio'] ] = intval(trim(file_get_contents('/sys/class/gpio/gpio'. $relay['gpio'] .'/value')));
 	}
 }

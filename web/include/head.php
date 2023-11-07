@@ -56,13 +56,6 @@ function reload($modules = [])
 	$connection->close();
 }
 
-$statConfig = stat('/opt/allsky.py/camera/common/config.py');
-$statJSON   = stat('/opt/allsky.py/camera/common/config.py.json');
-
-#if (!isset($statJSON['mtime']) or !$statJSON['size'] or ($statJSON['mtime'] < $statConfig['mtime'])) {
-#	`/opt/allsky.py/camera/common/config.json.py`;
-#}
-
 $config = json_decode(file_get_contents('/opt/allsky.py/camera/common/config.py.json'), true);
 
 $dbh = new PDO(
@@ -104,7 +97,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				die('Страница недоступна');
 			}
 
-			foreach ($config['relay'] as $relay) {
+			foreach ($config['relays'] as $relay) {
 				if ($relay['gpio'] == $_POST['gpio']) {
 					$file = '/sys/class/gpio/gpio'. $relay['gpio'] .'/value';
 

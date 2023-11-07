@@ -99,7 +99,7 @@ services:
       appnet:
         aliases:
           - daemon
-          
+
   sensor:
     image: olegmilantiev/allsky-indi
     container_name: allsky-sensor
@@ -358,6 +358,7 @@ services:
       - nginx
     expose:
       - 9000
+    privileged: true
     networks:
       appnet:
         aliases:
