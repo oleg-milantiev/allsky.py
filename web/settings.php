@@ -367,6 +367,28 @@ $tab = $_GET['tab'] ?? 'users';
 
 			<div class="card">
 				<div class="card-body">
+					<h6 class="card-title">Яркость / контрастность / ..</h6>
+
+					<div class="form-group">
+						<label>
+							Гамма коррекция:
+							<div style="color: gray">1 = выключена</div>
+						</label>
+						<input class="form-control" type="text" name="gamma" value="<?php echo $config['processing']['gamma'] ?? 1; ?>">
+					</div>
+					<div class="form-group">
+						<label>
+							Автоконтраст:
+							<div style="color: gray">0 = выключен, 0.1 = 10% гистограммы выкинуть</div>
+						</label>
+						<input class="form-control" type="text" name="autoContrast" value="<?php echo $config['processing']['autoContrast'] ?? 0; ?>">
+					</div>
+				</div>
+			</div>
+			<br>
+
+			<div class="card">
+				<div class="card-body">
 					<h6 class="card-title">Аннотации (наложение текста)</h6>
 
 					<table class="table table-striped annotation">
@@ -605,22 +627,6 @@ $tab = $_GET['tab'] ?? 'users';
 
 					</div>
 				</div>
-				<script>
-					$(function(){
-						$('input#yolo-enable').click(yolo_enable);
-					});
-
-					yolo_enable();
-					function yolo_enable()
-					{
-						if ($('input#yolo-enable').is(':checked')) {
-							$('.yolo-enable').show();
-						}
-						else {
-							$('.yolo-enable').hide();
-						}
-					}
-				</script>
 			</div>
 
 			<br>
