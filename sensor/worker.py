@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from datetime import datetime#, timedelta
+from datetime import datetime
 import logging
 import MySQLdb
 import os

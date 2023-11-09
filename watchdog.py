@@ -156,8 +156,8 @@ def watchdog():
 
 			videoFilename = '/web/video/'+ now.strftime('%Y-%m-%d') +'.mp4'
 			keoFilename = '/web/keogram/keogram-'+ now.strftime('%Y-%m-%d') +'.jpg'
-#			if not os.path.isfile(videoFilename):
-			if not os.path.isfile(keoFilename):
+			if not os.path.isfile(videoFilename):
+#			if not os.path.isfile(keoFilename):
 
 				observatory = lib.getObservatory()
 
@@ -192,6 +192,9 @@ def watchdog():
 						logging.debug('[.] Found suitable images: {}, minWidth={}, minHeight={}'.format(len(files), minWidth, minHeight))
 						keogram = Image.new('RGB', (len(files), minHeight), 'black')
 
+						for f in glob.glob('/web/snap/day-*.jpg'):
+							os.remove(f)
+
 						i = 0
 						for f in files:
 							im = Image.open(f)
@@ -200,9 +203,23 @@ def watchdog():
 								im.resize((minWidth, minHeight))
 
 							keogram.paste(im.crop( (math.floor(minWidth / 2), 0, math.floor(minWidth / 2) + 1, minHeight) ), (i, 0) )
+							os.symlink(f, '/web/snap/day-'+ "%06d" % i +'.jpg')
+
 							i += 1
 
 						keogram.save(keoFilename)
+
+						scale = '{}:{}'.format(minWidth, minHeight)
+
+						if 'cfa' in web['ccd']:
+							options = '-vf scale='+ scale
+						else:
+							options = '-pix_fmt yuv420p -vf format=gray,scale='+ scale
+
+						cmd = '/docker run -v /opt/allsky.py/web:/web jrottenberg/ffmpeg:4.1-alpine -f image2 -i /web/snap/day-%06d.jpg '+ options +' /web/video/'+ begin.strftime("%Y-%m-%d") +'-{}'.format(minHeight) +'p.mp4'
+						logging.debug('Run ffmpeg via docker: '+ cmd)
+						os.system(cmd)
+
 					#else:
 					#	todo чтобы больше не запускался
 

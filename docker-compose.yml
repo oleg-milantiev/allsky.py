@@ -94,6 +94,8 @@ services:
       - ./camera/common/config.py:/config.py:ro
       - ./camera/common/lib.py:/lib.py:ro
       - ./web:/web
+      - /usr/bin/docker:/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     command: python3 /watchdog.py
     networks:
       appnet:

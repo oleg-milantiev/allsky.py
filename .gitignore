@@ -4,6 +4,7 @@ camera/common/hot-?.png
 __pycache__/*
 web/fits/*
 web/snap/*
+web/video/*
 web/keogram/*
 vendor/*
 yolo/day
