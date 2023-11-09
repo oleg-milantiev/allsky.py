@@ -144,10 +144,14 @@ def callback(ch, method, properties, body):
 	else:
 		img = Image.fromarray(hdu.data if web['ccd']['bits'] == 8 else (hdu.data / 256).astype('uint8'))
 
-	# todo полезно. Но нужно ли всем? Цифры точно нужно настраивать
-	gamma = 0.5
-	img = img.point(lambda x: int(((x/255)**gamma)*255))
-	img = ImageOps.autocontrast(img, cutoff=0.1)
+	if 'gamma' in web['processing']:
+		logging.debug('Gamma correction by: '+ str(web['processing']['gamma']))
+		gamma = float(web['processing']['gamma'])
+		img = img.point(lambda x: int(((x/255)**gamma)*255))
+
+	if 'autoContrast' in web['processing']:
+		logging.debug('Autocontrast with clipping: : '+ str(web['processing']['autoContrast']))
+		img = ImageOps.autocontrast(img, cutoff=float(web['processing']['autoContrast']))
 
 	if 'transpose' in web['processing'] and 6 >= web['processing']['transpose'] >= 0:
 		logging.debug('Транспонирую (поворот / зеркало)')
@@ -196,7 +200,7 @@ def callback(ch, method, properties, body):
 	img.save('/snap/'+ body.decode()  +'.jpg')
 	logging.info('Файл ' + body.decode() + '.jpg записан.')
 
-	ts = dateObs.timestamp()
+	ts = dateObs.timestamp() + web['observatory']['timezone'] * 3600
 	channel = 0  # мультикамеры
 
 	# try to break "Lock wait timeout exceeded; try restarting transaction" db hang by new connection
