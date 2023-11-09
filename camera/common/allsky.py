@@ -88,6 +88,52 @@ def findExpo():
 	global web, exposure, gain, bin, avg, left, right, attempt
 
 	'''
+	поиск bias?
+	лучше avg негорелой части брать
+	
+	allsky-allsky    | [
+	{'exp': 0.0001, 'avg': 13815.888942307693},
+	 {'exp': 0.17918823819298696, 'avg': 65535.0},
+	 {'exp': 0.039639573641948006, 'avg': 14647.346988284704},
+	 {'exp': 0.11837331782711684, 'avg': 65535.0},
+	 {'exp': 0.027204646932625698, 'avg': 14663.915265804597},
+	 {'exp': 0.07870764827122712, 'avg': 65057.16998231653}
+
+	(0.27 - bias) = 14663/65535 = 0,2237430380712596
+	(0.51 - bias) = 30000/65535 = 0,4577706569008927 !
+	(0.78 - bias) = 65057/65535 = 0,9927061875333791
+
+	(0.78-bias) / 65057 = x / 30000
+	(0.27-bias) / 14663 = x / 30000
+
+	x = (0.027-bias) / 14663 * 30000 = 0,05524108299802223 => 0,0347814226283844
+	x = (0.078-bias) / 65057 * 30000 = 0,03596845842876247 => 0,0313571176045622
+
+	(0.027-bias) * 65057 = (0.078-bias) * 14663
+	0.027 * 65057 - 65057*bias = 0.078 * 14663 - 14663*bias
+	-50394*bias = 1143,714 - 1756,539
+	50394*bias = 612,825
+	bias = 0,0121606738897488
+
+
+	allsky-allsky    | [
+	{'exp': 0.0744168060210422, 'avg': 14706.483523983201},
+	 {'exp': 0.08519466353919876, 'avg': 65535.0},
+	 {'exp': 0.026423152688254917, 'avg': 15480.05964025199},
+	 {'exp': 0.06006864129068678, 'avg': 15589.704061671087},
+	 {'exp': 0.08157709208655865, 'avg': 65535.0},
+	 {'exp': 0.018092473902682406, 'avg': 15323.948787024758}
+
+	allsky-allsky    | [
+	{'exp': 0.05391363759894847, 'avg': 16324.097430371352},
+	 {'exp': 0.07182421944708149, 'avg': 16413.933330570293},
+	 {'exp': 0.08526625043590874, 'avg': 65535.0},
+	 {'exp': 0.0252804976939005, 'avg': 17383.239925950485},
+	 {'exp': 0.05953668658670006, 'avg': 16690.884811560565},
+	 {'exp': 0.08135442480707483, 'avg': 65535.0}
+	'''
+
+	'''
 	# Надо найти следующие bin / gain / exp, даже если удачная выдержка
 
 	Используем обучающуюся нейросетку с входами:
@@ -219,7 +265,7 @@ def findExpo():
 
 		if attempt > 1:
 			left /= 1.1
-			left -= 0.1 # когда ex.: 0.002 делишь на 1.1, то идти к expMin можно вечно. Нужен форсаж на низких!
+			left -= 0.01 # когда ex.: 0.002 делишь на 1.1, то идти к expMin можно вечно. Нужен форсаж на низких!
 
 #			if left < web['ccd']['expMin']:
 #				left = web['ccd']['expMin']
@@ -270,6 +316,7 @@ gain = web['ccd']['gainMin']
 exposure = web['ccd']['expMin']
 
 attempt = 0
+attempts = []
 left = web['ccd']['expMin']
 right = web['ccd']['expMax']
 
@@ -295,7 +342,7 @@ while True:
 
 		if hdu is not None:
 			# старый кадр. Ждём запрошенного
-			logging.info('Выдержка / gain / bin полученного кадра не соответствует запрошенной '+ str(exposure) +'/'+ str(gain) +'/'+ str(bin) +' != '+ str(hdu.header['EXPTIME']) +'/'+ str(hdu.header['GAIN']) +'/'+ str(hdu.header['XBINNING']))
+			logging.info('Выдержка / gain / bin полученного кадра не соответствует запрошенной '+ str(exposure) +'/'+ str(gain if 'GAIN' in hdu.header else 'na') +'/'+ str(bin) +' != '+ str(hdu.header['EXPTIME']) +'/'+ str(hdu.header['GAIN'] if 'GAIN' in hdu.header else 'na') +'/'+ str(hdu.header['XBINNING']))
 
 	# Подсчёт среднего по центру кадра
 	center = 50
@@ -330,6 +377,9 @@ while True:
 		logging.debug('Удачная экспозиция или дальше некуда крутить, или кол-во попыток превышено')
 
 		attempt = 0
+		print(attempts)
+		attempts = []
+		attempts.append({'expWas': exposure, 'avgWas': avg})
 
 		os.system('mv /fits/current.fit /fits/'+ minute +'.fit')
 		logging.info('Файл {}.fit сохранён'.format(minute))
@@ -356,6 +406,8 @@ while True:
 
 	else:
 		logging.debug('Неудачная экспозиция. И ещё есть что подобрать')
+
+		attempts.append({'exp': exposure, 'avg': avg})
 
 		findExpo()
 

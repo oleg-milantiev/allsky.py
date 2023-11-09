@@ -3,7 +3,7 @@
 from astropy.io import fits
 from ultralytics import YOLO
 from os.path import isfile
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import ephem
 import logging
