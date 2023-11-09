@@ -54,6 +54,29 @@ def getObservatory():
 	return observatory
 
 # d must be in UTC!
+# Return today sunrise datetime
+# ex.: d=day_3:00 => day_6:30, d=day_15:00 => day_6:30 (not next sunrise, but today)
+@cache
+def getTodaySunrise(d):
+	import math
+
+	observatory = getObservatory()
+
+	if not observatory:
+		return None
+
+	observatory.date = d.strftime('%Y-%m-%d %H:%M') 
+
+	next = observatory.next_rising(ephem.Sun())
+
+	if next.datetime().strftime('%d') == d.strftime('%d'):
+		# now night. Next rise is same day
+		return next.datetime()
+	else:
+		# now after sunrise
+		return observatory.previous_rising(ephem.Sun()).datetime()
+
+# d must be in UTC!
 # Return None|string dayPart by given datetime
 # ['day'|'morning'|'evening'|'night'|'night/moon']
 @cache

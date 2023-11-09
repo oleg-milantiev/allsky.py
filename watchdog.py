@@ -3,11 +3,16 @@
 from astropy.io import fits
 import config
 from datetime import datetime, timedelta
+import ephem
+import glob
 import json
 import logging
 import MySQLdb
+import math
+import numpy
 import os
 import pika
+from PIL import Image
 import re
 import signal
 import sys
@@ -52,8 +57,6 @@ def reload(ch, method, properties, body):
 def watchdog():
 	print(' [*] Start watchdog thread')
 	global web
-
-	minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
 	# Задачи watchdog
 	# + сбор мусора (архив фото, видео, фитов)
@@ -130,25 +133,98 @@ def watchdog():
 		'mp4': '/web/video/',
 	}
 
+	minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
+	hourSensor = datetime.now().strftime("%Y-%m-%d_%H")
+	sunrisePlusHour = None
+
 	while running:
 
+		now = datetime.now()
+		#print('"now" is '+ now.strftime('%d/%m/%Y %H:%M:%S'))
+
+		todaySunrise = lib.getTodaySunrise(now)
+		#print('Today sunrise at '+ todaySunrise.strftime("%d/%m/%Y %H:%M:%S"))
+		#if sunrisePlusHour is None:
+		#	print('sunrisePlusHour is None')
+		#else:
+		#	print('day of sunrise is '+ sunrisePlusHour.strftime('%d'))
+		#print('day of now is '+ now.strftime('%d'))
+		if now > (todaySunrise + timedelta(hours=1)) and (sunrisePlusHour is None or sunrisePlusHour.strftime('%d') != now.strftime('%d') ):
+
+			logging.info('[+] Sunrise +1h')
+			sunrisePlusHour = now
+
+			videoFilename = '/web/video/'+ now.strftime('%Y-%m-%d') +'.mp4'
+			keoFilename = '/web/keogram/keogram-'+ now.strftime('%Y-%m-%d') +'.jpg'
+#			if not os.path.isfile(videoFilename):
+			if not os.path.isfile(keoFilename):
+
+				observatory = lib.getObservatory()
+
+				if observatory:
+					observatory.date = todaySunrise 
+					begin = observatory.previous_setting(ephem.Sun()).datetime() - timedelta(hours=1)
+					end = todaySunrise + timedelta(hours=1)
+
+					logging.debug('[.] Begin {}, end {}'.format(begin, end))
+
+					files = []
+					minWidth = None
+					minHeight = None
+
+					for f in sorted(glob.glob('/web/snap/????-??-??_??-??.jpg')):
+						result = re.match(r'/web/snap/(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2}).jpg', f)
+
+						if result:
+							date = datetime(int(result.group(1)), int(result.group(2)), int(result.group(3)), int(result.group(4)), int(result.group(5))) - timedelta(hours=int(web['observatory']['timezone']))
+
+							if date >= begin and date <= end:
+								files.append(f)
+								im = Image.open(f)
+
+								if minWidth is None or im.size[0] < minWidth:
+									minWidth = im.size[0]
+
+								if minHeight is None or im.size[1] < minHeight:
+									minHeight = im.size[1]
+
+					if len(files) > 5 and minWidth is not None and minHeight is not None:
+						logging.debug('[.] Found suitable images: {}, minWidth={}, minHeight={}'.format(len(files), minWidth, minHeight))
+						keogram = Image.new('RGB', (len(files), minHeight), 'black')
+
+						i = 0
+						for f in files:
+							im = Image.open(f)
+							# Image.fromarray(numpy.mean(im, axis=1).reshape(keogram.size[1], 1, 3).astype('uint8')) - average keo
+							if im.size[0] != minWidth or im.size[1] != minHeight:
+								im.resize((minWidth, minHeight))
+
+							keogram.paste(im.crop( (math.floor(minWidth / 2), 0, math.floor(minWidth / 2) + 1, minHeight) ), (i, 0) )
+							i += 1
+
+						keogram.save(keoFilename)
+					#else:
+					#	todo чтобы больше не запускался
+
 		# every hour remove old sensor data from db
-		if datetime.now().minute == 44:
+		if hourSensor != now.strftime("%Y-%m-%d_%H") and now.minute > 33:
+			print('Removing old sensors data: start')
+			hourSensor = now.strftime("%Y-%m-%d_%H")
+
 			db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
 				 database=config.db['database'], charset='utf8')
 
 			cursor = db.cursor()
 
-			print('Removing old sensors data: start')
 			cursor.execute('delete from sensor where date < '+ str(time.time() - 86400 * int(web['archive']['sensors'])))
-			print('Removing old sensors data: done')
 
 			cursor.close()
 			db.close()
+			print('Removing old sensors data: done')
 
 		# remove old jpg, fit, mp4
 		for ext in folders:
-			old = datetime.now() - timedelta(web['archive'][ext])
+			old = now - timedelta(web['archive'][ext])
 
 			for f in os.listdir(folders[ext]):
 				if os.path.isfile(folders[ext] + f):
