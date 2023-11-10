@@ -216,9 +216,12 @@ def watchdog():
 						else:
 							options = '-pix_fmt yuv420p -vf format=gray,scale='+ scale
 
-						cmd = '/docker run -v /opt/allsky.py/web:/web jrottenberg/ffmpeg:4.1-alpine -f image2 -i /web/snap/day-%06d.jpg '+ options +' /web/video/'+ begin.strftime("%Y-%m-%d") +'-{}'.format(minHeight) +'p.mp4'
+						cmd = '/docker run -v /opt/allsky.py/web:/web olegmilantiev/allsky-ffmpeg ffmpeg -f image2 -i /web/snap/day-%06d.jpg '+ options +' /web/video/'+ begin.strftime("%Y-%m-%d") +'-{}'.format(minHeight) +'p.mp4'
 						logging.debug('Run ffmpeg via docker: '+ cmd)
 						os.system(cmd)
+
+						for f in glob.glob('/web/snap/day-*.jpg'):
+							os.remove(f)
 
 					#else:
 					#	todo чтобы больше не запускался
