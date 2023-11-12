@@ -322,7 +322,8 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 		case 'settings-publish':
 			if (
 				!isset($_SESSION['user']) or
-				!isset($_POST['jpg'])
+				!isset($_POST['jpg']) or
+				!isset($_POST['sensor'])
 			) {
 				die('Страница недоступна');
 			}
@@ -332,6 +333,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				'id'  => 'publish',
 				'val' => json_encode([
 					'jpg' => $_POST['jpg'],
+					'sensor' => $_POST['sensor'],
 				]),
 			]);
 

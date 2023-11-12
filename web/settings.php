@@ -733,6 +733,11 @@ $tab = $_GET['tab'] ?? 'users';
 				<input class="form-control" type="text" name="jpg" value="<?php echo $config['publish']['jpg'] ?? ''; ?>">
 			</div>
 
+			<div class="form-group">
+				<label>URL для публикации данных сенсоров:</label>
+				<input class="form-control" type="text" name="sensor" value="<?php echo $config['publish']['sensor'] ?? ''; ?>">
+			</div>
+
 			<br>
 
 			<button class="btn btn-success btn-lg" type="submit">Сохранить</button>
