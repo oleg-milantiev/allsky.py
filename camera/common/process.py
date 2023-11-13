@@ -71,13 +71,15 @@ def callback(ch, method, properties, body):
 	if os.path.isfile(hotFilename):
 		logging.info('Удаляю горячие пиксели')
 		hotCount = 0
-		hot = Image.open(hotFilename)
 
-		for y in range(1, hdu.data.shape[0] - 1):
-			for x in range(1, hdu.data.shape[1] - 1):
-				if hot.getpixel((x, y)) == 255:
-					hotCount += 1
-					hdu.data[y, x] = round((float(hdu.data[y-1, x-1]) + float(hdu.data[y-1, x]) + float(hdu.data[y-1, x+1]) + float(hdu.data[y, x-1]) + float(hdu.data[y, x+1]) + float(hdu.data[y+1, x-1]) + float(hdu.data[y+1, x]) + float(hdu.data[y+1, x+1])) / 8)
+		xy = np.where(np.array(ImageOps.grayscale(Image.open(hotFilename))) == 255)
+
+		for i in range(len(xy[0])):
+			x = xy[1][i]
+			y = xy[0][i]
+
+			hotCount += 1
+			hdu.data[y, x] = round((float(hdu.data[y-1, x-1]) + float(hdu.data[y-1, x]) + float(hdu.data[y-1, x+1]) + float(hdu.data[y, x-1]) + float(hdu.data[y, x+1]) + float(hdu.data[y+1, x-1]) + float(hdu.data[y+1, x]) + float(hdu.data[y+1, x+1])) / 8)
 
 		logging.debug('Удалено горячих пикселей: {}'.format(hotCount))
 
@@ -104,7 +106,11 @@ def callback(ch, method, properties, body):
 
 		logging.debug('Sigma-clipped статистика: mean={}, median={}, std={}'.format(mean, median, std))
 
-		if lib.getDayPart(dateObs) in ['night', 'night/moon']:
+		dayPart = lib.getDayPart(dateObs)
+		logging.debug('DayPart: '+ dayPart)
+		hdu.header.set('DAY-PART', dayPart, 'Day part')
+
+		if dayPart in ['night', 'night/moon']:
 			logging.debug('Ночь. Буду искать звёзды!')
 			daofind = DAOStarFinder(fwhm=float(web['processing']['sd']['fwhm']), threshold=float(web['processing']['sd']['threshold'])*std)
 			stars = daofind(hdu.data - median)
@@ -181,8 +187,8 @@ def callback(ch, method, properties, body):
 				case 'yolo-cloud': text = annotation['format'].format('%0.2f' % (float(hdu.header['AI-CLOUD']) * 100) if 'AI-CLOUD' in hdu.header else 'n/a')
 				case 'text': text = annotation['format']
 				case 'datetime': text = (dateObs + timedelta(hours=int(web['observatory']['timezone']))).strftime(annotation['format'])
-				case 'avg' | 'average':  text = annotation['format'].format(hdu.header['AVG'])
-				case 'exposure':  text = annotation['format'].format(hdu.header['EXPTIME'])
+				case 'avg' | 'average':  text = annotation['format'].format(round(hdu.header['AVG']))
+				case 'exposure':  text = annotation['format'].format(round(hdu.header['EXPTIME'], 4))
 				case _: text = ''
 
 			d.text(
