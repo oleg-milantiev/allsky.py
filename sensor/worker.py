@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 
-from datetime import datetime
+from datetime import datetime, timedelta
+import json
 import logging
 import MySQLdb
 import os
+import requests
 import signal
 import sys
 import time
@@ -74,23 +76,25 @@ try:
 except:
 	logging.debug('[-] No BME280 on SPI')
 
-print(channels)
-
 logging.info('[+] Start to serve')
 
-minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
+utcnow = datetime.utcnow()
+minute = (utcnow - timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M")
+minutePlus = utcnow.strftime("%Y-%m-%d %H:%M")
 
 while True:
 
+	ts = time.time()
+
+	if 'timezone' in web['observatory']:
+		ts += web['observatory']['timezone'] * 3600
+
+	db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+		 database=config.db['database'], charset='utf8')
+
+	cursor = db.cursor()
+
 	if len(channels) > 0:
-		db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
-			 database=config.db['database'], charset='utf8')
-
-		cursor = db.cursor()
-
-		ts = time.time()
-		if 'timezone' in web['observatory']:
-			ts += web['observatory']['timezone'] * 3600
 
 		# get sensors data
 		for channel in range(len(channels)):
@@ -144,16 +148,38 @@ while True:
 					VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 					"""%{"time":ts, "channel":channel, "type": 'pressure', "val":data.pressure * 0.75 })
 
-		db.commit()
-		cursor.close()
-		db.close()
+			db.commit()
+
+	if 'sensor' in web['publish'] and web['publish']['sensor'] != '':
+
+		sensor = {}
+
+		cursor.execute('select type, channel, date, val from sensor where date >= unix_timestamp("{}:00") and date < unix_timestamp("{}:00") order by id'.format(minute, minutePlus))
+		for row in cursor.fetchall():
+			sensor[row[0] +':'+ str(row[1])] = {'date': row[2], 'val': row[3]}
+
+		if len(sensor) > 0:
+			print(sensor)
+			try:
+				r = requests.post(
+					web['publish']['sensor'],
+					data={'name': web['observatory']['name'], 'pass': 'kjH3vxzm4G', 'sensor': json.dumps(sensor)}
+				)
+				logging.info('Данные сенсоров опубликованы: '+ r.text)
+			except:
+				logging.error('ОШИБКА публикации сенсоров')
+
+	cursor.close()
+	db.close()
 
 	logging.debug('[.] Waiting for next minute')
 	while True:
-		now = datetime.now().strftime("%Y-%m-%d_%H-%M")
+		utcnow = datetime.utcnow()
+		now = (utcnow - timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M")
 		if now != minute:
 			break
 
 		time.sleep(1)
 
 	minute = now
+	minutePlus = utcnow.strftime('%Y-%m-%d %H:%M')
