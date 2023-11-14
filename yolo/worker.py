@@ -30,7 +30,7 @@ observatory = ephem.Observer()
 observatory.lat, observatory.lon = '44.791395', '38.583824'
 s = ephem.Sun()
 
-version = '2'
+version = '5' # x, png, aug(rotate=3, bright=50)
 model = {}
 
 for time in ['day', 'morning', 'evening', 'night', 'night/moon']:
@@ -87,9 +87,9 @@ def callback(ch, method, properties, body):
 			dayPart += '/moon'
 
 	print(d.strftime('%Y-%m-%d %H:%M') +': '+ dayPart)
-	os.system('convert /fits/'+ body.decode() +'.fit -resize 224x224! -normalize -colorspace sRGB -type truecolor /tmp/fit.jpg')
+	os.system('convert /fits/'+ body.decode() +'.fit -interpolative-resize 224x224! -normalize -colorspace sRGB -type truecolor PNG24:/tmp/fit.png')
 	# todo sync=false to disable google.anal
-	results = model[dayPart]('/tmp/fit.jpg')
+	results = model[dayPart]('/tmp/fit.png')
 
 	print(results[0].names[0])
 	print('%0.2f' % (float(results[0].probs.data[0]) * 100))

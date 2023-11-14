@@ -20,7 +20,7 @@ import ephem
 # argv[3] = version
 
 '''
-Copy fits to small jpgs:
+Copy fits to small png:
 - from /yolo/cloud and /yolo/clean folders
 - sort images by dayPart [day, morning, evening, night, night/moon]
 - resize to 224x224
@@ -56,27 +56,24 @@ for cond in ['clear', 'cloud']:
 				if m.alt > 5 * ephem.degree:
 					dayPart += '/moon' 
 
-			#print(cond +'/'+ f +' is '+ dayPart)
 			pathlib.Path('/yolo/'+ dayPart +'/'+ cond).mkdir(parents=True, exist_ok=True)
 
-			dst = '/yolo/'+ dayPart +'/'+ cond +'/'+ f[0:-3] +'jpg'
+			dst = '/yolo/'+ dayPart +'/'+ cond +'/'+ f[0:-3] +'png'
 
 			if not os.path.isfile(dst):
-				print(dst)
-				os.system('convert /yolo/'+ cond +'/'+ f +' -resize 224x224! -normalize -colorspace sRGB -type truecolor '+ dst)
+				print(dst, end="                            \r")
+				os.system('convert /yolo/'+ cond +'/'+ f +' -interpolative-resize 224x224! -normalize -colorspace sRGB -type truecolor PNG24:'+ dst)
 
 '''
 Prepare version:
 - for every dayPart, for every condition [cloud|clean]
 - make verison-X folder
 - devide images into train (70%), valid (20%) and test (10%) pools
-- copy jpg as is
-- augment it to extra 8 images by random change of brightness, blur and gamma
+- copy png as is
+- augment it to extra N images by random change of brightness, blur and gamma
 '''
 
 version = sys.argv[3]
-
-'''
 
 for dayPart in ['day', 'evening', 'morning', 'night', 'night/moon']:
 
@@ -104,7 +101,7 @@ for dayPart in ['day', 'evening', 'morning', 'night', 'night/moon']:
 		dst = '/yolo/'+ dayPart +'/version-'+ version +'/'
 
 		for file in files:
-			print(str(count) +'/'+ str(len(files)))
+			print(str(count) +'/'+ str(len(files)), end=" \r")
 			count -= 1
 
 			if train > 0:
@@ -124,24 +121,22 @@ for dayPart in ['day', 'evening', 'morning', 'night', 'night/moon']:
 
 			img = imageio.v2.imread(src +'/'+ file)
 			images = np.array(
-				[img for _ in range(16)], dtype=np.uint8)
+				[img for _ in range(8)], dtype=np.uint8)
 
 			seq = iaa.Sequential(
 				[
-					iaa.Sometimes(0.2, iaa.MedianBlur(3, 4)),
-					iaa.Sometimes(0.5, iaa.GammaContrast((0.5, 2.0))),
-					iaa.Sometimes(0.5, iaa.AddToBrightness((-30, 30))),
-					iaa.Fliplr(0.3),
-					iaa.Flipud(0.3),
+					iaa.Rotate((-3, 3)),
+					iaa.AddToBrightness((-50, 50)),
 				],
-				random_order=True) 
+				random_order=True)
 
 			images_aug = seq.augment_images(images)
 
-			for i in range(16):
-				imageio.imwrite(dst +'/'+ set +'/'+ cond +'/'+ str(i) +'-'+ file, images_aug[i])
+			for i in range(8):
+				imageio.imwrite(dst +'/'+ set +'/'+ cond +'/'+ str(i) +'-'+ file, images_aug[i], compress_level=0)
 
-'''
+		print('')
+
 ##### Train
 model = YOLO('yolov8'+ sys.argv[1] +'-cls.pt')
 
