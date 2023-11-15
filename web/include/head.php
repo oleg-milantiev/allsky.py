@@ -368,6 +368,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 						'gpio'   => (int)$relay['gpio'],
 						'hotter' => $relay['hotter'] === 'обогрев',
 						'temp'   => (float)$relay['temp'],
+						'power'  => (int)$relay['power'],
 					];
 				}
 			}

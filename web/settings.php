@@ -818,6 +818,7 @@ $tab = $_GET['tab'] ?? 'users';
 					<th>Название</th>
 					<th>GPIO порт</th>
 					<th>Обогрев</th>
+					<th>Мощность</th>
 					<th>Температура</th>
 					<th></th>
 				</tr>
@@ -829,6 +830,7 @@ $tab = $_GET['tab'] ?? 'users';
 								<td><?php echo $relay['name']; ?></td>
 								<td><?php echo $relay['gpio']; ?></td>
 								<td><?php echo $relay['hotter'] ? 'обогрев' : ''; ?></td>
+								<td><?php echo $relay['power']; ?></td>
 								<td><?php echo $relay['temp']; ?></td>
 								<td><button type="button" class="btn btn-danger btn-sm">&nbsp;-&nbsp;</button></td>
 							</tr>
@@ -867,9 +869,21 @@ $tab = $_GET['tab'] ?? 'users';
 									Обогрев подкупольного
 								</label>
 							</div>
-							<div class="form-group">
-								<label>Желаемая температура обогрева</label>
-								<input class="form-control" type="text" name="temp">
+							<div class="row hotter-row">
+								<div class="form-group col-6">
+									<label>Мощность обогрева, %</label>
+									<input class="form-control" type="number" min="0" max="100" name="power">
+								</div>
+								<div class="form-group col-6">
+									<label>Температура обогрева, °C</label>
+									<input class="form-control" type="text" name="temp">
+								</div>
+							</div>
+							<div class="row hotter-row">
+								<div class="col-12">
+									Укажите мощность или желаемую температуру обогрева.<br>
+									Для контроля температуры обогрева нужен термодатчик.
+								</div>
 							</div>
 						</div>
 						<div class="modal-footer">
@@ -915,6 +929,7 @@ $tab = $_GET['tab'] ?? 'users';
 								'<td>'+ $('.modal.relay input[name=name]').val() +'</td>'+
 								'<td>'+ $('.modal.relay input[name=gpio]').val() +'</td>'+
 								'<td>'+ (($('.modal.relay input[name=hotter]:checked').length == 1) ? 'обогрев' : '') +'</td>'+
+								'<td>'+ $('.modal.relay input[name=power]').val() +'</td>'+
 								'<td>'+ $('.modal.relay input[name=temp]').val() +'</td>'+
 								'<td><button type="button" class="btn btn-danger btn-sm">&nbsp;-&nbsp;</button></td>'+
 								'</tr>');
@@ -941,12 +956,23 @@ $tab = $_GET['tab'] ?? 'users';
 						$('.modal.relay input[name=name]').val('');
 						$('.modal.relay input[name=gpio]').val('');
 						$('.modal.relay input[name=hotter]').prop('checked', false)
+						$('.modal.relay input[name=power]').val('');
 						$('.modal.relay input[name=temp]').val('');
+						$('.modal.relay .hotter-row').hide();
 
 						$('.modal.relay').modal();
 
 						e.preventDefault();
 					});
+
+					$('input[name=hotter]').click(function(){
+						if ($(this).is(':checked')) {
+							$('.hotter-row').show()
+						}
+						else {
+							$('.hotter-row').hide()
+						}
+					})
 				});
 			</script>
 			<br>
@@ -964,7 +990,8 @@ $tab = $_GET['tab'] ?? 'users';
 							html += '<input type="hidden" name="relays['+ i +'][name]" value="'+ $(this).find('td:eq(0)').html() +'">';
 							html += '<input type="hidden" name="relays['+ i +'][gpio]" value="'+ $(this).find('td:eq(1)').html() +'">';
 							html += '<input type="hidden" name="relays['+ i +'][hotter]" value="'+ $(this).find('td:eq(2)').html() +'">';
-							html += '<input type="hidden" name="relays['+ i +'][temp]" value="'+ $(this).find('td:eq(3)').html() +'">';
+							html += '<input type="hidden" name="relays['+ i +'][power]" value="'+ $(this).find('td:eq(3)').html() +'">';
+							html += '<input type="hidden" name="relays['+ i +'][temp]" value="'+ $(this).find('td:eq(4)').html() +'">';
 
 							i++;
 						});
