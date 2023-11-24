@@ -96,6 +96,7 @@ services:
       - ./web:/web
       - /usr/bin/docker:/docker:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      - /sys/class/gpio:/sys/class/gpio
     command: python3 /watchdog.py
     networks:
       appnet:
