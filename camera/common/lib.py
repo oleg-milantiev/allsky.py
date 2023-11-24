@@ -15,6 +15,12 @@ def getArch():
 
 	return os.popen('uname -m').read().strip()
 
+def getUptime():
+	with open('/proc/uptime', 'r') as uptime:
+		uptime = uptime.readline().split(' ')
+
+	return float(uptime[0])
+
 @cache
 def getWebConfig():
 	import json

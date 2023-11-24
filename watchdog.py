@@ -41,6 +41,36 @@ web = lib.getWebConfig()
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 logging.info('[+] Start')
 
+'''
+tbd
+
+if 'uptime' in web and float(web['uptime']) > lib.getUptime():
+	for relay in web['relays']:
+		f = open('/sys/class/gpio/export', 'wt')
+		f.write(relay['gpio'])
+		f.close()
+
+	time.sleep(0.1)
+
+	for relay in web['relays']:
+		f = open('/sys/class/gpio/gpio{}/direction'.format(relay['gpio']), 'wt')
+		f.write('out')
+		f.close()
+
+		os.chown('/sys/class/gpio/gpio{}/value'.format(relay['gpio']), pwd.getpwnam("www-data").pw_uid, grp.getgrnam("www-data").gr_gid)
+
+	time.sleep(0.1)
+
+	for relay in web['relays']:
+		cursor.execute('SELECT state FROM relay where id = "{}"'.format(relay['name']))
+		state = cursor.fetchone()
+
+		f = open('/sys/class/gpio/gpio{}/value'.format(relay['gpio']), 'wt')
+		f.write('{}'.format(state['state']) if state else '0')
+		f.close()
+'''
+
+
 def reload(ch, method, properties, body):
 	print(" [x] Received RELOAD")
 	ch.basic_ack(delivery_tag=method.delivery_tag)
