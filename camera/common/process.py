@@ -214,8 +214,15 @@ def callback(ch, method, properties, body):
 		 database=config.db['database'], charset='utf8')
 	cursor2 = db2.cursor()
 
+	cursor2.execute("""REPLACE INTO config(id, val)
+		VALUES ('%(id)s', '%(val)s')
+		""" % {'id': 'uptime', 'val': lib.getUptime()})
+
 	try:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": hdu.header['EXPTIME']})
+		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": hdu.header['EXPTIME']})
 	except:
@@ -225,11 +232,17 @@ def callback(ch, method, properties, body):
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['AVG']})
+		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['AVG']})
 	except:
 		logging.debug('Cant insert AVG')
 
 	try:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": hdu.header['GAIN']})
+		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": hdu.header['GAIN']})
 	except:
@@ -239,11 +252,17 @@ def callback(ch, method, properties, body):
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
+		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
 	except:
 		logging.debug('Cant insert BINNING')
 
 	try:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ai-clear', "val": hdu.header['AI-CLEAR']})
+		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ai-clear', "val": hdu.header['AI-CLEAR']})
 	except:
@@ -253,12 +272,18 @@ def callback(ch, method, properties, body):
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
 			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 			""" % {"time": ts, "channel": channel, "type": 'ai-cloud', "val": hdu.header['AI-CLOUD']})
+		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": ts, "channel": channel, "type": 'ai-cloud', "val": hdu.header['AI-CLOUD']})
 	except:
 		logging.debug('Cant insert AI-CLOUD')
 
 	if stars is not None:
 		try:
 			cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
+				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+				""" % {"time": ts, "channel": channel, "type": 'stars-count', "val": len(stars)})
+			cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
 				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 				""" % {"time": ts, "channel": channel, "type": 'stars-count', "val": len(stars)})
 		except:
