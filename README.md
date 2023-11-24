@@ -43,3 +43,51 @@ English version below.
 # Установка
 
 Подробно описана в вики проекта на соответствующей странице: https://github.com/oleg-milantiev/allsky.py/wiki/install
+
+-------
+
+English version.
+
+# allsky.py
+
+Python+PHP scripts for using Raspberry/Orange Pi + ZWO / QHY / Starlight / .... with any INDI as AllSky camera.
+
+Successfully checked on:
+* Raspberry Pi 3 + Datyson t7c / t7m (with ZWO ASI 120 driver)
+* Raspberry Pi 3 + ZWO ASI 178c
+* Orange Pi PC + Starlight Oculus / QHY5 old (via fxload and INDI qhy)
+* Tinkerboard / S + QHY5-II
+
+# Features
+
+## Now
+
+At moment project can:
+* support any INDI cameras. You could find it via list.py;
+* adjust exposure / binning and gain to keep center image average at needed range (for example, 55...150 ADU);
+* every minute store fit and jpg files with camera snapshot;
+* publish jpg and / or sensor data to public web;
+* annotate snap with datetime, text, sensor data;
+* actualize current.jpg symlink;
+* remove (rotate) old fit, jpg and mp4 files (may be controlled in web);
+* every minute store sensor data (temperature, humidity, presure, ADC values, CCD sensor data, star detect and AI cloud propability);
+* create night video and keogram every morning (at sunrise plus hour);
+* web could do:
+  * show last (current) jpg;
+  * show any old jpeg in archive;
+  * show night video and keogram;
+  * draw charts for different sensors for hour, day, week, months.
+* web could control:
+  * relay / mosfet board for control AC or DC loads;
+  * configure allsky settings.
+
+Please look at project wiki: https://github.com/oleg-milantiev/allsky.py/wiki
+
+## To be done
+
+We have plans, divided by milestones at github https://github.com/oleg-milantiev/allsky.py/milestones 
+Join the project! You could create issues at: https://github.com/oleg-milantiev/allsky.py/issues . Maybe you could contribute?
+
+# Install
+
+Install manual is described at wiki: https://github.com/oleg-milantiev/allsky.py/wiki/install
