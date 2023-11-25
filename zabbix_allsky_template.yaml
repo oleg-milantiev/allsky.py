@@ -55,63 +55,78 @@ zabbix_export:
       items:
         - uuid: cc7538d4f3c04ce8ae8ddd734f960851
           name: 'AllSky: AI Clear'
-          type: HTTP_AGENT
+          type: DEPENDENT
           key: allsky.ai.clear
+          delay: '0'
           value_type: FLOAT
           units: '%'
-          url: 'http://{HOST.DNS}/REST/zabbix/'
-          query_fields:
-            - name: key
-              value: ai-clear
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.ai_clear
+          master_item:
+            key: allsky.history
           tags:
             - tag: Application
               value: AllSky
         - uuid: 16015aebe77b40a2984047ffba0b0aaa
           name: 'AllSky: AI Cloud'
-          type: HTTP_AGENT
+          type: DEPENDENT
           key: allsky.ai.cloud
+          delay: '0'
           value_type: FLOAT
           units: '%'
-          url: 'http://{HOST.DNS}/REST/zabbix/'
-          query_fields:
-            - name: key
-              value: ai-cloud
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.ai_cloud
+          master_item:
+            key: allsky.history
           tags:
             - tag: Application
               value: AllSky
         - uuid: 9603c114bd3b47f4a7593d971cbba682
           name: 'AllSky: CCD Average ADU'
-          type: HTTP_AGENT
+          type: DEPENDENT
           key: allsky.ccd.average
+          delay: '0'
           value_type: FLOAT
-          url: 'http://{HOST.DNS}/REST/zabbix/'
-          query_fields:
-            - name: key
-              value: ccd-average
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.ccd_average
+          master_item:
+            key: allsky.history
           tags:
             - tag: Application
               value: AllSky
         - uuid: b32b538885994903b0b5f2df75fe6b81
           name: 'AllSky: CCD Bin'
-          type: HTTP_AGENT
+          type: DEPENDENT
           key: allsky.ccd.bin
-          url: 'http://{HOST.DNS}/REST/zabbix/'
-          query_fields:
-            - name: key
-              value: ccd-bin
+          delay: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.ccd_bin
+          master_item:
+            key: allsky.history
           tags:
             - tag: Application
               value: AllSky
         - uuid: 3405506d818d47ad80e82ed584e5c5eb
           name: 'AllSky: Last image time'
-          type: HTTP_AGENT
+          type: DEPENDENT
           key: allsky.ccd.date
+          delay: '0'
           units: unixtime
           inventory_link: TYPE
-          url: 'http://{HOST.DNS}/REST/zabbix/'
-          query_fields:
-            - name: key
-              value: ccd-date
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.date
+          master_item:
+            key: allsky.history
           tags:
             - tag: Application
               value: AllSky
@@ -122,39 +137,62 @@ zabbix_export:
               priority: AVERAGE
         - uuid: 52449bfca1e847bd9620ae305c5f09a8
           name: 'AllSky: CCD Exposure'
-          type: HTTP_AGENT
+          type: DEPENDENT
           key: allsky.ccd.exposure
+          delay: '0'
           value_type: FLOAT
           units: s
-          url: 'http://{HOST.DNS}/REST/zabbix/'
-          query_fields:
-            - name: key
-              value: ccd-exposure
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.ccd_exposure
+          master_item:
+            key: allsky.history
           tags:
             - tag: Application
               value: AllSky
         - uuid: ce318d83465344eb9fb51f153b577e0c
           name: 'AllSky: CCD Gain'
-          type: HTTP_AGENT
+          type: DEPENDENT
           key: allsky.ccd.gain
+          delay: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.ccd_gain
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+        - uuid: 8eb4519922de426a9265f49746818099
+          name: 'AllSky: Get JSON'
+          type: HTTP_AGENT
+          key: allsky.history
+          history: '0'
+          trends: '0'
+          value_type: LOG
           url: 'http://{HOST.DNS}/REST/zabbix/'
           query_fields:
             - name: key
-              value: ccd-gain
+              value: ai-clear
           tags:
             - tag: Application
               value: AllSky
         - uuid: b0815df859bf47fcbe69db919683afdc
           name: 'AllSky: Stars Count'
-          type: HTTP_AGENT
+          type: DEPENDENT
           key: allsky.stars.count
-          url: 'http://{HOST.DNS}/REST/zabbix/'
-          query_fields:
-            - name: key
-              value: stars-count
+          delay: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.stars_count
+          master_item:
+            key: allsky.history
           tags:
             - tag: Application
               value: AllSky
       macros:
         - macro: '{$LAST_IMAGE_MAX_LAG}'
-          value: 30s
+          value: 5m
