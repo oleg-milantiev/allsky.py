@@ -84,6 +84,8 @@ if (isset($_GET['date'])) {
 </div>
 
 
+
+
 <script>
 	var snapDir = <?php echo json_encode($snapDir); ?>;
 	var days = <?php echo json_encode(array_keys($days)); ?>;

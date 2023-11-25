@@ -367,7 +367,7 @@ services:
         aliases:
           - php
     volumes:
-      - ./web:/var/www/html:ro
+      - ./web:/var/www/html
       - .:/opt/allsky.py:ro
       - /sys/class/gpio:/sys/class/gpio
 
