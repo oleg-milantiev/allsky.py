@@ -35,7 +35,7 @@ CREATE TABLE `config` (
 
 LOCK TABLES `config` WRITE;
 /*!40000 ALTER TABLE `config` DISABLE KEYS */;
-INSERT INTO `config` VALUES ('archive','{\"jpg\":30,\"fit\":99,\"sensors\":100,\"mp4\":30}'),('ccd','{\"binning\":2,\"bits\":16,\"avgMin\":20000,\"avgMax\":40000,\"center\":50,\"expMin\":0.0001,\"expMax\":45,\"gainMin\":1,\"gainMax\":250,\"gainStep\":50}'),('observatory','{\"name\":\"My Observatory\",\"lat\":40.40,\"lon\":50.50,\"timezone\":3}'),('processing','{\"crop\":{\"left\":0,\"right\":0,\"top\":0,\"bottom\":0},\"logo\":{\"x\":0,\"y\":0},\"annotation\":[{\"type\":\"datetime\",\"x\":\"3\",\"y\":\"3\",\"size\":\"40\",\"color\":\"rgb(127, 127, 127)\",\"format\":\"%Y-%m-%d\"},{\"type\":\"datetime\",\"x\":\"3\",\"y\":\"50\",\"size\":\"40\",\"color\":\"rgb(135, 135, 135)\",\"format\":\"%H:%M\"},{\"type\":\"stars\",\"x\":\"0\",\"y\":\"100\",\"size\":\"40\",\"color\":\"rgb(129, 129, 129)\",\"format\":\"{} stars\"},{\"type\":\"yolo-clear\",\"x\":\"3\",\"y\":\"990\",\"size\":\"40\",\"color\":\"rgb(182, 182, 182)\",\"format\":\"AI {}%\"}],\"wb\":{\"type\":\"gain\",\"r\":\"8\",\"g\":\"1.2\",\"b\":\"0.9\"},\"sd\":{\"enable\":true,\"fwhm\":1.5,\"threshold\":1},\"yolo\":{\"enable\":false},\"transpose\":3}'),('publish','{\"jpg\":\"https://allsky.milantiev.com/publish/jpg\"}'),('relays','[]'),('sensors','{\"bme280\":[{\"name\":\"\"},{\"name\":\"\"}],\"ads1115\":[{\"name\":\"\",\"divider\":\"\"},{\"name\":\"\",\"divider\":\"\"}]}'),('web','{\"counter\":\"\"}');
+INSERT INTO `config` VALUES ('archive','{\"jpg\":3,\"fit\":1,\"sensors\":30,\"mp4\":30}'),('ccd','{\"binning\":2,\"bits\":16,\"avgMin\":20000,\"avgMax\":40000,\"center\":50,\"expMin\":0.0001,\"expMax\":45,\"gainMin\":1,\"gainMax\":1,\"gainStep\":100}'),('observatory','{\"name\":\"Unknown\",\"lat\":55.55,\"lon\":33.33,\"timezone\":3}'),('processing','{\"crop\":{\"left\":0,\"right\":0,\"top\":0,\"bottom\":0},\"logo\":{\"x\":0,\"y\":0},\"annotation\":[{\"type\":\"datetime\",\"x\":\"3\",\"y\":\"3\",\"size\":\"40\",\"color\":\"rgb(127, 127, 127)\",\"format\":\"%Y-%m-%d\"},{\"type\":\"datetime\",\"x\":\"3\",\"y\":\"50\",\"size\":\"40\",\"color\":\"rgb(135, 135, 135)\",\"format\":\"%H:%M\"},{\"type\":\"stars\",\"x\":\"0\",\"y\":\"100\",\"size\":\"40\",\"color\":\"rgb(129, 129, 129)\",\"format\":\"{} stars\"},{\"type\":\"yolo-clear\",\"x\":\"3\",\"y\":\"990\",\"size\":\"40\",\"color\":\"rgb(182, 182, 182)\",\"format\":\"AI {}%\"}],\"wb\":{\"type\":\"gain\",\"r\":\"8\",\"g\":\"1.2\",\"b\":\"0.9\"},\"sd\":{\"enable\":true,\"fwhm\":2.5,\"threshold\":2},\"yolo\":{\"enable\":true},\"transpose\":3,\"gamma\":0.5,\"autoContrast\":0.1}'),('publish','{\"jpg\":\"https:\\/\\/allsky.milantiev.com\\/publish\\/jpg\",\"sensor\":\"https:\\/\\/allsky.milantiev.com\\/publish\\/sensor\"}'),('relays','[]'),('sensors','{\"bme280\":{\"0\":{\"name\":\"\"},\"1\":{\"name\":\"\"},\"inside\":1},\"ads1115\":[{\"name\":\"\",\"divider\":\"\"},{\"name\":\"\",\"divider\":\"\"}]}'),('uptime','14029.45'),('web','{\"counter\":\"\"}');
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -79,15 +79,8 @@ CREATE TABLE `sensor` (
   PRIMARY KEY (`id`),
   KEY `channel_type_date` (`channel`,`type`,`date`),
   KEY `type` (`type`)
-) ENGINE=InnoDB AUTO_INCREMENT=263861 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=422868 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `sensor`
---
-
-/*!40000 ALTER TABLE `sensor` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `sensor_last`
@@ -104,15 +97,6 @@ CREATE TABLE `sensor_last` (
   PRIMARY KEY (`type`,`channel`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `sensor_last`
---
-
-LOCK TABLES `sensor_last` WRITE;
-/*!40000 ALTER TABLE `sensor_last` DISABLE KEYS */;
-/*!40000 ALTER TABLE `sensor_last` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `user`
@@ -178,4 +162,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-11-03 15:27:22
+-- Dump completed on 2023-11-25 10:45:43
