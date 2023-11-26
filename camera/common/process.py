@@ -52,6 +52,7 @@ print(' [*] Waiting for messages. To exit press CTRL+C')
 
 def callback(ch, method, properties, body):
 	print(" [x] Received %r" % body.decode())
+	timeCycleStart = time.time()
 
 	if not re.match(r"\d\d\d\d-\d\d-\d\d_\d\d-\d\d", body.decode()):
 		logging.error('[!] Неверный входной формат файла')
@@ -289,10 +290,6 @@ def callback(ch, method, properties, body):
 		except:
 			logging.debug('Cant insert STARS-COUNT')
 
-	db2.commit()
-	cursor2.close()
-	db2.close()
-
 	if os.path.islink('/snap/current.jpg'):
 		os.remove('/snap/current.jpg')
 	os.symlink(body.decode() +'.jpg', '/snap/current.jpg')
@@ -310,6 +307,14 @@ def callback(ch, method, properties, body):
 
 	logging.info('[+] Done')
 	ch.basic_ack(delivery_tag=method.delivery_tag)
+
+	cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": datetime.now().timestamp(), "channel": 6, "type": 'docker-cycle', "val": time.time() - timeCycleStart })
+
+	db2.commit()
+	cursor2.close()
+	db2.close()
 
 
 def reload(ch, method, properties, body):

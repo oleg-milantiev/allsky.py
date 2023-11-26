@@ -86,8 +86,8 @@ while True:
 
 	ts = time.time()
 
-	if 'timezone' in web['observatory']:
-		ts += web['observatory']['timezone'] * 3600
+	#if 'timezone' in web['observatory']:
+	#	ts += web['observatory']['timezone'] * 3600
 
 	db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
 		 database=config.db['database'], charset='utf8')
@@ -148,8 +148,6 @@ while True:
 					VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 					"""%{"time":ts, "channel":channel, "type": 'pressure', "val":data.pressure * 0.75 })
 
-			db.commit()
-
 	if 'sensor' in web['publish'] and web['publish']['sensor'] != '':
 
 		sensor = {}
@@ -169,6 +167,11 @@ while True:
 			except:
 				logging.error('ОШИБКА публикации сенсоров')
 
+	cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+		"""%{"time":time.time(), "channel": 8, "type": 'docker-cycle', "val": time.time() - ts })
+
+	db.commit()
 	cursor.close()
 	db.close()
 

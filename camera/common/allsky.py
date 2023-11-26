@@ -320,8 +320,10 @@ attempts = []
 left = web['ccd']['expMin']
 right = web['ccd']['expMax']
 
+
 while True:
 	logging.debug('Получаю новый кадр...')
+	timeCycleStart = time.time()
 
 	while True:
 		# rabbit - получение кадра с начальным exposure / gain / bin
@@ -393,6 +395,23 @@ while True:
 			properties=pika.BasicProperties(
 				delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE,
 				))
+
+
+		# store cycle time
+		db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+			 database=config.db['database'], charset='utf8')
+
+		cursor = db.cursor()
+
+		cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+				""" % {"time": datetime.now().timestamp(), "channel": 0, "type": 'docker-cycle', "val": time.time() - timeCycleStart })
+
+		db.commit()
+
+		cursor.close()
+		db.close()
+
 
 		logging.debug('Жду следующей минуты')
 

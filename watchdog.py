@@ -183,17 +183,17 @@ def watchdog():
 		# TBD контроль за запущенными докерами. А пока просто список в сенсоры (и оттуда - в заббикс)
 
 		dockerMap = {
-			'allsky-allsky': 0,
-			'allsky-camera': 1,
+			'allsky-allsky': 0,   #+cycle
+			'allsky-camera': 1,   #-cycle
 			'allsky-db': 2,
 			'allsky-indi': 3,
 			'allsky-nginx': 4,
 			'allsky-php': 5,
-			'allsky-process': 6,
+			'allsky-process': 6,  #+cycle
 			'allsky-rabbit': 7,
-			'allsky-sensor': 8,
-			'allsky-watchdog': 9,
-			'allsky-yolo': 10
+			'allsky-sensor': 8,   #+cycle
+			'allsky-watchdog': 9, #-cycle
+			'allsky-yolo': 10     #-cycle
 		}
 
 		'''

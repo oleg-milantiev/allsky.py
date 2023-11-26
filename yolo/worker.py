@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import pika
+#import time
 
 import signal
 
@@ -20,8 +21,11 @@ def terminate(signal,frame):
 
 signal.signal(signal.SIGTERM, terminate)
 
-
+# todo config
 logging.basicConfig(filename='/dev/stdout', level=logging.DEBUG)
+
+#todo lib
+#todo web = getConfig
 
 logging.info('[+] Start')
 
@@ -33,8 +37,8 @@ s = ephem.Sun()
 version = '5' # x, png, aug(rotate=3, bright=50)
 model = {}
 
-for time in ['day', 'morning', 'evening', 'night', 'night/moon']:
-	model[time] = YOLO(time +'/runs/classify/train'+ version +'/weights/best.pt')
+for dayPart in ['day', 'morning', 'evening', 'night', 'night/moon']:
+	model[dayPart] = YOLO(dayPart +'/runs/classify/train'+ version +'/weights/best.pt')
 
 logging.info('[+] Models are loaded. Ready to work')
 
@@ -55,6 +59,9 @@ print(' [*] Waiting for messages. To exit press CTRL+C')
 
 def callback(ch, method, properties, body):
 	print(" [x] Received %r" % body.decode())
+
+	#todo mysql REPLACE docker-cycle 10
+	#ts = time.time()
 
 	if not re.match(r"\d\d\d\d-\d\d-\d\d_\d\d-\d\d", body.decode()):
 		logging.error('[!] Неверный входной формат файла')
