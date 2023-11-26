@@ -14,7 +14,7 @@ while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 		$ret['date'] = $row['date'];
 	}
 
-	$ret[ str_replace('-', '_', $row['type']) ] = $row['val'];
+	$ret[ str_replace('-', '_', $row['type']) .'_'. $row['channel'] ] = $row['val'];
 }
 
 echo json_encode($ret);

@@ -15,6 +15,7 @@ import pika
 from PIL import Image
 import re
 import signal
+import subprocess
 import sys
 import time
 from threading import Thread
@@ -157,6 +158,7 @@ def watchdog():
 	#
 	#	time.sleep(6)
 
+
 	folders = {
 		'jpg': '/web/snap/',
 		'fit': '/web/fits/',
@@ -171,6 +173,47 @@ def watchdog():
 
 		now = datetime.now()
 		#print('"now" is '+ now.strftime('%d/%m/%Y %H:%M:%S'))
+
+		db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+			 database=config.db['database'], charset='utf8')
+
+		cursor = db.cursor()
+
+
+		# TBD контроль за запущенными докерами. А пока просто список в сенсоры (и оттуда - в заббикс)
+
+		dockerMap = {
+			'allsky-allsky': 0,
+			'allsky-camera': 1,
+			'allsky-db': 2,
+			'allsky-indi': 3,
+			'allsky-nginx': 4,
+			'allsky-php': 5,
+			'allsky-process': 6,
+			'allsky-rabbit': 7,
+			'allsky-sensor': 8,
+			'allsky-watchdog': 9,
+			'allsky-yolo': 10
+		}
+
+		'''
+		docker inspect --format='{{json .State}}' allsky-watchdog
+		{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":319830,"ExitCode":0,"Error":"","StartedAt":"2023-11-25T18:16:09.768754342Z","FinishedAt":"2023-11-25T18:16:09.317634819Z"}
+
+		docker inspect --format='{{.State.StartedAt}}' allsky-watchdog
+		'''
+
+		for item in dockerMap:
+			startedAt = os.popen("/docker inspect --format='{{.State.StartedAt}}' "+ item).read()
+			#2023-11-25T06:51:52.920311027Z
+			#"Status": "running",
+			#"Status": "restarting",
+
+			cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+				""" % {"time": now.timestamp(), "channel": dockerMap[item], "type": 'docker-started', "val": datetime.strptime(startedAt[:19] +'+00:00', '%Y-%m-%dT%H:%M:%S%z').timestamp() })
+
+		db.commit()
 
 		todaySunrise = lib.getTodaySunrise(now)
 		#print('Today sunrise at '+ todaySunrise.strftime("%d/%m/%Y %H:%M:%S"))
@@ -209,14 +252,18 @@ def watchdog():
 							date = datetime(int(result.group(1)), int(result.group(2)), int(result.group(3)), int(result.group(4)), int(result.group(5))) - timedelta(hours=int(web['observatory']['timezone']))
 
 							if date >= begin and date <= end:
-								files.append(f)
-								im = Image.open(f)
+								try:
+									im = Image.open(f)
 
-								if minWidth is None or im.size[0] < minWidth:
-									minWidth = im.size[0]
+									files.append(f)
 
-								if minHeight is None or im.size[1] < minHeight:
-									minHeight = im.size[1]
+									if minWidth is None or im.size[0] < minWidth:
+										minWidth = im.size[0]
+
+									if minHeight is None or im.size[1] < minHeight:
+										minHeight = im.size[1]
+								except:
+									pass
 
 					if len(files) > 5 and minWidth is not None and minHeight is not None:
 						logging.debug('[.] Found suitable images: {}, minWidth={}, minHeight={}'.format(len(files), minWidth, minHeight))
@@ -246,7 +293,7 @@ def watchdog():
 						else:
 							options = '-pix_fmt yuv420p -vf format=gray,scale='+ scale
 
-						cmd = '/docker run --rm -v /opt/allsky.py/web:/web olegmilantiev/allsky-ffmpeg ffmpeg -f image2 -i /web/snap/day-%06d.jpg '+ options +' /web/video/'+ begin.strftime("%Y-%m-%d") +'-{}'.format(minHeight) +'p.mp4'
+						cmd = '/docker run --rm -v /opt/allsky.py/web:/web olegmilantiev/allsky-ffmpeg ffmpeg -f image2 -i /web/snap/day-%06d.jpg '+ options +' '+ videoFilename
 						logging.debug('Run ffmpeg via docker: '+ cmd)
 						os.system(cmd)
 
@@ -261,15 +308,8 @@ def watchdog():
 			print('Removing old sensors data: start')
 			hourSensor = now.strftime("%Y-%m-%d_%H")
 
-			db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
-				 database=config.db['database'], charset='utf8')
-
-			cursor = db.cursor()
-
 			cursor.execute('delete from sensor where date < '+ str(time.time() - 86400 * int(web['archive']['sensors'])))
 
-			cursor.close()
-			db.close()
 			print('Removing old sensors data: done')
 
 		# remove old jpg, fit, mp4
@@ -289,6 +329,9 @@ def watchdog():
 							os.remove(folders[ext] + f)
 
 		logging.info('[+] Waiting next minute')
+
+		cursor.close()
+		db.close()
 
 		while running:
 			now = datetime.now().strftime("%Y-%m-%d_%H-%M")

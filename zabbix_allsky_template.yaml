@@ -63,7 +63,7 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - $.ai_clear
+                - $.ai_clear_0
           master_item:
             key: allsky.history
           tags:
@@ -79,7 +79,7 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - $.ai_cloud
+                - $.ai_cloud_0
           master_item:
             key: allsky.history
           tags:
@@ -94,7 +94,7 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - $.ccd_average
+                - $.ccd_average_0
           master_item:
             key: allsky.history
           tags:
@@ -108,7 +108,7 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - $.ccd_bin
+                - $.ccd_bin_0
           master_item:
             key: allsky.history
           tags:
@@ -145,7 +145,7 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - $.ccd_exposure
+                - $.ccd_exposure_0
           master_item:
             key: allsky.history
           tags:
@@ -159,12 +159,212 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - $.ccd_gain
+                - $.ccd_gain_0
           master_item:
             key: allsky.history
           tags:
             - tag: Application
               value: AllSky
+        - uuid: 4b89fd9714cd4607a39544181707fd53
+          name: 'AllSky: Component started: Exposure finder'
+          type: DEPENDENT
+          key: allsky.docker.allsky.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_0
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: 6b4bc3e281634882bb7aa05242bbc855
+              expression: 'now() - last(/AllSky/allsky.docker.allsky.started)<10m'
+              name: 'AllSky: Component: Exposure finder reloaded'
+              priority: AVERAGE
+        - uuid: 6ae8b7266f594553aef9f4e9ffef1161
+          name: 'AllSky: Component started: Database'
+          type: DEPENDENT
+          key: allsky.docker.db.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_2
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: 353a535f37c447bf821211ea1d3d492d
+              expression: 'now() - last(/AllSky/allsky.docker.db.started)<10m'
+              name: 'AllSky: Component: DB reloaded'
+              priority: AVERAGE
+        - uuid: e56b9f6a7f4f4877b7977bf88ca557df
+          name: 'AllSky: Component started: INDI'
+          type: DEPENDENT
+          key: allsky.docker.indi.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_3
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: c395b22d3e8c4f5ea74f6ffa1956ec96
+              expression: 'now() - last(/AllSky/allsky.docker.indi.started)<10m'
+              name: 'AllSky: Component: INDI reloaded'
+              priority: AVERAGE
+        - uuid: 458619bfc9aa4fa486a86d27d484d322
+          name: 'AllSky: Component started: Web server'
+          type: DEPENDENT
+          key: allsky.docker.nginx.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_4
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: 9ffc768aaa0d4c4c94b8f59f6c5c4a6c
+              expression: 'now() - last(/AllSky/allsky.docker.nginx.started)<10m'
+              name: 'AllSky: Component: NGINX reloaded'
+              priority: AVERAGE
+        - uuid: c9a88662e7af47cc98fc584b843c8931
+          name: 'AllSky: Component started: PHP'
+          type: DEPENDENT
+          key: allsky.docker.php.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_5
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: af7a57a1e38d419381e21c1fb3cf959e
+              expression: 'now() - last(/AllSky/allsky.docker.php.started)<10m'
+              name: 'AllSky: Component: PHP reloaded'
+              priority: AVERAGE
+        - uuid: 990b143fab0f4b36a266c2dd957c7370
+          name: 'AllSky: Component started: Image Processor'
+          type: DEPENDENT
+          key: allsky.docker.process.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_6
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: 1ff5eff6484447d2954a8e32a52c82a5
+              expression: 'now() - last(/AllSky/allsky.docker.process.started)<10m'
+              name: 'AllSky: Component: Image Processor reloaded'
+              priority: AVERAGE
+        - uuid: 5dfe9b8307b24d038160d64d178b7939
+          name: 'AllSky: Component started: Queue'
+          type: DEPENDENT
+          key: allsky.docker.rabbit.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_7
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: c21c08dbc3424205b14e0108086dbd56
+              expression: 'now() - last(/AllSky/allsky.docker.rabbit.started)<10m'
+              name: 'AllSky: Component: Queue reloaded'
+              priority: AVERAGE
+        - uuid: 94b32754259c4b10a2a8b03ac438617f
+          name: 'AllSky: Component started: Sensor Collector'
+          type: DEPENDENT
+          key: allsky.docker.sensor.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_8
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: 2bc4fff9b2384ebf9ace7a08ee7721b4
+              expression: 'now() - last(/AllSky/allsky.docker.sensor.started)<10m'
+              name: 'AllSky: Component: Sensors Collector reloaded'
+              priority: AVERAGE
+        - uuid: 2e9b76981f7842a3a31135169f914707
+          name: 'AllSky: Component started: Watchdog'
+          type: DEPENDENT
+          key: allsky.docker.watchdog.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_9
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: 3c8380691b0e4560ba471eec6c4560ca
+              expression: 'now() - last(/AllSky/allsky.docker.watchdog.started)<10m'
+              name: 'AllSky: Component: Watchdog reloaded'
+              priority: AVERAGE
+        - uuid: 418173c770fc458b9a96b7acef14ef39
+          name: 'AllSky: Component started: AI Cloud'
+          type: DEPENDENT
+          key: allsky.docker.yolo.started
+          delay: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.docker_started_10
+          master_item:
+            key: allsky.history
+          tags:
+            - tag: Application
+              value: AllSky
+          triggers:
+            - uuid: cdf04fda006c4a3383f10a158e67e7ce
+              expression: 'now() - last(/AllSky/allsky.docker.yolo.started)<10m'
+              name: 'AllSky: Component: AI Cloud reloaded'
+              priority: AVERAGE
         - uuid: 8eb4519922de426a9265f49746818099
           name: 'AllSky: Get JSON'
           type: HTTP_AGENT
@@ -187,7 +387,7 @@ zabbix_export:
           preprocessing:
             - type: JSONPATH
               parameters:
-                - $.stars_count
+                - $.stars_count_0
           master_item:
             key: allsky.history
           tags:
