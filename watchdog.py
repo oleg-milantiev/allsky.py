@@ -172,6 +172,7 @@ def watchdog():
 	while running:
 
 		now = datetime.now()
+
 		#print('"now" is '+ now.strftime('%d/%m/%Y %H:%M:%S'))
 
 		db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
@@ -184,7 +185,7 @@ def watchdog():
 
 		dockerMap = {
 			'allsky-allsky': 0,   #+cycle
-			'allsky-camera': 1,   #-cycle
+			'allsky-camera': 1,   #-cycle - надо выделить универсального INDI клиента с автопоиском камеры
 			'allsky-db': 2,
 			'allsky-indi': 3,
 			'allsky-nginx': 4,
@@ -192,8 +193,8 @@ def watchdog():
 			'allsky-process': 6,  #+cycle
 			'allsky-rabbit': 7,
 			'allsky-sensor': 8,   #+cycle
-			'allsky-watchdog': 9, #-cycle
-			'allsky-yolo': 10     #-cycle
+			'allsky-watchdog': 9, #+cycle
+			'allsky-yolo': 10     #-cycle тут нет mysql вовсе
 		}
 
 		'''
@@ -212,8 +213,6 @@ def watchdog():
 			cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
 				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 				""" % {"time": now.timestamp(), "channel": dockerMap[item], "type": 'docker-started', "val": datetime.strptime(startedAt[:19] +'+00:00', '%Y-%m-%dT%H:%M:%S%z').timestamp() })
-
-		db.commit()
 
 		todaySunrise = lib.getTodaySunrise(now)
 		#print('Today sunrise at '+ todaySunrise.strftime("%d/%m/%Y %H:%M:%S"))
@@ -330,6 +329,11 @@ def watchdog():
 
 		logging.info('[+] Waiting next minute')
 
+		cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+			""" % {"time": time.time(), "channel": 9, "type": 'docker-cycle', "val": time.time() - now.timestamp() })
+
+		db.commit()
 		cursor.close()
 		db.close()
 
