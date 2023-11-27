@@ -13,10 +13,11 @@ RUN apt-get update && \
     libjpeg-dev libkrb5-dev libnova-dev libtiff-dev libfftw3-dev \
     librtlsdr-dev libcfitsio-dev libgphoto2-dev build-essential \
     libusb-1.0-0-dev libdc1394-dev libboost-regex-dev libcurl4-gnutls-dev \
-    libtheora-dev python3-dev swig libnova-dev \
+    libtheora-dev python3-dev swig libnova-dev libgsl27 \
     python3-astropy python3-pika python3-pillow python3-mysqldb \
     python3-requests python3-pip python3-ephem usbutils && \
     python3 -m pip install --break-system-packages adafruit-circuitpython-bme280 RPi.GPIO && \
+    python3 -m pip install --break-system-packages adafruit-blinka adafruit-platformdetect && \
     python3 -m pip install --break-system-packages zwoasi && \
      env GIT_SSL_NO_VERIFY=true git clone --depth 1 https://github.com/indilib/indi.git && \
     git clone --depth 1 https://github.com/indilib/pyindi-client.git && \
