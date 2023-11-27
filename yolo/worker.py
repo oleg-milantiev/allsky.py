@@ -9,11 +9,14 @@ import ephem
 import logging
 import os
 import re
+import signal
 import sys
 import pika
 #import time
 
-import signal
+sys.path.insert(0, '/common')
+import lib
+
 
 def terminate(signal,frame):
 	print("Start Terminating: %s" % datetime.now())
@@ -24,8 +27,7 @@ signal.signal(signal.SIGTERM, terminate)
 # todo config
 logging.basicConfig(filename='/dev/stdout', level=logging.DEBUG)
 
-#todo lib
-#todo web = getConfig
+web = lib.getWebConfig()
 
 logging.info('[+] Start')
 

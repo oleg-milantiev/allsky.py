@@ -65,6 +65,7 @@ services:
     volumes:
       - ./yolo:/yolo
       - ./web/fits:/fits
+      - ./camera/common:/common:ro
     command: python3 /yolo/worker.py
     networks:
       appnet:

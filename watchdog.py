@@ -210,6 +210,7 @@ def watchdog():
 			#"Status": "running",
 			#"Status": "restarting",
 
+			# todo а в локальные сенсоры надо это записывать?
 			cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
 				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
 				""" % {"time": now.timestamp(), "channel": dockerMap[item], "type": 'docker-started', "val": datetime.strptime(startedAt[:19] +'+00:00', '%Y-%m-%dT%H:%M:%S%z').timestamp() })
