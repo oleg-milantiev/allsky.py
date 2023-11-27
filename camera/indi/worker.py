@@ -214,7 +214,7 @@ def callback(ch, method, props, body):
 
 	if hasGain and 'gain' in payload and payload['gain'] != gain:
 		gain = payload['gain']
-		ccd_gain[0].value = bin
+		ccd_gain[0].value = gain
 		indi.sendNewNumber(ccd_gain)
 		print('GAIN {} отправил'.format(gain))
 
