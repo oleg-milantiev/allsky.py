@@ -42,10 +42,13 @@ web = lib.getWebConfig()
 logging.basicConfig(filename=config.log['path'], level=config.log['level'])
 logging.info('[+] Start')
 
-'''
-tbd
+uptimeStored = lib.getSensorLast('uptime')
+uptimeNow = lib.getUptime()
 
-if 'uptime' in web and float(web['uptime']) > lib.getUptime():
+if uptimeStored is not None and float(uptimeStored) > uptimeNow:
+	logging.info('[.] First time start')
+	lib.setSensorLast('uptime', 0, uptimeNow)
+
 	for relay in web['relays']:
 		f = open('/sys/class/gpio/export', 'wt')
 		f.write(relay['gpio'])
@@ -58,7 +61,7 @@ if 'uptime' in web and float(web['uptime']) > lib.getUptime():
 		f.write('out')
 		f.close()
 
-		os.chown('/sys/class/gpio/gpio{}/value'.format(relay['gpio']), pwd.getpwnam("www-data").pw_uid, grp.getgrnam("www-data").gr_gid)
+		os.chown('/sys/class/gpio/gpio{}/value'.format(relay['gpio']), 82, 82)
 
 	time.sleep(0.1)
 
@@ -69,8 +72,6 @@ if 'uptime' in web and float(web['uptime']) > lib.getUptime():
 		f = open('/sys/class/gpio/gpio{}/value'.format(relay['gpio']), 'wt')
 		f.write('{}'.format(state['state']) if state else '0')
 		f.close()
-'''
-
 
 def reload(ch, method, properties, body):
 	print(" [x] Received RELOAD")

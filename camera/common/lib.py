@@ -41,6 +41,40 @@ def getWebConfig():
 
 	return web
 
+def getSensorLast(type):
+	import MySQLdb
+
+	db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+		 database=config.db['database'], charset='utf8')
+
+	cursor = db.cursor()
+
+	cursor.execute("""SELECT val FROM sensor_last WHERE channel = %(channel)i and type = '%(type)s'""" % {'channel': 0, 'type': 'uptime'})
+
+	row = cursor.fetchone()
+
+	cursor.close()
+	db.close()
+
+	return row[0] if row is not None else None
+
+def setSensorLast(type, channel, val):
+	import time
+	import MySQLdb
+
+	db = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+		 database=config.db['database'], charset='utf8')
+
+	cursor = db.cursor()
+
+	cursor.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+		""" % {'time': time.time(), 'channel': channel, 'type': 'uptime', 'val': val })
+
+	db.commit()
+	cursor.close()
+	db.close()
+
 @cache
 def isConfigExistsGPS():
 	web = getWebConfig()

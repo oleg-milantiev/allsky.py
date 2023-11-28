@@ -215,9 +215,9 @@ def callback(ch, method, properties, body):
 		 database=config.db['database'], charset='utf8')
 	cursor2 = db2.cursor()
 
-	cursor2.execute("""REPLACE INTO config(id, val)
-		VALUES ('%(id)s', '%(val)s')
-		""" % {'id': 'uptime', 'val': lib.getUptime()})
+	cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
+		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
+		""" % {"time": ts, "channel": 0, "type": 'uptime', "val": lib.getUptime() })
 
 	try:
 		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)

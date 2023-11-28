@@ -90,7 +90,7 @@ DROP TABLE IF EXISTS `sensor_last`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `sensor_last` (
-  `type` enum('temperature','humidity','pressure','voltage','wind-speed','wind-direction','sky-temperature','ccd-exposure','ccd-average','ccd-gain','ccd-bin','stars-count','ai-clear','ai-cloud','docker-started','docker-cycle') NOT NULL,
+  `type` enum('temperature','humidity','pressure','voltage','wind-speed','wind-direction','sky-temperature','ccd-exposure','ccd-average','ccd-gain','ccd-bin','stars-count','ai-clear','ai-cloud','docker-started','docker-cycle','uptime') NOT NULL,
   `channel` int(10) unsigned NOT NULL,
   `date` int(10) unsigned NOT NULL,
   `val` double NOT NULL,
