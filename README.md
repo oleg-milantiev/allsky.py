@@ -9,6 +9,7 @@ English version below.
 * Raspberry Pi 3 + ZWO ASI 178c
 * Orange Pi PC + Starlight Oculus / QHY5 старая шайба чб (через fxload и INDI qhy)
 * Tinkerboard / S + QHY5-II
+* i7 x64 + Starlight Oculus
 
 # Возможности
 
@@ -57,6 +58,7 @@ Successfully checked on:
 * Raspberry Pi 3 + ZWO ASI 178c
 * Orange Pi PC + Starlight Oculus / QHY5 old (via fxload and INDI qhy)
 * Tinkerboard / S + QHY5-II
+* i7 (x64) + Starlight Oculus
 
 # Features
 
