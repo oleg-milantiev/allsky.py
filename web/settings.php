@@ -389,6 +389,24 @@ $tab = $_GET['tab'] ?? 'users';
 
 			<div class="card">
 				<div class="card-body">
+					<h6 class="card-title">Шумоподавление</h6>
+
+					<div class="form-group">
+						<label>
+							Медиана
+						</label>
+						<select class="form-control" name="noise[median]">
+							<option value="0">- нет -</option>
+							<option value="3"<?php echo (isset($config['processing']['noise']['median']) and $config['processing']['noise']['median'] == 3) ? ' selected' : '' ;?>>3х3</option>
+							<option value="5"<?php echo (isset($config['processing']['noise']['median']) and $config['processing']['noise']['median'] == 5) ? ' selected' : '' ;?>>5х5</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<br>
+
+			<div class="card">
+				<div class="card-body">
 					<h6 class="card-title">Аннотации (наложение текста)</h6>
 
 					<table class="table table-striped annotation">

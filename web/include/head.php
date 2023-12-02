@@ -250,6 +250,7 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 				!isset($_POST['logoX']) or
 				!isset($_POST['logoY']) or
 				!isset($_POST['gamma']) or
+				!isset($_POST['noise']) or
 				!isset($_POST['autoContrast']) or
 				!isset($_POST['transpose']) or
 				!isset($_POST['wb'])
@@ -279,6 +280,9 @@ if ( ($_SERVER['REQUEST_METHOD'] == 'POST') and isset($_POST['action']) ) {
 					'enable' => isset($_POST['sd']['enable']) ? ($_POST['sd']['enable'] === 'on') : false,
 					'fwhm' => (float) ($_POST['sd']['fwhm'] ?? 1.5),
 					'threshold' => (float) ($_POST['sd']['threshold'] ?? 2),
+				],
+				'noise' => [
+					'median' => (int) $_POST['noise']['median'],
 				],
 				'yolo' => [
 					'enable' => isset($_POST['yolo']['enable']) ? ($_POST['yolo']['enable'] === 'on') : false,
