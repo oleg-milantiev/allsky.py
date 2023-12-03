@@ -84,6 +84,11 @@ def callback(ch, method, properties, body):
 
 		logging.debug('Удалено горячих пикселей: {}'.format(hotCount))
 
+	if 'noise' in web['processing'] and 'median' in web['processing']['noise'] and web['processing']['noise']['median'] in [3, 5]:
+		logging.info('Медианный фильтр с ядром: '+ web['processing']['noise']['median'])
+		hdu.data = scipy.signal.medfilt2d(hdu.data, kernel_size=web['processing']['noise']['median'])
+
+
 	if 'lat' in web['observatory'] and web['observatory']['lat'] != '':
 		hdu.header.set('LAT', web['observatory']['lat'], 'Observatory latitude')
 	if 'lon' in web['observatory'] and web['observatory']['lon'] != '':
