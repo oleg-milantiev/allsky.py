@@ -194,7 +194,7 @@ $(document).ready(function() {
 
 	var myChart = new Chart(ctx, chart);
 
-	<?php if (in_array($type, ['ccd-exposure', 'ccd-average'])):?>
+	<?php if (in_array($type, ['ccd-exposure', 'ccd-average', 'ccd-gain',  'ccd-bin',  'stars-count',  'ai-cloud',  'ai-clear'])):?>
 		ctx.onclick = function(evt){
 			var activePoint = myChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
 
