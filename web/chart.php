@@ -196,10 +196,10 @@ $(document).ready(function() {
 
 	<?php if (in_array($type, ['ccd-exposure', 'ccd-average'])):?>
 		ctx.onclick = function(evt){
-			var activePoint = myChart.getElementAtEvent(evt);
-			
+			var activePoint = myChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+
 			if (activePoint) {
-				window.open('/archive.php?date='+ chart.data.labels[activePoint[0]._index]);
+				window.open('/archive.php?date='+ chart.data.labels[activePoint[0].index]);
 			}
 		};
 	<?php endif;?>
