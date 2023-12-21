@@ -196,6 +196,9 @@ services:
     volumes:
       - ./camera/indi:/camera:ro
 
+      - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
+      - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
+
       - ./camera/common:/common:ro
       - ./web/fits:/fits
     devices:

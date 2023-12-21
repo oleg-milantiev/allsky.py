@@ -27,8 +27,8 @@ while True:
 
 
 
-rules = open('/camera/udev/etc/udev/rules.d/85-qhyccd.rules', 'r')
- 
+rules = open('/etc/udev/rules.d/85-qhyccd.rules', 'r')
+
 while True:
   line = rules.readline()
 
@@ -40,8 +40,8 @@ while True:
   if result:
     for dev in devs:
       if dev['vendor'] == result.group(1) and dev['product'] == result.group(2):
-        print('/camera/'+ lib.getArch() +'/fxload '+ result.group(3).replace('$env{DEVNAME}', dev['path']))
-        os.system('/camera/'+ lib.getArch() +'/fxload '+ result.group(3).replace('$env{DEVNAME}', dev['path']))
+        print('/common/'+ lib.getArch() +'/fxload '+ result.group(3).replace('$env{DEVNAME}', dev['path']))
+        os.system('/common/'+ lib.getArch() +'/fxload '+ result.group(3).replace('$env{DEVNAME}', dev['path']))
 
         break
 
