@@ -344,7 +344,7 @@ while True:
 
 		if hdu is not None:
 			# старый кадр. Ждём запрошенного
-			logging.info('Выдержка / gain / bin полученного кадра не соответствует запрошенной '+ str(exposure) +'/'+ str(gain if 'GAIN' in hdu.header else 'na') +'/'+ str(bin) +' != '+ str(hdu.header['EXPTIME']) +'/'+ str(hdu.header['GAIN'] if 'GAIN' in hdu.header else 'na') +'/'+ str(hdu.header['XBINNING']))
+			logging.info('Выдержка / gain / bin полученного кадра не соответствует запрошенной '+ str(round(exposure, 2)) +'/'+ str(gain if 'GAIN' in hdu.header else 'na') +'/'+ str(bin) +' != '+ str(round(hdu.header['EXPTIME'], 2)) +'/'+ str(hdu.header['GAIN'] if 'GAIN' in hdu.header else 'na') +'/'+ str(hdu.header['XBINNING']))
 
 	# Подсчёт среднего по центру кадра
 	center = 50
