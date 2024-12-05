@@ -1,5 +1,37 @@
 #!/usr/bin/python3
 
+"""
+AllSky Camera Image Processing Module
+===================================
+
+This module handles the image processing pipeline for the AllSky camera system.
+It processes astronomical images from the camera, applying various corrections
+and enhancements while maintaining scientific validity of the data.
+
+Key Features:
+- Hot pixel removal and noise reduction
+- Star detection and counting using DAOStarFinder
+- Color correction and debayering for CFA sensors
+- Image enhancement (white balance, gamma, contrast)
+- Metadata annotation (timestamp, location, star count)
+- Support for FITS format with header metadata
+
+The module operates as a RabbitMQ consumer, processing images as they arrive
+from the camera system. It supports both scientific and visual enhancement
+processing paths.
+
+Dependencies:
+    - astropy: Astronomical data handling
+    - photutils: Astronomical source detection
+    - scipy: Scientific computing and image processing
+    - PIL: Image processing and annotation
+    - pika: RabbitMQ client
+    - MySQLdb: Database connectivity
+
+Author: Oleg Milantiev
+License: MIT
+"""
+
 import lib
 
 import config

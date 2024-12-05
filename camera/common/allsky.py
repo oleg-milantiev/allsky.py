@@ -1,5 +1,41 @@
 #!/usr/bin/python3
 
+"""
+AllSky Camera Control Module
+===========================
+
+This module provides the core camera control functionality for the AllSky system.
+It manages camera operations, exposure settings, and communication between
+system components.
+
+Key Features:
+- Automatic exposure optimization
+- Camera parameter control (gain, binning)
+- RabbitMQ-based RPC client for camera communication
+- Robust error handling and connection recovery
+- Automatic adjustment based on sky conditions
+
+The module implements a sophisticated control system that automatically adjusts
+camera parameters based on image statistics and environmental conditions. It
+uses RabbitMQ for reliable communication with other system components.
+
+Classes:
+    CameraClient: RPC client for camera control
+    
+Functions:
+    findExpo: Legacy exposure optimization
+    findExpo2: Enhanced exposure optimization algorithm
+    
+Dependencies:
+    - astropy: FITS file handling
+    - numpy: Numerical computations
+    - pika: RabbitMQ client
+    - MySQLdb: Database connectivity
+
+Author: Oleg Milantiev
+License: MIT
+"""
+
 # Standard library imports
 import json
 import logging
