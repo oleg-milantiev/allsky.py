@@ -8,19 +8,112 @@ import sys
 import io
 import os
 import signal
+import logging
 from astropy.io import fits
 from datetime import datetime
 
+# Configure logging
+def setup_logging():
+	"""Configure logging with proper format and level for Docker environment"""
+	log_format = '%(asctime)s - %(levelname)s - %(message)s'
+	logging.basicConfig(
+		level=logging.INFO,
+		format=log_format,
+		handlers=[
+			logging.StreamHandler(sys.stdout)
+		]
+	)
+	return logging.getLogger('indi_worker')
+
+logger = setup_logging()
+
 os.system('python3 /common/udev.py')
 
-def terminate(signal,frame):
-	print("Start Terminating: %s" % datetime.now())
+def cleanup_resources():
+	"""Cleanup camera and connection resources properly"""
+	global ccd, connection, indi
+	
+	try:
+		if 'ccd' in globals() and ccd is not None:
+			logger.info("Disconnecting camera...")
+			if ccd.isConnected():
+				# Get CONNECTION switch to disconnect camera
+				ccd_connect = ccd.getSwitch("CONNECTION")
+				if ccd_connect:
+					ccd_connect[0].s = PyIndi.ISS_OFF  # CONNECT
+					ccd_connect[1].s = PyIndi.ISS_ON   # DISCONNECT
+					indi.sendNewSwitch(ccd_connect)
+					logger.info("Camera disconnected")
+	except Exception as e:
+		logger.error("Error disconnecting camera: %s", str(e))
+
+	try:
+		if 'connection' in globals() and connection is not None:
+			logger.info("Closing RabbitMQ connection...")
+			connection.close()
+			logger.info("RabbitMQ connection closed")
+	except Exception as e:
+		logger.error("Error closing RabbitMQ connection: %s", str(e))
+
+	try:
+		if 'indi' in globals() and indi is not None:
+			logger.info("Disconnecting from INDI server...")
+			indi.disconnectServer()
+			logger.info("INDI server disconnected")
+	except Exception as e:
+		logger.error("Error disconnecting from INDI server: %s", str(e))
+
+def terminate(signal, frame):
+	"""Handle termination signals and cleanup resources"""
+	logger.info("Received termination signal")
+	cleanup_resources()
+	logger.info("Cleanup completed, exiting")
 	sys.exit(0)
 
+# Register signal handlers for proper cleanup
 signal.signal(signal.SIGTERM, terminate)
+signal.signal(signal.SIGINT, terminate)
 
-#cameraName = 'SX CCD SuperStar'
-cameraName = None
+# Camera selection configuration
+# Priority: 1. Environment variable 2. Known camera models 3. First available device
+KNOWN_CAMERA_MODELS = [
+	'SX CCD SuperStar',
+	'ZWO CCD ASI120MM',
+	'QHY CCD QHY5',
+	'ASI Camera'
+]
+
+def find_camera_device():
+	"""
+	Find and select the appropriate camera device based on configuration priority:
+	1. Environment variable INDI_CAMERA_NAME if set
+	2. First matching known camera model from KNOWN_CAMERA_MODELS
+	3. First available device as fallback
+	
+	Returns:
+		tuple: (camera_name, camera_type) or (None, None) if no camera found
+	"""
+	# Check environment variable first
+	env_camera = os.getenv('INDI_CAMERA_NAME')
+	if env_camera:
+		return env_camera, "Environment configured camera"
+	
+	# Get list of all devices
+	devices = indi.getDevices()
+	if not devices:
+		return None, "No INDI devices found"
+		
+	# Try to find a known camera model
+	for device in devices:
+		device_name = device.getDeviceName()
+		if any(model.lower() in device_name.lower() for model in KNOWN_CAMERA_MODELS):
+			return device_name, "Known camera model"
+			
+	# Fallback to first device
+	if devices:
+		return devices[0].getDeviceName(), "First available device"
+		
+	return None, "No suitable camera found"
 
 class IndiClient(PyIndi.BaseClient):
 	device = None
@@ -29,7 +122,7 @@ class IndiClient(PyIndi.BaseClient):
 		super(IndiClient, self).__init__()
 
 	def newDevice(self, d):
-		print('newDevice: ' + d.getDeviceName())
+		logger.info('newDevice: ' + d.getDeviceName())
 		self.device = d
 		pass
 
@@ -41,7 +134,7 @@ class IndiClient(PyIndi.BaseClient):
 
 	def newBLOB(self, bp):
 		# в свежем INDI под докером сюда не приходит. Чудеса, блин
-		print(' [x] Getting a frame...')
+		logger.info(' [x] Getting a frame...')
 
 		fit = fits.open(io.BytesIO(bp.getblobdata()))
 		hdu = fit[0]
@@ -56,7 +149,7 @@ class IndiClient(PyIndi.BaseClient):
 		hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
 		hdu.writeto('/fits/current.fit', overwrite=True)
 
-		print(" [x] Done")
+		logger.info(" [x] Done")
 
 		pass
 
@@ -64,7 +157,6 @@ class IndiClient(PyIndi.BaseClient):
 		pass
 
 	def newNumber(self, nvp):
-		# print("newNumber ", nvp.name)
 		pass
 
 	def newText(self, tvp):
@@ -84,194 +176,194 @@ class IndiClient(PyIndi.BaseClient):
 
 
 # ------------------ начало ---------------------
-indi = IndiClient()
-indi.setServer('indi', 7624)
+try:
+	indi = IndiClient()
+	indi.setServer('indi', 7624)
 
-if not indi.connectServer():
-	print('Cant connect to INDI server')
-	sys.exit(1)
-
-print('Connect to INDI server')
-
-time.sleep(1)
-
-# Find and print all devices. Use first as cameraName
-for dev in indi.getDevices():
-	print('Found device: '+ dev.getDeviceName())
-
-	if cameraName is None:
-		cameraName = dev.getDeviceName()
-		print('Using first device as camera: '+ cameraName)
-
-retries = 10
-ccd = indi.getDevice(cameraName)
-while not ccd:
-	retries -= 1
-	if retries == 0:
-		print('Не получаю CCD')
+	if not indi.connectServer():
+		logger.error('Cannot connect to INDI server')
 		sys.exit(1)
-	time.sleep(0.5)
+
+	logger.info('Connected to INDI server')
+
+	time.sleep(1)
+
+	# Find and select camera
+	cameraName, selection_method = find_camera_device()
+	if not cameraName:
+		logger.error(f'Error: {selection_method}')
+		cleanup_resources()
+		sys.exit(1)
+
+	logger.info(f'Selected camera: {cameraName} (Selection method: {selection_method})')
+
+	retries = 10
 	ccd = indi.getDevice(cameraName)
+	while not ccd:
+		retries -= 1
+		if retries == 0:
+			logger.error('Cannot get CCD device')
+			cleanup_resources()
+			sys.exit(1)
+		time.sleep(0.5)
+		ccd = indi.getDevice(cameraName)
 
-print('CCD увидел в списке')
+	logger.info('CCD device found')
 
-retries = 10
-ccd_connect = ccd.getSwitch("CONNECTION")
-while not ccd_connect:
-	retries -= 1
-	if retries == 0:
-		print('Не получаю CONNECTION')
-		sys.exit(1)
-	time.sleep(0.5)
+	retries = 10
 	ccd_connect = ccd.getSwitch("CONNECTION")
+	while not ccd_connect:
+		retries -= 1
+		if retries == 0:
+			logger.error('Cannot get CONNECTION switch')
+			cleanup_resources()
+			sys.exit(1)
+		time.sleep(0.5)
+		ccd_connect = ccd.getSwitch("CONNECTION")
 
-print('CCD нашёл')
+	logger.info('CCD connection switch found')
 
-if not ccd.isConnected():
-	ccd_connect[0].s = PyIndi.ISS_ON  # the "CONNECT" switch
-	ccd_connect[1].s = PyIndi.ISS_OFF  # the "DISCONNECT" switch
-	indi.sendNewSwitch(ccd_connect)
+	if not ccd.isConnected():
+		ccd_connect[0].s = PyIndi.ISS_ON  # the "CONNECT" switch
+		ccd_connect[1].s = PyIndi.ISS_OFF  # the "DISCONNECT" switch
+		indi.sendNewSwitch(ccd_connect)
 
-print('CCD подключил')
+	logger.info('CCD connected')
 
-retries = 10
-ccd_exposure = ccd.getNumber("CCD_EXPOSURE")
-while not ccd_exposure:
-	retries -= 1
-	if retries == 0:
-		print('Похоже, камера зависла')
-		# lsusb -> bus 001, dev 005
-		# fxload -t fx2 -D /dv/bus/usb/001/005 -I /lib/firmware/qhy/QHY5LOADER.HEX -v
-		# os.system('reboot')
-		sys.exit(1)
-	time.sleep(0.5)
+	retries = 10
 	ccd_exposure = ccd.getNumber("CCD_EXPOSURE")
+	while not ccd_exposure:
+		retries -= 1
+		if retries == 0:
+			logger.error('Cannot get CCD_EXPOSURE property')
+			cleanup_resources()
+			sys.exit(1)
+		time.sleep(0.5)
+		ccd_exposure = ccd.getNumber("CCD_EXPOSURE")
 
-print('EXPOSURE нашёл')
+	logger.info('CCD_EXPOSURE property found')
 
-hasBinning = True
-retries = 10
-ccd_binning = ccd.getNumber("CCD_BINNING")
-while not ccd_binning:
-	retries -= 1
-	if retries == 0:
-		hasBinning = False
-		print('Не могу получить CCD_BINNING')
-		break
-	time.sleep(0.5)
+	hasBinning = True
+	retries = 10
 	ccd_binning = ccd.getNumber("CCD_BINNING")
+	while not ccd_binning:
+		retries -= 1
+		if retries == 0:
+			hasBinning = False
+			logger.error('Cannot get CCD_BINNING property')
+			break
+		time.sleep(0.5)
+		ccd_binning = ccd.getNumber("CCD_BINNING")
 
-if hasBinning:
-	print('BINNING нашёл')
+	if hasBinning:
+		logger.info('CCD_BINNING property found')
 
-hasGain = True
-retries = 10
-ccd_gain = ccd.getNumber("CCD_GAIN")
-while not ccd_gain:
-	retries -= 1
-	if retries == 0:
-		hasGain = False
-		print('Не могу получить CCD_GAIN')
-		break
-	time.sleep(0.5)
+	hasGain = True
+	retries = 10
 	ccd_gain = ccd.getNumber("CCD_GAIN")
+	while not ccd_gain:
+		retries -= 1
+		if retries == 0:
+			hasGain = False
+			logger.error('Cannot get CCD_GAIN property')
+			break
+		time.sleep(0.5)
+		ccd_gain = ccd.getNumber("CCD_GAIN")
 
-if hasGain:
-	print('GAIN нашёл')
+	if hasGain:
+		logger.info('CCD_GAIN property found')
 
-indi.setBLOBMode(PyIndi.B_ALSO, cameraName, 'CCD1')
-print('setBLOB отправил')
+	indi.setBLOBMode(PyIndi.B_ALSO, cameraName, 'CCD1')
+	logger.info('BLOB mode set')
 
-ccd_ccd1 = ccd.getBLOB("CCD1")
-while not(ccd_ccd1):
-	time.sleep(0.5)
 	ccd_ccd1 = ccd.getBLOB("CCD1")
-print('ccd1 получил')
+	while not(ccd_ccd1):
+		time.sleep(0.5)
+		ccd_ccd1 = ccd.getBLOB("CCD1")
+	logger.info('CCD1 BLOB found')
 
-connection = pika.BlockingConnection(
-	pika.ConnectionParameters(
-		os.getenv('RABBITMQ_HOST'),
-		os.getenv('RABBITMQ_PORT'),
-		'/',
-		pika.PlainCredentials(
-			os.getenv('RABBITMQ_DEFAULT_USER'),
-			os.getenv('RABBITMQ_DEFAULT_PASS'))))
+	connection = pika.BlockingConnection(
+		pika.ConnectionParameters(
+			os.getenv('RABBITMQ_HOST'),
+			os.getenv('RABBITMQ_PORT'),
+			'/',
+			pika.PlainCredentials(
+				os.getenv('RABBITMQ_DEFAULT_USER'),
+				os.getenv('RABBITMQ_DEFAULT_PASS'))))
 
-channel = connection.channel()
+	channel = connection.channel()
 
-channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_CAMERA'), durable=True)
-print(' [*] Waiting for messages. To exit press CTRL+C')
+	channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE_CAMERA'), durable=True)
+	logger.info(' [*] Waiting for messages. To exit press CTRL+C')
 
-exposure = None
-gain = None
-bin = None
+	exposure = None
+	gain = None
+	bin = None
 
-def callback(ch, method, props, body):
-	global bin, gain, exposure, cameraName, indi, ccd_binning, ccd_ccd1
+	def callback(ch, method, props, body):
+		global bin, gain, exposure, cameraName, indi, ccd_binning, ccd_ccd1
 
-	payload = json.loads(body.decode())
-	print(" [x] Received %r" % body.decode())
+		payload = json.loads(body.decode())
+		logger.info("Received message: %s", body.decode())
 
-	if hasGain and 'gain' in payload and payload['gain'] != gain:
-		gain = payload['gain']
-		ccd_gain[0].value = gain
-		indi.sendNewNumber(ccd_gain)
-		print('GAIN {} отправил'.format(gain))
+		if hasGain and 'gain' in payload and payload['gain'] != gain:
+			gain = payload['gain']
+			ccd_gain[0].value = gain
+			indi.sendNewNumber(ccd_gain)
+			logger.info('Setting GAIN to %s', gain)
 
-	if hasBinning and 'bin' in payload and payload['bin'] != bin:
-		bin = payload['bin']
+		if hasBinning and 'bin' in payload and payload['bin'] != bin:
+			bin = payload['bin']
+			ccd_binning[0].value = bin
+			ccd_binning[1].value = bin
+			indi.sendNewNumber(ccd_binning)
+			logger.info('Setting BINNING to %s', bin)
 
-		ccd_binning[0].value = bin
-		ccd_binning[1].value = bin
-		indi.sendNewNumber(ccd_binning)
-		print('BINNING {} отправил'.format(bin))
+		if payload['exposure'] != exposure:
+			exposure = payload['exposure']
+			logger.info('Setting exposure to %s seconds', exposure)
 
-	if payload['exposure'] != exposure:
-		exposure = payload['exposure']
+		indi.props = props
+		indi.ch = ch
 
-	indi.props = props
-	indi.ch = ch
+		ccd_exposure[0].value = exposure
+		indi.sendNewNumber(ccd_exposure)
+		logger.info("Starting exposure: %s seconds", exposure)
 
-	ccd_exposure[0].value = exposure
-	indi.sendNewNumber(ccd_exposure)
-	print(" [+] Start exposure")
+		# wait file
+		# @todo thread.lock and timeout
+		time.sleep(exposure + 2)
 
-	# wait file
-	# @todo thread.lock and timeout
-	time.sleep(exposure + 2)
+		fit = None
+		for blob in ccd_ccd1:
+			logger.debug("BLOB received - Name: %s, Size: %s, Format: %s", 
+				blob.name, blob.size, blob.format)
+			if blob.size > 0:
+				fit = fits.open(io.BytesIO(blob.getblobdata()))
+				hdu = fit[0]
+				hdu.header['TELESCOP'] = 'AllSky'
+				hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
+				hdu.writeto('/fits/current.fit', overwrite=True)
+				logger.info("Image saved to /fits/current.fit")
 
-	fit = None
-	for blob in ccd_ccd1:
-		print(" [+] Have BLOB: ", blob.name," size: ", blob.size," format: ", blob.format)
-		if blob.size > 0:
-			fit = fits.open(io.BytesIO(blob.getblobdata()))
-			hdu = fit[0]
-#			print(hdu.header)
-#			sys.exit()
-			hdu.header['TELESCOP'] = 'AllSky'
-#			hdu.header['INSTRUME'] = cameraName
-#			if not 'GAIN' in hdu.header:
-#				hdu.header['GAIN'] = gain
-#			if hasBinning:
-#				hdu.header['XBINNING'] = bin
-#				hdu.header['YBINNING'] = bin
-#			hdu.header['EXPTIME'] = exposure
-			hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
-			hdu.writeto('/fits/current.fit', overwrite=True)
+		if fit is None:
+			logger.error('Failed to capture image')
+		else:
+			logger.info("Exposure completed successfully")
 
-	if fit is None:
-		print(' [!] Cant get image')
+		ch.basic_publish(exchange='',
+						routing_key=props.reply_to,
+						properties=pika.BasicProperties(correlation_id = props.correlation_id),
+						body='Ok')
 
-	print(" [+] End exposure")
+		ch.basic_ack(delivery_tag=method.delivery_tag)
 
-	ch.basic_publish(exchange='',
-				 routing_key=props.reply_to,
-				 properties=pika.BasicProperties(correlation_id = props.correlation_id),
-				 body='Ok')
+	channel.basic_qos(prefetch_count=1)
+	channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE_CAMERA'), on_message_callback=callback)
 
-	ch.basic_ack(delivery_tag=method.delivery_tag)
+	channel.start_consuming()
 
-channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue=os.getenv('RABBITMQ_QUEUE_CAMERA'), on_message_callback=callback)
-
-channel.start_consuming()
+except Exception as e:
+	logger.error("Initialization failed: %s", str(e))
+	cleanup_resources()
+	sys.exit(1)

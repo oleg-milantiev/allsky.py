@@ -478,7 +478,7 @@ def findExpo2():
         elif exposure < web['ccd']['expMax']:
             # Finally try to increase exposure
             factor = max(web['ccd']['avgMin'] / avg if avg > 0 else 2.0, 1.1)
-            factor = min(factor, 2.0)  # Limit maximum increase
+            factor = min(factor, 4.0)  # Limit maximum increase
             exposure = min(web['ccd']['expMax'], exposure * factor)
             logging.debug(f'Increasing exposure to {exposure:.3f} (factor: {factor:.2f})')
     
