@@ -394,18 +394,34 @@ class ImageProcessor:
 	def publish(self):
 		"""
 		Publish the JPG image if publishing is configured.
+		Uses a separate thread to avoid blocking the main process.
 		"""
-		if 'jpg' in self.web['publish'] and self.web['publish']['jpg'] != '':
-			filename = self.hdu.header['DATE-OBS'].replace(':', '-').replace('T', '_')
+		if 'jpg' not in self.web['publish'] or not self.web['publish']['jpg']:
+			return
+
+		filename = self.hdu.header['DATE-OBS'].replace(':', '-').replace('T', '_')
+		filepath = f'/snap/{filename}.jpg'
+
+		def do_publish():
 			try:
-				r = requests.post(
-					self.web['publish']['jpg'],
-					files={'file': open('/snap/' + filename + '.jpg', 'rb')},
-					data={'name': self.web['observatory']['name'], 'pass': 'kjH3vxzm4G'}
-				)
-				self.logger.info('File ' + filename + ' has been published: ' + r.text)
-			except:
-				self.logger.error('Error publishing file ' + filename)
+				with open(filepath, 'rb') as f:
+					r = requests.post(
+						self.web['publish']['jpg'],
+						files={'file': f},
+						data={'name': self.web['observatory']['name'], 'pass': 'kjH3vxzm4G'},
+						timeout=10  # 10 seconds timeout
+					)
+					self.logger.info(f'File {filename} has been published: {r.text}')
+			except requests.Timeout:
+				self.logger.error(f'Timeout publishing file {filename}')
+			except requests.RequestException as e:
+				self.logger.error(f'Error publishing file {filename}: {str(e)}')
+			except Exception as e:
+				self.logger.error(f'Unexpected error publishing file {filename}: {str(e)}')
+
+		# Run publish in a separate thread
+		from threading import Thread
+		Thread(target=do_publish, daemon=True).start()
 
 	def save_jpg(self):
 		"""
@@ -473,96 +489,83 @@ def callback(ch, method, properties, body):
 	ts = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S').timestamp() + web['observatory']['timezone'] * 3600
 	channel = 0  # multicamera support
 
-	# try to break "Lock wait timeout exceeded; try restarting transaction" db hang by new connection
-	db2 = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
-		 database=config.db['database'], charset='utf8')
-	cursor2 = db2.cursor()
+	# Prepare data for batch insert
+	sensor_data = [
+		{'time': ts, 'channel': 0, 'type': 'uptime', 'val': lib.getUptime()}
+	]
 
-	cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
-		VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-		""" % {"time": ts, "channel": 0, "type": 'uptime', "val": lib.getUptime() })
+	# Add sensor data if available in header
+	header_to_sensor = {
+		'EXPTIME': 'ccd-exposure',
+		'AVG': 'ccd-average',
+		'GAIN': 'ccd-gain',
+		'XBINNING': 'ccd-bin',
+		'AI-CLEAR': 'ai-clear',
+		'AI-CLOUD': 'ai-cloud'
+	}
 
-	try:
-		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": hdu.header['EXPTIME']})
-		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ccd-exposure', "val": hdu.header['EXPTIME']})
-	except:
-		logging.debug('Cannot insert EXPTIME')
-
-	try:
-		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['AVG']})
-		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ccd-average', "val": hdu.header['AVG']})
-	except:
-		logging.debug('Cannot insert AVG')
-
-	try:
-		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": hdu.header['GAIN']})
-		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ccd-gain', "val": hdu.header['GAIN']})
-	except:
-		logging.debug('Cannot insert GAIN')
-
-	try:
-		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
-		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ccd-bin', "val": hdu.header['XBINNING']})
-	except:
-		logging.debug('Cannot insert BINNING')
-
-	try:
-		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ai-clear', "val": hdu.header['AI-CLEAR']})
-		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ai-clear', "val": hdu.header['AI-CLEAR']})
-	except:
-		logging.debug('Cannot insert AI-CLEAR')
-
-	try:
-		cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ai-cloud', "val": hdu.header['AI-CLOUD']})
-		cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": ts, "channel": channel, "type": 'ai-cloud', "val": hdu.header['AI-CLOUD']})
-	except:
-		logging.debug('Cannot insert AI-CLOUD')
-
-	if processor.stars is not None:
+	for header_key, sensor_type in header_to_sensor.items():
 		try:
-			cursor2.execute("""INSERT INTO sensor(date, channel, type, val)
-				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-				""" % {"time": ts, "channel": channel, "type": 'stars-count', "val": len(processor.stars)})
-			cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
-				VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-				""" % {"time": ts, "channel": channel, "type": 'stars-count', "val": len(processor.stars)})
+			if header_key in hdu.header:
+				sensor_data.append({
+					'time': ts,
+					'channel': channel,
+					'type': sensor_type,
+					'val': float(hdu.header[header_key])
+				})
 		except:
-			logging.debug('Cannot insert STARS-COUNT')
+			logging.debug(f'Cannot insert {header_key}')
+
+	# Add star count if available
+	if processor.stars is not None:
+		sensor_data.append({
+			'time': ts,
+			'channel': channel,
+			'type': 'stars-count',
+			'val': len(processor.stars)
+		})
+
+	# Add processing cycle time
+	sensor_data.append({
+		'time': datetime.now().timestamp(),
+		'channel': 6,
+		'type': 'docker-cycle',
+		'val': time.time() - timeCycleStart
+	})
+
+	# Batch insert and replace
+	if sensor_data:
+		# try to break "Lock wait timeout exceeded; try restarting transaction" db hang by new connection
+		db2 = MySQLdb.connect(host=config.db['host'], user=config.db['user'], passwd=config.db['passwd'],
+			database=config.db['database'], charset='utf8')
+		cursor2 = db2.cursor()
+
+		try:
+			for data in sensor_data:
+				print(data)
+				if data['type'] not in ['docker-cycle', 'uptime']:
+					# Insert into main sensor table
+					cursor2.execute(
+						"""INSERT INTO sensor(date, channel, type, val)
+						VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)""" % data
+					)
+				
+				# Update last sensor value
+				cursor2.execute(
+					"""REPLACE INTO sensor_last(date, channel, type, val)
+					VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)""" % data
+				)
+
+			db2.commit()
+		except Exception as e:
+			db2.rollback()
+			logging.error(f'Error executing database operations: {str(e)}')
+
+		cursor2.close()
+		db2.close()
 
 	logging.info('[+] Done')
 	ch.basic_ack(delivery_tag=method.delivery_tag)
-
-	cursor2.execute("""REPLACE INTO sensor_last(date, channel, type, val)
-			VALUES (%(time)i, %(channel)i, '%(type)s', %(val)f)
-			""" % {"time": datetime.now().timestamp(), "channel": 6, "type": 'docker-cycle', "val": time.time() - timeCycleStart })
-
-	db2.commit()
-	cursor2.close()
-	db2.close()
 
 
 def reload(ch, method, properties, body):
