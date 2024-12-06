@@ -391,6 +391,36 @@ class ImageProcessor:
 		# Merge annotations with original image
 		self.img = Image.alpha_composite(self.img.convert('RGBA'), txt).convert('RGB')
 
+	def publish(self):
+		"""
+		Publish the JPG image if publishing is configured.
+		"""
+		if 'jpg' in self.web['publish'] and self.web['publish']['jpg'] != '':
+			filename = self.hdu.header['DATE-OBS'].replace(':', '-').replace('T', '_')
+			try:
+				r = requests.post(
+					self.web['publish']['jpg'],
+					files={'file': open('/snap/' + filename + '.jpg', 'rb')},
+					data={'name': self.web['observatory']['name'], 'pass': 'kjH3vxzm4G'}
+				)
+				self.logger.info('File ' + filename + ' has been published: ' + r.text)
+			except:
+				self.logger.error('Error publishing file ' + filename)
+
+	def save_jpg(self):
+		"""
+		Save the processed image as JPG.
+		"""
+		filename = self.hdu.header['DATE-OBS'].replace(':', '-').replace('T', '_')
+		self.logger.debug('Writing JPEG file...')
+		self.img.save('/snap/' + filename + '.jpg')
+		self.logger.info('File ' + filename + '.jpg has been written.')
+
+		# Create symlink to current.jpg
+		if os.path.islink('/snap/current.jpg'):
+			os.remove('/snap/current.jpg')
+		os.symlink(filename + '.jpg', '/snap/current.jpg')
+
 	def process(self):
 		"""
 		Process the FITS image applying various corrections and enhancements.
@@ -412,6 +442,10 @@ class ImageProcessor:
 
 		self.logo()
 		self.annotate()
+
+		# Save and publish the image
+		self.save_jpg()
+		self.publish()
 
 
 def callback(ch, method, properties, body):
@@ -435,10 +469,6 @@ def callback(ch, method, properties, body):
 	processor.process()
 
 	fit.close()
-
-	logging.debug('Writing JPEG file...')
-	processor.img.save('/snap/'+ body.decode()  +'.jpg')
-	logging.info('File ' + body.decode() + '.jpg has been written.')
 
 	ts = datetime.strptime(hdu.header['DATE-OBS'], '%Y-%m-%dT%H:%M:%S').timestamp() + web['observatory']['timezone'] * 3600
 	channel = 0  # multicamera support
@@ -522,21 +552,6 @@ def callback(ch, method, properties, body):
 				""" % {"time": ts, "channel": channel, "type": 'stars-count', "val": len(processor.stars)})
 		except:
 			logging.debug('Cannot insert STARS-COUNT')
-
-	if os.path.islink('/snap/current.jpg'):
-		os.remove('/snap/current.jpg')
-	os.symlink(body.decode() +'.jpg', '/snap/current.jpg')
-
-	if 'jpg' in web['publish'] and web['publish']['jpg'] != '':
-		try:
-			r = requests.post(
-				web['publish']['jpg'],
-				files={'file': open('/snap/'+ body.decode() +'.jpg', 'rb')},
-				data={'name': web['observatory']['name'], 'pass': 'kjH3vxzm4G'}
-			)
-			logging.info('File ' + body.decode() + ' has been published: ' + r.text)
-		except:
-			logging.error('Error publishing file ' + body.decode())
 
 	logging.info('[+] Done')
 	ch.basic_ack(delivery_tag=method.delivery_tag)
