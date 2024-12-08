@@ -89,13 +89,14 @@ class ImageProcessor:
 	Handles the processing pipeline for astronomical images including
 	corrections and enhancements while maintaining data integrity.
 	"""
-	def __init__(self, web, hdu):
+	def __init__(self, web, hdu, filename):
 		self.logger = logging.getLogger(__name__)
 		self.stars = None
 		self.day_part = None
 		self.web = web
 		self.hdu = hdu
 		self.img = None
+		self.filename = filename
 
 	def hot_pixels(self):
 		"""
@@ -186,15 +187,15 @@ class ImageProcessor:
 			self.logger.debug('Night time - searching for stars')
 			try:
 				daofind = DAOStarFinder(
-					fwhm=float(config['fwhm']),
-					threshold=float(config['threshold']) * std
+					fwhm=float(self.web['processing']['sd']['fwhm']),
+					threshold=float(self.web['processing']['sd']['threshold']) * std
 				)
 				self.stars = daofind(self.hdu.data - median)
 				if self.stars is not None:
 					self.logger.debug(f'Found stars: {len(self.stars)}')
 					self.hdu.header.set('STAR-CNT', len(self.stars), 'Stars count by whole image using DAOStarFinder')
-			except:
-				self.logger.error('Star detection failed')
+			except Exception as e:
+				self.logger.error(f'Star detection failed: {str(e)}')
 				self.stars = None
 		return True
 
@@ -399,7 +400,7 @@ class ImageProcessor:
 		if 'jpg' not in self.web['publish'] or not self.web['publish']['jpg']:
 			return
 
-		filename = self.hdu.header['DATE-OBS'].replace(':', '-').replace('T', '_')
+		filename = self.filename.replace(':', '-').replace('T', '_')
 		filepath = f'/snap/{filename}.jpg'
 
 		def do_publish():
@@ -427,15 +428,14 @@ class ImageProcessor:
 		"""
 		Save the processed image as JPG.
 		"""
-		filename = self.hdu.header['DATE-OBS'].replace(':', '-').replace('T', '_')
 		self.logger.debug('Writing JPEG file...')
-		self.img.save('/snap/' + filename + '.jpg')
-		self.logger.info('File ' + filename + '.jpg has been written.')
+		self.img.save('/snap/' + self.filename + '.jpg')
+		self.logger.info('File ' + self.filename + '.jpg has been written.')
 
 		# Create symlink to current.jpg
 		if os.path.islink('/snap/current.jpg'):
 			os.remove('/snap/current.jpg')
-		os.symlink(filename + '.jpg', '/snap/current.jpg')
+		os.symlink(self.filename + '.jpg', '/snap/current.jpg')
 
 	def process(self):
 		"""
@@ -481,7 +481,7 @@ def callback(ch, method, properties, body):
 		ch.basic_ack(delivery_tag=method.delivery_tag)
 		return
 
-	processor = ImageProcessor(web, hdu)
+	processor = ImageProcessor(web, hdu, body.decode())
 	processor.process()
 
 	fit.close()
