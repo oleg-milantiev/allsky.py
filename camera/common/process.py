@@ -98,6 +98,40 @@ class ImageProcessor:
 		self.img = None
 		self.filename = filename
 
+	def crop(self):
+		"""
+		Crop FITS data (self.hdu.data) according to settings in self.web['processing']['crop'].
+		"""
+		if 'crop' not in self.web['processing']:
+			return False
+
+		crop_cfg = self.web['processing']['crop']
+		if not any(crop_cfg.get(k, 0) > 0 for k in ['left', 'right', 'top', 'bottom']):
+			return False
+
+		self.logger.info(
+			f"Cropping FITS data: left={crop_cfg.get('left',0)}, "
+			f"right={crop_cfg.get('right',0)}, "
+			f"top={crop_cfg.get('top',0)}, "
+			f"bottom={crop_cfg.get('bottom',0)}"
+		)
+
+		data = self.hdu.data
+		h, w = data.shape
+
+		left = int(crop_cfg.get('left', 0))
+		right = int(crop_cfg.get('right', 0))
+		top = int(crop_cfg.get('top', 0))
+		bottom = int(crop_cfg.get('bottom', 0))
+
+		new_left   = max(0, left)
+		new_top    = max(0, top)
+		new_right  = w - max(0, right)
+		new_bottom = h - max(0, bottom)
+
+		self.hdu.data = data[new_top:new_bottom, new_left:new_right]
+		return True
+
 	def hot_pixels(self):
 		"""
 		Remove hot pixels from the image using a hot pixel map.
@@ -441,6 +475,7 @@ class ImageProcessor:
 		"""
 		Process the FITS image applying various corrections and enhancements.
 		"""
+		self.crop()
 		self.hot_pixels()
 		self.median()
 		self.update_location()
