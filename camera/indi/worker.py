@@ -9,6 +9,7 @@ import io
 import os
 import signal
 import logging
+import threading
 from astropy.io import fits
 from datetime import datetime
 
@@ -115,42 +116,23 @@ def find_camera_device():
 		
 	return None, "No suitable camera found"
 
+# Global event for synchronization: set by updateProperty when BLOB arrives
+_blobs_received = threading.Event()
+
 class IndiClient(PyIndi.BaseClient):
 	device = None
-
+	
 	def __init__(self):
 		super(IndiClient, self).__init__()
 
 	def newDevice(self, d):
 		logger.info('newDevice: ' + d.getDeviceName())
 		self.device = d
-		pass
 
 	def newProperty(self, p):
 		pass
 
 	def removeProperty(self, p):
-		pass
-
-	def newBLOB(self, bp):
-		# в свежем INDI под докером сюда не приходит. Чудеса, блин
-		logger.info(' [x] Getting a frame...')
-
-		fit = fits.open(io.BytesIO(bp.getblobdata()))
-		hdu = fit[0]
-		hdu.header['TELESCOP'] = 'AllSky'
-#		hdu.header['INSTRUME'] = cameraName
-#		if not 'GAIN' in hdu.header:
-#			hdu.header['GAIN'] = gain
-#		if hasBinning:
-#			hdu.header['XBINNING'] = bin
-#			hdu.header['YBINNING'] = bin
-#		hdu.header['EXPTIME'] = exposure
-		hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
-		hdu.writeto('/fits/current.fit', overwrite=True)
-
-		logger.info(" [x] Done")
-
 		pass
 
 	def newSwitch(self, svp):
@@ -173,6 +155,27 @@ class IndiClient(PyIndi.BaseClient):
 
 	def serverDisconnected(self, code):
 		pass
+
+	def updateProperty(self, p):
+		if p.getDeviceName() and p.getName() == "CCD1":
+			if p.getType() == PyIndi.INDI_BLOB:
+				blobs = p.getBLOB()
+				if blobs:
+					b = blobs[0]
+					if b.size > 0:
+						logger.info('BLOB received: size=%s format=%s', b.size, b.format)
+						try:
+							fits_data = b.getblobdata()
+							fit = fits.open(io.BytesIO(fits_data))
+							hdu = fit[0]
+							hdu.header['TELESCOP'] = 'AllSky'
+							hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
+							hdu.writeto('/fits/current.fit', overwrite=True)
+							fit.close()
+							logger.info('Image saved to /fits/current.fit (%s bytes)', b.size)
+						except Exception as e:
+							logger.error('Error saving FITS from updateProperty: %s', str(e))
+						_blobs_received.set()
 
 
 # ------------------ начало ---------------------
@@ -224,8 +227,8 @@ try:
 	logger.info('CCD connection switch found')
 
 	if not ccd.isConnected():
-		ccd_connect[0].s = PyIndi.ISS_ON  # the "CONNECT" switch
-		ccd_connect[1].s = PyIndi.ISS_OFF  # the "DISCONNECT" switch
+		ccd_connect[0].s = PyIndi.ISS_ON
+		ccd_connect[1].s = PyIndi.ISS_OFF
 		indi.sendNewSwitch(ccd_connect)
 
 	logger.info('CCD connected')
@@ -276,11 +279,18 @@ try:
 	indi.setBLOBMode(PyIndi.B_ALSO, cameraName, 'CCD1')
 	logger.info('BLOB mode set')
 
+	retries = 10
 	ccd_ccd1 = ccd.getBLOB("CCD1")
 	while not(ccd_ccd1):
 		time.sleep(0.5)
+		retries -= 1
+		if retries == 0:
+			break
 		ccd_ccd1 = ccd.getBLOB("CCD1")
-	logger.info('CCD1 BLOB found')
+	if ccd_ccd1:
+		logger.info('CCD1 BLOB found, size=%s', ccd_ccd1[0].size)
+	else:
+		logger.info('CCD1 BLOB property not found')
 
 	connection = pika.BlockingConnection(
 		pika.ConnectionParameters(
@@ -301,7 +311,7 @@ try:
 	bin = None
 
 	def callback(ch, method, props, body):
-		global bin, gain, exposure, cameraName, indi, ccd_binning, ccd_ccd1
+		global bin, gain, exposure, cameraName, ccd_binning
 
 		payload = json.loads(body.decode())
 		logger.info("Received message: %s", body.decode())
@@ -323,33 +333,20 @@ try:
 			exposure = payload['exposure']
 			logger.info('Setting exposure to %s seconds', exposure)
 
-		indi.props = props
-		indi.ch = ch
+		ch.props = props
+		ch.ch = ch
 
+		_blobs_received.clear()
 		ccd_exposure[0].value = exposure
 		indi.sendNewNumber(ccd_exposure)
 		logger.info("Starting exposure: %s seconds", exposure)
 
-		# wait file
-		# @todo thread.lock and timeout
-		time.sleep(exposure + 2)
-
-		fit = None
-		for blob in ccd_ccd1:
-			logger.debug("BLOB received - Name: %s, Size: %s, Format: %s", 
-				blob.name, blob.size, blob.format)
-			if blob.size > 0:
-				fit = fits.open(io.BytesIO(blob.getblobdata()))
-				hdu = fit[0]
-				hdu.header['TELESCOP'] = 'AllSky'
-				hdu.header['DATE-OBS'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
-				hdu.writeto('/fits/current.fit', overwrite=True)
-				logger.info("Image saved to /fits/current.fit")
-
-		if fit is None:
-			logger.error('Failed to capture image')
+		# Wait for updateProperty callback to signal BLOB received
+		signaled = _blobs_received.wait(timeout=exposure + 10)
+		if not signaled:
+			logger.error('Failed to capture image — timeout waiting for BLOB')
 		else:
-			logger.info("Exposure completed successfully")
+			logger.info('Image received from camera')
 
 		ch.basic_publish(exchange='',
 						routing_key=props.reply_to,
