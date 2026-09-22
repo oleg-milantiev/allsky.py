@@ -61,7 +61,9 @@ python3 -m pip install \
         adafruit-blinka \
         adafruit-platformdetect \
         zwoasi \
-        pika && \
+        pika \
+        astropy \
+        ephem && \
 python3 -m pip install \
         --no-cache-dir \
         dbus-python==1.4.0 && \
@@ -170,6 +172,50 @@ python3 -m pip install \
         --only-binary=:all: \
         --no-deps \
         pyindi-client==2.2.0 && \
+mkdir -p /tmp/sim-src && \
+    cp /tmp/indi/drivers/ccd/sky_renderer.cpp \
+       /tmp/indi/drivers/ccd/ccd_simulator.cpp \
+       /tmp/sim-src/ && \
+    cp /tmp/indi/drivers/ccd/sky_renderer.h \
+       /tmp/indi/drivers/ccd/ccd_simulator.h \
+       /tmp/sim-src/ && \
+    printf '%s\n' \
+        'cmake_minimum_required(VERSION 3.16)' \
+        'project(indi_simulator_ccd LANGUAGES CXX)' \
+        '' \
+        'set(CMAKE_MODULE_PATH "/tmp/indi/cmake_modules")' \
+        '' \
+        'find_package(INDI REQUIRED COMPONENTS driver)' \
+        '' \
+        'add_executable(indi_simulator_ccd' \
+        '    sky_renderer.cpp' \
+        '    ccd_simulator.cpp' \
+        ')' \
+        '' \
+        'target_compile_definitions(indi_simulator_ccd PRIVATE' \
+        '    USE_EQUATORIAL_PE' \
+        ')' \
+        '' \
+        'target_include_directories(indi_simulator_ccd PRIVATE' \
+        '    ${INDI_INCLUDE_DIR}' \
+        '    /tmp/indi/libs' \
+        ')' \
+        '' \
+        'target_link_libraries(indi_simulator_ccd PRIVATE' \
+        '    ${INDI_DRIVER_LIBRARIES}' \
+        '    nova' \
+        '    cfitsio' \
+        ')' \
+        '' \
+        'install(TARGETS indi_simulator_ccd RUNTIME DESTINATION bin)' \
+        > /tmp/sim-src/CMakeLists.txt && \
+    cmake \
+        -S /tmp/sim-src \
+        -B /tmp/sim-build \
+        -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build /tmp/sim-build -j"$(nproc)" && \
+    cmake --install /tmp/sim-build && \
 python3 -c \
     "import PyIndi; print('PyIndi:', PyIndi.__file__)" && \
 echo "=== INDI drivers ===" && \
@@ -186,6 +232,7 @@ python3 -c \
      print('PyIndi:', PyIndi.__file__); \
      print('INDI Python client OK')" && \
 rm -rf \
+        /tmp/sim-src \
         /tmp/indi \
         /tmp/indi-3rdparty \
         /tmp/indi-build \

@@ -66,7 +66,9 @@ RUN python3 -m pip install \
         adafruit-blinka \
         adafruit-platformdetect \
         zwoasi \
-        pika
+        pika \
+        astropy \
+        ephem
 
 # ============================================================
 # D-Bus Python bindings
@@ -276,6 +278,56 @@ RUN python3 -m pip install \
         pyindi-client==2.2.0
 
 # ============================================================
+# Build INDI simulator CCD driver
+# ============================================================
+RUN mkdir -p /tmp/sim-src && \
+    cp /tmp/indi/drivers/ccd/sky_renderer.cpp \
+       /tmp/indi/drivers/ccd/ccd_simulator.cpp \
+       /tmp/sim-src/ && \
+    cp /tmp/indi/drivers/ccd/sky_renderer.h \
+       /tmp/indi/drivers/ccd/ccd_simulator.h \
+       /tmp/sim-src/
+
+RUN cat > /tmp/sim-src/CMakeLists.txt <<'EOF'
+cmake_minimum_required(VERSION 3.16)
+project(indi_simulator_ccd LANGUAGES CXX)
+
+set(CMAKE_MODULE_PATH "/tmp/indi/cmake_modules")
+
+find_package(INDI REQUIRED COMPONENTS driver)
+
+add_executable(indi_simulator_ccd
+    sky_renderer.cpp
+    ccd_simulator.cpp
+)
+
+target_compile_definitions(indi_simulator_ccd PRIVATE
+    USE_EQUATORIAL_PE
+)
+
+target_include_directories(indi_simulator_ccd PRIVATE
+    ${INDI_INCLUDE_DIR}
+    /tmp/indi/libs
+)
+
+target_link_libraries(indi_simulator_ccd PRIVATE
+    ${INDI_DRIVER_LIBRARIES}
+    nova
+    cfitsio
+)
+
+install(TARGETS indi_simulator_ccd RUNTIME DESTINATION bin)
+EOF
+
+RUN cmake \
+        -S /tmp/sim-src \
+        -B /tmp/sim-build \
+        -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build /tmp/sim-build -j"$(nproc)" && \
+    cmake --install /tmp/sim-build
+
+# ============================================================
 # Verify PyIndi
 # ============================================================
 
@@ -312,6 +364,7 @@ RUN python3 -c \
 
 RUN rm -rf \
         /tmp/indi \
+        /tmp/sim-src \
         /tmp/indi-3rdparty \
         /tmp/indi-build \
         /tmp/libqhy-build \
