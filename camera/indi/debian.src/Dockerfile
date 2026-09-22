@@ -42,6 +42,7 @@ RUN apt-get update && \
         libfftw3-dev \
         librtlsdr-dev \
         libcfitsio-dev \
+        libmariadb-dev \
         libgphoto2-dev \
         libdc1394-dev \
         libboost-dev \
@@ -56,6 +57,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
 python3 -m pip install \
         --no-cache-dir \
+        dbus-python==1.4.0 && \
+python3 -c \
+    "import dbus; print('dbus:', dbus.__file__)" && \
+python3 -m pip install \
+        --no-cache-dir \
         adafruit-circuitpython-bme280 \
         RPi.GPIO \
         adafruit-blinka \
@@ -63,12 +69,12 @@ python3 -m pip install \
         zwoasi \
         pika \
         astropy \
-        ephem && \
-python3 -m pip install \
-        --no-cache-dir \
-        dbus-python==1.4.0 && \
-python3 -c \
-    "import dbus; print('dbus:', dbus.__file__)" && \
+        ephem \
+        requests \
+        mysqlclient \
+        scipy \
+        Pillow \
+        photutils && \
 git clone \
         --depth 1 \
         https://github.com/indilib/indi.git \

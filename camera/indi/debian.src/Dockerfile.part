@@ -42,6 +42,7 @@ RUN apt-get update && \
         libfftw3-dev \
         librtlsdr-dev \
         libcfitsio-dev \
+        libmariadb-dev \
         libgphoto2-dev \
         libdc1394-dev \
         libboost-dev \
@@ -54,21 +55,6 @@ RUN apt-get update && \
         usbutils \
     && \
     rm -rf /var/lib/apt/lists/*
-
-# ============================================================
-# Python packages
-# ============================================================
-
-RUN python3 -m pip install \
-        --no-cache-dir \
-        adafruit-circuitpython-bme280 \
-        RPi.GPIO \
-        adafruit-blinka \
-        adafruit-platformdetect \
-        zwoasi \
-        pika \
-        astropy \
-        ephem
 
 # ============================================================
 # D-Bus Python bindings
@@ -91,6 +77,26 @@ RUN python3 -m pip install \
 
 RUN python3 -c \
     "import dbus; print('dbus:', dbus.__file__)"
+
+# ============================================================
+# Python packages
+# ============================================================
+
+RUN python3 -m pip install \
+        --no-cache-dir \
+        adafruit-circuitpython-bme280 \
+        RPi.GPIO \
+        adafruit-blinka \
+        adafruit-platformdetect \
+        zwoasi \
+        pika \
+        astropy \
+        ephem \
+        requests \
+        mysqlclient \
+        scipy \
+        Pillow \
+        photutils
 
 # ============================================================
 # INDI sources
