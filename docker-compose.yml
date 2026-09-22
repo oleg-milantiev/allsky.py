@@ -45,7 +45,6 @@
 
 # start with camera name in profile, like:
 # docker-compose --profile qhy up -d
-version: "3.3"
 
 services:
   yolo:
@@ -58,7 +57,8 @@ services:
         max-size: "10m"
         max-file: "3"
     depends_on:
-      - rabbit
+      rabbit:
+        condition: service_healthy
     env_file:
       - .env
     restart: unless-stopped
@@ -80,13 +80,20 @@ services:
         max-size: "10m"
         max-file: "3"
     depends_on:
-      - allsky
-      - process
-      - camera
-      - db
-      - rabbit
-      - nginx
-      - php
+      allsky:
+        condition: service_started
+      process:
+        condition: service_started
+      camera:
+        condition: service_started
+      db:
+        condition: service_healthy
+      rabbit:
+        condition: service_healthy
+      nginx:
+        condition: service_healthy
+      php:
+        condition: service_started
     env_file:
       - .env
     restart: unless-stopped
@@ -112,8 +119,10 @@ services:
         max-size: "10m"
         max-file: "3"
     depends_on:
-      - db
-      - rabbit
+      db:
+        condition: service_healthy
+      rabbit:
+        condition: service_healthy
     env_file:
       - .env
     privileged: true
@@ -306,6 +315,12 @@ services:
       MYSQL_PASSWORD: ''
     expose:
       - 3306
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -pmaster"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     volumes:
       - my-db:/var/lib/mysql
       - ./db/:/docker-entrypoint-initdb.d/:ro
@@ -326,6 +341,12 @@ services:
       - .env
     expose:
       - 5672
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       appnet:
         aliases:
@@ -345,7 +366,7 @@ services:
         max-file: "3"
     restart: unless-stopped
     ports:
-      - 80:80
+      - 81:80
     volumes:
       - ./nginx/allsky.conf:/etc/nginx/conf.d/allsky.conf:ro
       - ./web:/var/www/html
