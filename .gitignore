@@ -1,3 +1,4 @@
+.idea/
 camera/common/__pycache__/*
 camera/common/hot/*
 camera/common/hot-?.png
