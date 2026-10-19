@@ -554,6 +554,7 @@ minute = datetime.now().strftime("%Y-%m-%d_%H-%M")
 bin = 1
 gain = web['ccd']['gainMin']
 exposure = web['ccd']['expMin']
+mismatch_count = 0
 
 attempt = 0
 attempts = []
@@ -585,6 +586,17 @@ while True:
         if hdu is not None:
             # старый кадр. Ждём запрошенного
             logging.info('Выдержка / gain / bin полученного кадра не соответствует запрошенной '+ str(round(exposure, 2)) +'/'+ str(gain if 'GAIN' in hdu.header else 'na') +'/'+ str(bin) +' != '+ str(round(hdu.header['EXPTIME'], 2)) +'/'+ str(hdu.header['GAIN'] if 'GAIN' in hdu.header else 'na') +'/'+ str(hdu.header['XBINNING']))
+
+            actual_bin = int(hdu.header['XBINNING'])
+            if actual_bin < bin:
+                mismatch_count = mismatch_count + 1
+                if mismatch_count > 5:
+                    logging.warning('Camera does not support bin=%d (got %d), forcing bin=1', bin, actual_bin)
+                    bin = actual_bin
+                    mismatch_count = 0
+                    continue
+            else:
+                mismatch_count = 0
 
     # Подсчёт среднего по центру кадра
     center = 50
