@@ -91,7 +91,7 @@ services:
       rabbit:
         condition: service_healthy
       nginx:
-        condition: service_healthy
+        condition: service_started
       php:
         condition: service_started
     env_file:
@@ -146,9 +146,12 @@ services:
         max-size: "10m"
         max-file: "3"
     depends_on:
-      - rabbit
-      - camera
-      - db
+      rabbit:
+        condition: service_healthy
+      camera:
+        condition: service_started
+      db:
+        condition: service_healthy
     env_file:
       - .env
     restart: unless-stopped
@@ -195,15 +198,19 @@ services:
         max-size: "10m"
         max-file: "3"
     depends_on:
-      - rabbit
-      - indi
+      rabbit:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      indi:
+        condition: service_started
     env_file:
       - .env
     restart: unless-stopped
     command: python3 /camera/worker.py
     privileged: true
     volumes:
-      - ./camera/indi:/camera:ro
+      - ./camera/indi:/camera
 
       - ./camera/qhy/udev/etc/udev/rules.d/:/etc/udev/rules.d:ro
       - ./camera/qhy/udev/lib/firmware/qhy/:/lib/firmware/qhy:ro
@@ -353,11 +360,6 @@ services:
           - rabbit
 
   nginx:
-    healthcheck:
-      test: curl -sS http://127.0.0.1 || exit 1
-      interval: 60s
-      timeout: 10s
-      retries: 3
     image: nginx:latest
     container_name: allsky-nginx
     logging:
